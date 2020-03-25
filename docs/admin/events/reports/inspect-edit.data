@@ -1,0 +1,28 @@
+include_once 'i18n.h';
+
+require_once 'form.h';
+
+$erid = $_GET['erid'];
+$row = db_row('select * from event_registrations join event_pricing using (event_pricing_id) join events using (event_id)  where event_registration_id=?', $erid);
+$form_fields = array();
+if ($row['custom_registration_form_header']) {
+	require_once ($row['custom_registration_form_header']);
+	$custom = call_user_func($row['custom_registration_form_function']);
+
+	if ($custom['edit_hook']) {
+		$form_fields = call_user_func($custom['edit_hook'], $erid);
+	}
+}
+
+form_set('default', form_auto('event_registrations', $erid)+ i18n_form_fields('Event '+$row['event_id']+' fields', $erid)+$form_fields);
+if (form_valid()) {
+	form_auto_handle('event_registrations', $erid);
+	i18n_form_handle('Event '+$row['event_id']+' fields', $erid);
+	if ($custom && $custom['edit_submit_handler']) {
+		$form_fields = call_user_func($custom['edit_submit_handler'], $erid, $_POST);
+	}
+	db_send('insert into event_registration_diary (event_registration_id,note) values (?,?)', $erid, "Customer info edited by ".user_email());
+
+	redirect(href('inspect.html', 'erid', $erid));
+}
+

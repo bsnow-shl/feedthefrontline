@@ -1,0 +1,128 @@
+
+require_once 'form.h';
+
+
+$fields_fn = config_get('users', 'fields_callback');
+if ($fields_fn) {
+	$u = $fields_fn();
+	$u_keys = array_keys($u) ;
+	foreach ($u_keys as $u) {
+	    $fields[$u] = str_replace('_', ' ',$u) ;
+	}
+}
+$fields[first_name] = 'first name';
+$fields[last_name] = 'last name';
+$fields[email] = 'email';
+
+$fields[] = '';
+
+
+$fmenu = array('type'=>'menu', 'menu'=>$fields);
+$rules = array(
+	'eq' => '=',
+	'ne' => '!=',
+	'lt' => '<',
+	'lte' => '<=',
+	'gt' => '>',
+	'gte' => '>=',
+	'like' => 'contains',
+	'notlike' => "doesn't contain",
+	'set' => 'is set',
+	'notset' => 'is not set',
+);
+$rmenu = array('type'=>'menu', 'menu' => $rules);
+
+$form = array(
+    'constraint_field[0]' => $fmenu,
+    'constraint_field[1]' => $fmenu,
+    'constraint_field[2]' => $fmenu,
+    'constraint_field[3]' => $fmenu,
+    'constraint_field[4]' => $fmenu,
+    'constraint_field[5]' => $fmenu,
+    'constraint_rule[0]' => $rmenu,
+    'constraint_rule[1]' => $rmenu,
+    'constraint_rule[2]' => $rmenu,
+    'constraint_rule[3]' => $rmenu,
+    'constraint_rule[4]' => $rmenu,
+    'constraint_rule[5]' => $rmenu,
+    'constraint_value[0]' => 'text',
+    'constraint_value[1]' => 'text',
+    'constraint_value[2]' => 'text',
+    'constraint_value[3]' => 'text',
+    'constraint_value[4]' => 'text',
+    'constraint_value[5]' => 'text',
+    'sub_divide[0]' => $fmenu,
+    'sub_divide[1]' => $fmenu,
+    'sub_divide[2]' => $fmenu,
+    'sub_divide[3]' => $fmenu,
+    'sub_divide[4]' => $fmenu,
+    );
+
+
+form_set($form);
+if ($_REQUEST['sub_divide']) {
+	$sub_divide = $_REQUEST['sub_divide'];
+	$constraint_field = $_REQUEST['constraint_field'];
+	$constraint_rule = $_REQUEST['constraint_rule'];
+	$constraint_value = $_REQUEST['constraint_value'];
+	if (is_scalar($sub_divide)) {$sub_divide = unserialize($sub_divide); }
+	if (is_scalar($constraint_field)) {$constraint_field = unserialize($constraint_field); }
+	if (is_scalar($constraint_rule)) {$constraint_rule = unserialize($constraint_rule); }
+	if (is_scalar($constraint_value)) {$constraint_value = unserialize($constraint_value); }
+
+	foreach ($sub_divide as $i) {
+	if ($i) {
+	    $sd[] = $i;
+	}
+	}
+	if ($sd) {
+	    $fields_sql = join(',',$sd);
+	    $groupby = 'group by '.$fields_sql.' order by '.$fields_sql;
+	    $fields_sql .= ',';
+	}
+
+	$i=0;
+
+	if ($constraint_field) {
+		foreach ($constraint_field as $c) {
+			if ($constraint_rule[$i]) {
+				$lookup = $constraint_rule[$i];
+				$rule = $rules[$lookup];
+				$value = $constraint_value[$i];
+				if ($lookup == 'like') {
+					$where[] = " $c LIKE '%$value%' ";
+				} else if ($lookup == "notlike") {
+					$where[] = " $c NOT LIKE '%$value%' ";
+				} else if ($lookup == "set") {
+					$where[] = " $c IS NOT NULL ";
+				} else if ($lookup == "notset") {
+					$where[] = " $c IS NULL ";
+				} else {
+					if (strpos($value, 'CURRENT_TIMESTAMP')!== false) {
+						$where[] = " $c $rule ".$value;
+					} else {
+						$where[] = " $c $rule '".addslashes($value)."'";
+					}
+				}
+			}
+			$i++;
+		}
+	}
+	if ($where) {
+		$where_sql = 'where '.join(' and ',$where);
+	}
+
+	$sql = "select $fields_sql count(*) from user_reporting_view $where_sql $groupby";
+	$result = db_multirow($sql);
+    
+    $url = href('users.html', 
+		'sub_divide', serialize($sub_divide),
+		'constraint_field', serialize($constraint_field),
+		'constraint_rule', serialize($constraint_rule),
+		'constraint_value', serialize($constraint_value) );
+    $url_already_added = db_value('select count(*) from user_reports where report_url=?', $url);
+
+	template_disable();
+}
+
+ 

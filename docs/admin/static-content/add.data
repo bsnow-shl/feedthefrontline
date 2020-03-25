@@ -1,0 +1,19 @@
+
+require_once 'form.h';
+
+$info = apache_lookup_uri($_GET['uri']);
+$file = $info->filename;
+$page_title = strip_tags(`grep "<title>" $file`);
+form_set(array(
+	'page_id' => array('type'=>'hidden', 'default'=>db_newid('static_content')),
+	'uri' => 'text,required',
+	'title' => array('type'=>'text', 'value'=>$page_title, 'required' => 1),
+	author => user_menu_byname()+array('default'=>user_id(),'required'=>1),
+));
+if (form_valid()) {
+	db_send('insert into static_content (page_id,uri,title,author)
+			values (?,?,?,?)',
+			$page_id, $uri, $title, $author);
+	form_add_note("That page has been added; <a href=\"$uri\">back to it</a>, perhaps?");
+}
+

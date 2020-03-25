@@ -1,0 +1,46 @@
+
+require_once 'users.h';
+require_once 'form.h';
+
+
+form_set('bboard', array(
+	'bulletin_board' => array ( type => 'menu', 
+				sql => "select bboard_id as key, pretty_name as value from bboards",
+				required => 1
+				)
+));
+
+
+if (form_valid('bboard')) {
+	$_SESSION['edit_bboard'] = $bulletin_board;
+	redirect('edit.html');
+}
+
+
+
+form_set('addbboard', array(
+	'pretty_name'=> 'text,required',
+	'short_name' => array('type'=>'text', 'required'=>1, pretty=>'Short name (for URLs)'),
+	'blurb' => 'bigtext',
+	'restricted_role_name' => array('type'=>'menu', 'sql'=>'select role_name as key, role_name as value from roles order by role_name'),
+    'special_restriction' => 'text',
+	'definition_of_old' => array('type'=>'integer', 'positive' => 1, pretty=> 'Number of posts considered recent', 'default'=>30),
+));
+if (form_submitted('addbboard')) {
+	if (db_value('select count(*) from bboards where short_name=?', $short_name)) {
+		form_error('short_name', 'A form with that name already exists.', 'addbboard');
+	}
+}
+
+if (form_valid('addbboard')) {
+	$newid = db_newid('bboards');
+	db_send('insert into bboards(bboard_id,pretty_name,short_name,blurb,definition_of_old,restrict_to_permission,restrict_to_special) values(?,?,?,?,?,?,?)',
+		$newid, $pretty_name,$short_name,$blurb,$definition_of_old,$restricted_role_name,$special_restriction);
+	form_add_note("The board '$pretty_name' has been added.", "addbboard");
+}
+$roles = db_multirow('select role_id as key, role_name as value from roles');
+
+$num_bboards = db_value('select count(*) from bboards');
+$num_messages = db_value('select count(*) from bboard_messages');
+
+

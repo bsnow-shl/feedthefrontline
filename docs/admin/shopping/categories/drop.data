@@ -1,0 +1,8 @@
+
+$cid = 0+$_GET['cid'];
+$pid = 0+$_GET['pid'];
+
+db_send('delete from shopping_product_category_map where category_id=? and product_id=?', $cid, $pid);
+redirect(href('edit.html', 'cid', $cid));
+
+

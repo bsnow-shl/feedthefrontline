@@ -1,0 +1,36 @@
+require_once 'form.h';
+
+
+form_set(array(
+  'short_name' => array('type'=>'text', 'required' => 1, 'hint' => 'No spaces.'),
+  'access_right_id' => array('type'=>'menu','sql'=>'select access_right_id as key, name as value from i18n_access_rights order by display_order', 'required'=>1),
+  'class_id' => array('type'=>'menu', 'default' => 0+$_GET['class'], 'required' => 1, 'pretty'=>'Item type', 'sql'=>
+          'select class_id as key,class_name as value from i18n_classes where editable_in_cms=1 order by class_id ')
+	)+i18n_form_fields('Content item')
+);
+if (form_was_submitted()) {
+	if (!preg_match('/^[a-zA-Z0-9\-_\.]+$/', $short_name)) {
+		form_error('short_name', 'This is used to generate URLs for linking to content: alphanumeric only.');
+	}
+	if (db_value('select count(*) from i18n_content where short_name=?', $short_name)) {
+		form_error('short_name', 'That <a href="/content/'.$short_name.'">page name</a> has already been used.');
+	}
+}
+if (form_valid()) {
+	db_send('begin');
+	$content_id = db_newid('i18n_content');
+	db_send('insert into i18n_content(content_id, short_name, access_right_id, class_id) values (?,?,?,?)',
+			$content_id, $short_name, $access_right_id, $class_id);
+	if ($_GET['parent']) {
+		db_insert_hash('i18n_content_hierarchy', array(
+				'content_id' => $content_id,
+				'parent_content_id' => $_GET['parent'],
+				'display_order' => db_newid('display_order')
+				));
+	}
+	i18n_form_handle('Content item', $content_id);
+	db_send('commit');
+  redirect(href('edit-item.html', 'content_id', $content_id));
+}
+
+				

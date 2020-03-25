@@ -1,0 +1,23 @@
+require_once 'form.h';
+require_once 'shopping.h';
+
+$seid = $_GET['shopcart_entry_id'];
+
+$row = db_row('select address_id , shopcart_id from shopping_shopcart_entries where shopcart_entry_id=?', $seid);
+$addr = $row['address_id'];
+$address = db_row('select * from user_addresses where address_id=?', $addr);
+
+form_set(array(
+        'quality'=>array('type'=>'menu','menu'=>array('J'=>'Junk','U'=>'Uncertain','G'=>'Good', 'F'=>'Failed lookup'), 'default'=>$address['quality'])
+));
+if (form_valid()) {
+        if ($quality=='F') {
+                form_error('quality', "You can't actually set it to that.");
+        }
+}
+if (form_valid()) {
+        db_send('update user_addresses set quality=? where address_id=?', $quality, $addr);
+        db_send("update shopping_shopcarts set status='assess-address' where shopcart_id=?", $row['shopcart_id']);
+        shopping_add_diary(user_name()." set address quality to $quality", $row['shopcart_id']);
+redirect(href('detail.html','sid', $row['shopcart_id']));
+}

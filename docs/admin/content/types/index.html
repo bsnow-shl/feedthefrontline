@@ -1,0 +1,29 @@
+<!--
+<title>Content type definitions</title>
+-->
+
+<h2>Content types</h2>
+<div class=section>
+
+Choose a content type to adjust its definition:
+
+<table class="padded">
+<tr><th>
+Type</th>
+<th>Table</th>
+</tr>
+<? foreach ($classes as $c): ?>
+<tr>
+<td>
+<a href="type-edit.html?classid=<%= $c['class_id']%>"><%= $c['class_name'] %></a>
+</td>
+<td>
+<%= $c['table_name'] %>
+</td>
+<? endforeach ?>
+<tr><td colspan="2">
+	<a href="type-add.html">... or you can add one...</a>
+</td></tr>
+
+</table>
+</div>

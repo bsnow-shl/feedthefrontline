@@ -1,0 +1,15 @@
+<div class=links>
+<? global $cid, $c;?>
+<h3>drastic actions</h3>
+<p>
+<a href="<%= href("edit-contract.html", "contract", $cid) %>">Edit terms...</a>
+<a href="<%= href("delete.html", "contract", $cid) %>">Delete</a>
+
+<? if ($c['retired']): ?>
+<a href="<%= href("retire.html", "contract", $cid, 'unretire', 1) %>">Unretire</a>
+<? else: ?>
+<a href="<%= href("retire.html", "contract", $cid) %>">Retire</a>
+<? endif ?>
+</p>
+
+</div>

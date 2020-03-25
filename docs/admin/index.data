@@ -1,0 +1,37 @@
+require_once 'users.h';
+require_once 'i18n.h';
+require_once 'ajax.h';
+
+user_require();
+
+$query = db_multirow('select * from roles join admin_areas using(role_id) left outer join admin_categories using (admin_category_id)  
+		order by order_in_page,order_in_category,admin_Areas.description');
+
+foreach ($query as $r) {
+	if (!$r['name']) {
+		$r['name'] = "Other";
+	}
+	if (!$r['order_in_page']) {
+		$r['order_in_page'] = 100;
+	}
+
+	if (user_has_role($r['role_name'])) {
+		$areas[$r['order_in_page']][$r['name']][] = $r;
+	}
+}
+
+$whatup = i18n_get_current_content("Admin What's New");
+
+require_once 'cache.h';
+$stats = cache_get_extended_stats();
+if ($stats) {
+	$cache_items = $stats['curr_items'];
+	$cache_items++;
+}
+
+switch (ajax_action()) {
+	case 'cache_flush':
+		print "cache_target|<b>Flushed.</b>\n";
+		memcache_flush(_cache_connect());
+		exit;
+}

@@ -1,0 +1,7 @@
+
+
+db_send('delete from event_session_registrations where event_registration_id=? and session_option_id=?', 0+$_GET['erid'], 0+$_GET['soid']);
+$sess = i18n_get('Event session option', $_GET['soid']);
+db_send('insert into event_registration_diary (event_registration_id,note) values (?,?)', $_GET['erid'], sprintf('Dropped from session  %s by %s', $sess['title'], user_email()));
+
+redirect(href('inspect-edit-sessions.html','erid', $_GET['erid']));

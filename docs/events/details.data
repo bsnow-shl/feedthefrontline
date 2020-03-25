@@ -1,0 +1,45 @@
+
+require_once 'i18n.h';
+require_once 'events.h';
+require_once 'users.h';
+
+$eid = 0+$_GET['event_id'];
+$additional = 0+$_GET['additional'];
+if (!$eid) {
+	redirect("/events/index.html");
+}
+
+$info = i18n_get('Event', $eid);
+$info += db_row('select * from events where event_id=?', $eid);
+if ($info['publishing_status']!='published' && !user_has_role('events_admin')) {
+	redirect("/events/index.html");
+}
+
+
+$reason = event_refuses_registrations($eid);
+
+$reg_row = db_multirow("select event_registration_id as eid, paid, date_part('epoch', er.create_datetime) as confirm  from events as e, event_pricing as ep, event_registrations as er 
+		WHERE e.event_id = ep.event_id AND
+			er.event_pricing_id = ep.event_pricing_id AND
+			e.event_id=? AND
+			confirmed=1 AND
+			user_id is not null and user_id=?", $eid, user_id());
+if ($reg_row) {
+	$reg_row = $reg_row[0];
+}
+
+$reg_id = $reg_row['eid'];
+$paid = $reg_row['paid'];
+$confirm = $reg_row['confirm'];
+
+
+# maybe overlay the additional item
+if ($additional) {
+	$_GET['template'] = 'no'; 
+	$additional_row = db_row('select * from event_additional_content where event_id=? and event_additional_content_id=?', $eid, $additional);
+	if (!$additional_row) { exit; }
+
+	$additional_content = i18n_get('Event additional content', $additional);
+	$info['title'] = $additional_content['title'];
+	$info['description'] = $additional_content['body'];
+}

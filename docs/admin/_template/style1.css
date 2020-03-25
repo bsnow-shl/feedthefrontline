@@ -1,0 +1,124 @@
+html,body{margin:0;padding:0}
+body{font: 9pt 'Lucida Grande', Geneva, Verdana, Arial, Helvetica, sans-serif;
+    text-align: left;background: white; color: #183d41; padding-bottom:20px}
+
+a:link, a:visited { color: blue; background: inherit; text-decoration: none; }
+
+#header h1 { 
+    font: bold 18pt 'Myriad Apple', 'Lucida Grande', Geneva, Verdana, Arial, Helvetica, sans-serif;
+    padding: 0;
+    margin: 0;
+	margin-bottom: 3px;
+}
+#header h2 { 
+    font: bold 10pt 'Myriad Apple', 'Lucida Grande', Geneva, Verdana, Arial, Helvetica, sans-serif;
+    padding: 0;
+	margin: 0;
+}
+
+#header{
+	overflow:hidden;
+	color: #183d41;
+	height: 65px;
+    background: url(/admin/_template/background.png) top left no-repeat;;
+    border: 0;
+}
+
+#menus { 
+    width: 110px; 
+    color: #333;
+    background: #eee;
+    border: 1px solid #888;
+	padding: 5px;
+}
+#menus a:visited, #menus a:link { text-decoration: none; color: #4040b0; }
+
+#context {
+	float: left;
+	padding: 1em;
+	margin-bottom: 1.2em;
+	background: #04c5d4;
+	width: 100px;
+	text-align: justify;
+}
+
+#content {
+	max-width: 1070px;
+	width: 650px;
+	padding: 5px;
+}
+
+h1,h2,h3,h4,h5,h6 { margin-top: 0.3em;  margin-bottom: 0.2em; }
+#menus h3 { margin:0; padding: 0; margin-bottom: 0.2em; }
+
+ul { padding-top: 0; padding-bottom: 0; }
+dt { padding-top: 1em; }
+
+
+#partnerlogo-carrier { width: 780px;  margin: 0; padding; 0; }
+#partnerlogo { float: right; margin: 0; margin-top: 5px; padding: 0; border: 3px solid white; }
+
+
+.links a { display: block; }
+.links { white-space: nowrap;  margin-bottom: 1.2em; }
+
+#topmenu a:visited, #topmenu a:link { display: inline; text-decoration: none; margin: 3px; }
+#topmenu a:hover { background: white; }
+#topmenu a:visited.active, #topmenu a:visited.active { background: white; }
+
+th { background-color: #ddd; }
+table.padded tr td , table.padded tr th { padding: 5px }
+form  { padding: 0; margin: 0; }
+
+.error { background-color: yellow; padding: 3px; }
+.formnote, .nb { background-color: lightgreen; padding: 3px; }
+
+
+form th { padding: 5px; }
+
+.header { border-bottom: 1px dashed #ccc; padding-bottom: 0.5em; margin-bottom: 1em;}
+.footer { border-top: 1px dashed #ccc; margin-top: 1.5em; margin-top: 5em; text-align: right;}
+
+.box { font-size: 95%; }
+
+
+
+    #mod {position:relative;}
+    #autocomplete, #autocomplete2 {position:relative;width:15em;margin-bottom:1em;}/* set width of widget here*/
+    #autocomplete {z-index:9000} /* for IE z-index of absolute divs inside relative divs issue */
+    #input, #input2 {_position:absolute;width:100%;height:1.4em;z-index:0;} /* abs for ie quirks */
+    #container, #container2 {position:absolute;top:1.7em;width:100%}
+    #container .yui-ac-content, #container2 .yui-ac-content {position:absolute;width:100%;border:1px solid #404040;background:#fff;overflow:hidden;z-index:9050;}
+    #container .yui-ac-shadow, #container2 .yui-ac-shadow {position:absolute;margin:.3em;width:100%;background:#a0a0a0;z-index:9049;}
+    #container ul, #container2 ul {padding:5px 0;width:100%;}
+    #container li, #container2 li {padding:0 5px;cursor:default;white-space:nowrap;}
+    #container li.yui-ac-highlight, #container2 li.yui-ac-highlight {background:#ff0;}
+    #container li.yui-ac-prehighlight,#container2 li.yui-ac-prehighlight {background:#FFFFCC;}
+
+ul.admin_options { list-style: none; margin: 0; padding: 0; }
+ul.admin_options li { line-height: 1.1em; padding: 0; margin: 0;}
+
+.section {
+	margin-bottom: 4em;
+}
+
+.nowrap {
+    text-wrap: suppress; 
+}
+
+A.buttonesque  {
+	border: 1px solid #333;
+	padding: 5px;
+	font: bold 110% 'Myriad Apple', 'Lucida Grande', Geneva, Verdana, Arial, Helvetica, sans-serif;
+}
+A.buttonesque:link, A.buttonesque:visited {
+	color: black;
+}
+A.buttonesque:hover {
+  background-color: #fee;
+}
+
+
+.hidden { display: none; }
+
+

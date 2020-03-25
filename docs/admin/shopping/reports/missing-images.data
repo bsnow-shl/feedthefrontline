@@ -1,0 +1,15 @@
+
+$sku = db_array('select distinct sku from shopping_products where visible_public=1');
+
+chdir($_SERVER['DOCUMENT_ROOT']);
+chdir('products/images');
+
+
+$missing = array();
+foreach ($sku as $s) {
+    if (!file_exists("$s-L.jpg") || !file_exists("$s-M.jpg") || !file_exists("$s-S.jpg")) {
+        $missing[] = $s;
+    } else {
+    }
+}
+

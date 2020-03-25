@@ -1,0 +1,54 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+$ptid = 0+$_GET['ptid'];
+if ($ptid) {
+	$_SESSION['ptid'] = $ptid;
+} else {
+	$ptid = $_SESSION['ptid'];
+}
+
+$type_row = db_row('select class_id, short_name from shopping_product_types where product_type_id=?', $ptid);
+$type_name = $type_row['short_name'];
+$content_class_id = $type_row['i18n_class_id'];
+
+if (!$ptid || !$type_name) { redirect("index.html"); }
+
+
+form_set(array(
+	'option_enterer' => array('type'=>'menu','menu'=>array('recipient'=>'recipient', 'sender'=>'sender', 'fulfiller' => 'fulfiller', 'system' => 'system'), 'required'=>1, 'default'=>'sender'),
+	'option_type' => array('type'=>'menu','menu'=>array('text'=>'text', 'bigtext'=>'bigtext', 'menu'=>'menu'), 'required'=>1),
+	'option_short_name' => 'text,required'
+)+i18n_form_fields('Product type option'));
+
+if (form_valid()) {
+	$ptoid = db_newid('shopping_product_type_options');
+
+	db_send('insert into shopping_product_type_options(type_option_id, product_type_id, option_name, option_type, option_enterer) values (?,?,?,?,?)', 
+		$ptoid, $ptid, $option_short_name, $option_type, $option_enterer);
+	i18n_form_handle('Product type option', $ptoid);
+}
+
+
+# load in various interesting info
+$options = db_multirow('select* from shopping_product_type_options where product_type_id=?', $ptid);
+i18n_get_batch($options, 'Product type option', 'type_option_id');
+
+$attributes = array();
+if ($content_class_id) {
+	$attributes = db_multirow('select * from i18n_fields where class_id=?', $content_i18n_class_id);
+}
+$referring_products = db_value('select count(*) from shopping_products where product_type_id=?', $ptid);
+
+$not_droppable = sizeof($options)>0 || $referring_products>0;
+
+$details_form = i18n_form_fields('Product type', $ptid) + array('commission_header'=>'text', 'commission_function' => 'text', 'fulfillment_header'=>'text','fulfillment_function'=>'text');
+if ($details_form) {
+	form_set('details', $details_form, db_row('select commission_header, commission_function, fulfillment_header, fulfillment_function from shopping_product_types where product_type_id=?', $ptid));
+	if (form_valid('details')) {
+		db_send('update shopping_product_types set commission_header=?, commission_function=?, fulfillment_header=?, fulfillment_function=? where product_type_id=?', $commission_header, $commission_function, $fulfillment_header, $fulfillment_function, $ptid);
+		i18n_form_handle('Product type', $ptid);
+		form_add_note('Details updated.', 'details');
+	}
+}
+

@@ -1,0 +1,12 @@
+require 'form.h';
+
+$form = array(
+'first_name' => array ( 'type' => 'text' ),
+'age'        => array ( 'type' => 'integer', 
+                        'positive' => 1),
+'city'       => array ( 'type' => 'text',
+                                  'default' => 'Toronto' ),
+'email'      => array ( 'type' => 'email', 
+                          'required' => 1 )
+);
+form_set($form);

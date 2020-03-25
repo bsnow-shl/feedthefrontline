@@ -1,0 +1,13 @@
+
+require_once 'users.h';
+
+
+$eid = 0+$_GET['eid'];
+$erid = 0+$_GET['erid'];
+if (!$eid) {
+	$eid = db_value('select event_id from event_pricing where event_pricing_id=(select event_pricing_id from event_registrations where event_registration_id=?)', $erid);
+}
+
+if (!$eid || ! (user_has_role('events_admin') || user_has_role('event_manager',$eid)) ) {
+	redirect('../index.html');
+}

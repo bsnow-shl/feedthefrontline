@@ -1,0 +1,30 @@
+$pid = 0+$_REQUEST['pid'];
+$cid = 0+$_REQUEST['cid'];
+$condition = "product_id=$pid and category_id=$cid";
+        
+db_send('begin');
+
+if ($_REQUEST['movedown']) {
+        $current = db_value('select display_order from shopping_product_category_map where '.$condition, $pid);
+        $next = db_value('select min(display_order) from shopping_product_category_map where display_order>? and category_id=?', $current, $cid);
+        if ($next) {
+                db_send('update shopping_product_category_map set display_order=? where display_order=? and category_id=?', $current, $next, $cid);
+                db_send('update shopping_product_category_map set display_order=? where '.$condition, $next, $pid);
+        }
+}
+
+
+if ($_REQUEST['moveup']) {
+        $current = db_value('select display_order from shopping_product_category_map where '.$condition, $pid);
+        $previous = db_value('select max(display_order) from shopping_product_category_map where display_order<? and category_id=?', $current, $cid);
+        if ($previous) {
+                db_send('update shopping_product_category_map set display_order=? where display_order=? and category_id=?', $current, $previous, $cid);
+                db_send('update shopping_product_category_map set display_order=? where '.$condition, $previous, $pid);
+        }
+}
+
+db_send('commit');
+
+redirect(href("edit.html", 'cid', $cid));
+
+

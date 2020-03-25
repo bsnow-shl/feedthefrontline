@@ -1,0 +1,332 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+<title>form_set</title>
+<meta name="GENERATOR" content=
+"Modular DocBook HTML Stylesheet Version 1.79">
+<link rel="HOME" title="Content Publishing Framework Manual" href=
+"index.html">
+<link rel="UP" href="t654.html">
+<link rel="PREVIOUS" href="t654.html">
+<link rel="NEXT" title="Users, permissions, and sessions" href=
+"users.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2005-03-11T18:12:01">
+</head>
+<body class="REFENTRY" bgcolor="#FFFFFF" text="#000000" link=
+"#0000FF" vlink="#840084" alink="#0000FF">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="3" align="center">Content Publishing Framework
+Manual</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="bottom"><a href="t654.html"
+accesskey="P">Prev</a></td>
+<td width="80%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="bottom"><a href="users.html"
+accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="FORM-SET" id="FORM-SET"></a>form_set</h1>
+<div class="REFNAMEDIV"><a name="AEN656" id="AEN656"></a>
+<h2>Name</h2>
+form_set &nbsp;--&nbsp; Defines a form's fields and validation
+rules.</div>
+<div class="REFSYNOPSISDIV"><a name="AEN659" id="AEN659"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">
+        form_set( hash definition );
+
+        form_set( string formname, hash definition);
+        
+</pre></div>
+<div class="REFSECT1"><a name="AEN661" id="AEN661"></a>
+<h2>Description</h2>
+<p>This creates a form (possibly associated with the given
+<tt class="REPLACEABLE"><i>formname</i></tt>) and gives it the
+<tt class="REPLACEABLE"><i>definition</i></tt> provided. The
+<tt class="REPLACEABLE"><i>definition</i></tt> is a hash where each
+key is the name of a form variable, and the value is either a
+scalar or a hash, expressing the type of that form variable and the
+constraints it is under.</p>
+<p>Every form element understands the following extra
+attributes:</p>
+<div class="VARIABLELIST">
+<dl>
+<dt>default</dt>
+<dd>
+<p>The default value of this form element; this is usually a
+scalar. For example, an <tt class="LITERAL">email</tt> form element
+can offer a default value with this attribute.</p>
+</dd>
+<dt>required</dt>
+<dd>
+<p>When this attribute is set to 1, the user will get an error
+message if they failed to fill in the form elements.</p>
+</dd>
+<dt>pretty</dt>
+<dd>
+<p>If you are using the built-in form rendering logic, you can
+control the form label with this attribute. Simply give a
+human-readable string in <tt class="LITERAL">pretty</tt>, and it
+will be shown to the user:</p>
+<pre class="SCREEN">
+    'fname' =&gt; array('type'=&gt;'text', 
+                     'pretty'=&gt;'First name' 
+</pre></dd>
+</dl>
+</div>
+<div class="NOTE">
+<blockquote class="NOTE">
+<p><b>Note:</b> If you would like to experiment with these form
+variables on a live installation of CPF, <a href=
+"http://tinyplanet.ca/cpf/form-example.html" target="_top">you
+can</a>.</p>
+</blockquote>
+</div>
+<div class="TABLE"><a name="AEN687" id="AEN687"></a>
+<p><b>Table 2. Form Description Language</b></p>
+<table border="1" class="CALSTABLE">
+<col>
+<col>
+<col>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+<th>Extra Attributes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>text</td>
+<td>A straightforward, one-line text input area.</td>
+<td><tt class="LITERAL">max</tt> is the maximum length of the
+string to be captured by this form element, and <tt class=
+"LITERAL">min</tt> is the minimum string length accepted.
+<tt class="LITERAL">default</tt>, <tt class=
+"LITERAL">required</tt>, and <tt class="LITERAL">pretty</tt> behave
+as usual.</td>
+</tr>
+<tr>
+<td>email</td>
+<td>A form element which, if it is submitted with something in it,
+requires that text to look like an email address.</td>
+<td><tt class="LITERAL">max</tt> is the maximum length of the
+string to be captured by this form element, and <tt class=
+"LITERAL">min</tt> is the minimum string length accepted.
+<tt class="LITERAL">default</tt>, <tt class=
+"LITERAL">required</tt>, and <tt class="LITERAL">pretty</tt> behave
+as usual.</td>
+</tr>
+<tr>
+<td>password</td>
+<td>This is a text input area that obscures what the user types, so
+that someone looking over their shoulder can't see what they're
+entering.</td>
+<td><tt class="LITERAL">max</tt> is the maximum length of the
+string to be captured by this form element, and <tt class=
+"LITERAL">min</tt> is the minimum string length accepted.
+<tt class="LITERAL">default</tt>, <tt class=
+"LITERAL">required</tt>, and <tt class="LITERAL">pretty</tt> behave
+as usual.</td>
+</tr>
+<tr>
+<td>bigtext</td>
+<td>This is a large text input area. On some browsers, this input
+area can be configured to accept rich text input, with the
+<tt class="LITERAL">richtext</tt> instructed to accept rich text
+input, in which case</td>
+<td><tt class="LITERAL">rows</tt> and <tt class="LITERAL">cols</tt>
+can be used to specify the size (in characters, or Ems in the case
+of variable-width fonts) of the text area. <tt class=
+"LITERAL">default</tt>, <tt class="LITERAL">required</tt>, and
+<tt class="LITERAL">pretty</tt> behave as usual.</td>
+</tr>
+<tr>
+<td>integer</td>
+<td>This is a form element which, if it's filled in, must contain
+an integer.</td>
+<td><tt class="LITERAL">max</tt> is the the largest integer that
+this field will accept, and <tt class="LITERAL">min</tt> is the
+smallest. If <tt class="LITERAL">positive</tt> is set, the number
+must be provided, and it must be larger than zero. <tt class=
+"LITERAL">default</tt>, <tt class="LITERAL">required</tt>, and
+<tt class="LITERAL">pretty</tt> behave as usual.</td>
+</tr>
+<tr>
+<td>float</td>
+<td>This is a form elmeent which, if it's filled in, must contain a
+floating point number, including those in scientific notation.</td>
+<td><tt class="LITERAL">max</tt> is the the largest number that
+this field will accept, and <tt class="LITERAL">min</tt> is the
+smallest. If <tt class="LITERAL">positive</tt> is set, the number
+must be provided, and it must be larger than zero. <tt class=
+"LITERAL">default</tt>, <tt class="LITERAL">required</tt>, and
+<tt class="LITERAL">pretty</tt> behave as usual.</td>
+</tr>
+<tr>
+<td>dollars</td>
+<td>A form elment that is expected to contain dollars and cents.
+The resulting information will appear as a PHP textual scalar, with
+dollars and two digits' worth of cents provided.</td>
+<td><tt class="LITERAL">max</tt> is the the largest number that
+this field will accept, and <tt class="LITERAL">min</tt> is the
+smallest. If <tt class="LITERAL">positive</tt> is set, the number
+must be provided, and it must be larger than zero. <tt class=
+"LITERAL">default</tt>, <tt class="LITERAL">required</tt>, and
+<tt class="LITERAL">pretty</tt> behave as usual.</td>
+</tr>
+<tr>
+<td>date</td>
+<td>This is a form element that represents a date. You will receive
+the date value in the form "yyyy-mm-dd" regardless of what the user
+entered. This is an ISO standard date style, understood by every
+database system and programmer in the world, and is moreover a
+morally correct choice. Please don't foist ambiguous d/m/y or m/d/y
+formats on your users. The date field is presently rendered as a
+single text field: it will accept forms including "2003-3-22" ,
+"2003 3 1', "yesterday" and "next monday". See PHP's <a href=
+"http://www.php.net/strtotime" target="_top">strtotime()</a>
+function for the full list of possibilities.</td>
+<td><tt class="LITERAL">default</tt>, <tt class=
+"LITERAL">required</tt>, and <tt class="LITERAL">pretty</tt> behave
+as usual. You can use <tt class="LITERAL">strict=1</tt> to only
+accept dates of the form yyyy-m[m]-d[d].</td>
+</tr>
+<tr>
+<td>time</td>
+<td>This is a form element that represents a time, independent of a
+date. You will receive the date value in the form "hh:mm:ss"
+regardless of what the user entered. The date field is presently
+rendered as a single text field: it will accept forms including
+"16:00", "5pm" and "12:32:05 am", as well as things like
+"yesterday" (meaning this time yesterday) and "wed 5pm". See PHP's
+<a href="http://www.php.net/strtotime" target=
+"_top">strtotime()</a> function for the full list of
+possibilities.</td>
+<td><tt class="LITERAL">default</tt>, <tt class=
+"LITERAL">required</tt>, and <tt class="LITERAL">pretty</tt> behave
+as usual.</td>
+</tr>
+<tr>
+<td>timestamp</td>
+<td>This is a form element that represents a date and a time. You
+will receive the date value in the form "yyyy-mm-dd hh:mm:ss"
+regardless of what the user entered. The date field is presently
+rendered as a single text field: it will accept forms including
+"16:00", "5pm" and "12:32:05 am", as well as things like
+"yesterday" (meaning this time yesterday) and "wed 5pm". See PHP's
+<a href="http://www.php.net/strtotime" target=
+"_top">strtotime()</a> function for the full list of
+possibilities.</td>
+<td><tt class="LITERAL">default</tt>, <tt class=
+"LITERAL">required</tt>, and <tt class="LITERAL">pretty</tt> behave
+as usual.</td>
+</tr>
+<tr>
+<td>flag</td>
+<td>This is a form element that reprents a true/false flag. It is
+rendered as an HTML checkbox. The value you recieve is 0 if the
+checkbox is unchecked and 1 if the checkbox is checked.</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td>file</td>
+<td>This is a form element that lets the user transmit files from
+their local computer to the web server. It's rendered as an HTML
+<tt class="LITERAL">&lt;input type=file&gt;</tt> form element. The
+file that is uploaded is processed by CPF in a number of ways.
+First, the file is placed into the <span class="emphasis"><i class=
+"EMPHASIS">uploads directory</i></span> automatically. This
+directory is, by default, <tt class="LITERAL">uploads</tt>
+alongside your document root, or the value of the <tt class=
+"LITERAL">upload_directory</tt> configuration var (see <a href=
+"configuration.html">Chapter 8</a>). Then, a descriptor for the
+uploaded file is placed into the <tt class="LITERAL">uploads</tt>
+table (see <a href="datamodel.html">Chapter 7</a>. Finally,
+variables are provided to the form handler based on the form field
+name: <tt class="REPLACEABLE"><i>fieldname</i></tt>_upload_id is
+the primary key in the <tt class="LITERAL">uploads <tt class=
+"LITERAL">table; <tt class="REPLACEABLE"><i>fieldname</i></tt>_size
+is the file size in bytes; <tt class=
+"REPLACEABLE"><i>fieldname</i></tt>_name is the name on the
+client's computer; and <tt class=
+"REPLACEABLE"><i>fieldname</i></tt>_mimetype is the MIME type that
+the client's browser claimed for the file.</tt></tt></td>
+<td><tt class="LITERAL">required</tt>, and <tt class=
+"LITERAL">pretty</tt> behave as usual.</td>
+</tr>
+<tr>
+<td>menu</td>
+<td>This represents a choice from a list of items. The choice may
+be multiple-choice, presented as radio buttons, or driven by the
+contents of an SQL table.</td>
+<td>The list of menu choices is specified with key-value pairs,
+either in the form of an array (under <tt class=
+"LITERAL">menu</tt>) or an SQL statement (under <tt class=
+"LITERAL">sql</tt>). The menu may be multiple choice (by specifying
+<tt class="LITERAL">multiple=1</tt>), or as a radio button set
+(with <tt class="LITERAL">radio=1</tt>, however you may not specify
+both of those options. You may specify that a choice must be made
+with <tt class="LITERAL">required=1</tt>.</td>
+</tr>
+<tr>
+<td>visible</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td>visible</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td>hidden</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td>submit</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td>label</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="t654.html"
+accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html"
+accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="users.html"
+accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top"></td>
+<td width="34%" align="center" valign="top"><a href="t654.html"
+accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">Users, permissions, and
+sessions</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

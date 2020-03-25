@@ -1,0 +1,34 @@
+<!--
+<title>Invited users</title>
+-->
+
+<p>
+<b>Survey:</b> <%= $survey_name %>
+<br/>
+<b>Status:</b> <%= $status %>
+</p>
+
+
+<table class="padded">
+  <tr><th>id</th><th>Email</th><th>Company</th><th>Good until</th><th>Status</th><th># pages responded</th><th>Actions</th></tr>
+  <? foreach ($matching as $m): ?>
+  <tr>
+    <td><a href="<%= href('multipage-invite-details.html', 'iid', $m['invitation_id']) %>"><%= $m['invitation_id'] %></a></td>
+    <td><%= $m['email'] %></td>
+    <td><%= $m['company'] %></td>
+    <td><%= humanize_timestamp($m['valid_until']) %></td>
+    <td><%= $m['invitation_status'] %></td>
+    <td><%= $m['count'] %></td>
+    <td  nowrap>
+      <span id="invite-<%= $m['invitation_id'] %>">
+        <a href="#" onclick="dynUpdate('invite', 'iid', <%= $m['invitation_id'] %>)" >send invite</a>
+      </span>
+      | 
+      <span id="remind-<%= $m['invitation_id'] %>">
+        <a href="#" onclick="dynUpdate('remind', 'iid', <%= $m['invitation_id'] %>)" >send reminder</a>
+      </span>
+    </td>
+  </tr>
+  <? endforeach ?>
+</table>
+

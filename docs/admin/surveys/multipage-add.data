@@ -1,0 +1,26 @@
+
+
+$sid = 0+$_GET['sid'];
+db_send('begin');
+
+$class_id = db_newid('i18n_classes');
+$page_id = db_newid('survey_pages');
+
+$page_count = db_value('select count(*) from survey_pages where survey_id=?', $sid)+1;
+
+$class_name = "Survey $sid page #$page_count";
+db_insert_hash('i18n_classes', array(
+    'class_id' => $class_id,
+    'class_name' => $class_name
+));
+
+db_insert_hash('survey_pages', array(
+    'page_id' => $page_id,
+    'survey_id' => $sid,
+    'display_order' => db_newid('display_order'),
+    'class_id' => $class_id
+));
+db_send('commit');
+
+redirect(href('multipage-edit.html', 'sid', $sid));
+

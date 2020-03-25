@@ -1,0 +1,30 @@
+require_once 'paypal.h';
+require_once 'shopping.h';
+
+
+list ($details, $summary) = shopping_get_shopcart_contents();
+
+if ($status = $summary['status'] != 'finalized' && $status != 'new') {
+        shopping_add_diary('Arrived on almost-done, but cart status is $status.');
+        $_SESSION['shopcart']['failure'] = _('Your order is being processed.');
+        redirect('finalize.html');
+}
+
+
+$psid = config_get('shopping', 'paypal_system_id');
+$accept_payment = ($psid>0);
+
+if ($_GET['paypal']) {
+        $price = $summary['total']/100.0;
+
+        $_SESSION['shopping']['redirected_paypal'] = 1;
+
+        paypal_redirect($psid, $shopcart_id, $price, array(
+                'return' => config_get('site','home').'/shopping/checkout/thanks.html',
+                'newtitle' => $details[0]['title'],
+                'taxes' => taxes_calculate( $summary['total']/100 , config_get('shopping', 'tax_scheme_id')),
+                'newitem_number' => ' ',
+        ));
+}
+
+

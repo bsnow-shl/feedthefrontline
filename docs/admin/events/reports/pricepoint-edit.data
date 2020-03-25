@@ -1,0 +1,23 @@
+
+require_once 'form.h';
+
+$erid = 0+$_GET['erid'];
+
+$details = db_row('select event_pricing.name, event_pricing_id,event_id from event_pricing join event_registrations using (event_pricing_id) where event_registration_id=?', $erid);
+if (!$details) { redirect('index.html'); }
+
+form_set(array(
+    'pricing_id' => array('type'=>'menu','required'=>1, 'sql' => "select event_pricing_id as key, name || ' - ' || price as value from event_pricing where event_id=?",  'sqlp1' => $details['event_id'], 'default' => $details['event_pricing_id'])
+));
+if (form_valid()) {
+    db_send('begin');
+
+    $pp_name = db_value('select name from event_pricing where event_pricing_id=?', $pricing_id);
+    db_send('update event_registrations set event_pricing_id=? where event_registration_id=?', $pricing_id, $erid);
+    db_send('insert into event_registration_diary (event_registration_id,note) values (?,?)', $erid, sprintf('Price point adjusted to %s from %s by %s', $pp_name, $details['name'], user_email()));
+    
+    db_send('commit');
+
+    redirect(href('inspect.html', 'erid', $erid));
+}
+

@@ -1,0 +1,71 @@
+<!--
+<title>Event registration</title>
+-->
+
+<h3>Published events</h3>
+
+<div class=section>
+
+<table class="padded"><tr><th>Name</th><th>Editing</th><th>Reports</th><th>Actions</th></tr>
+<? foreach ($published_events as $e): ?>
+<tr>
+<td><%= $e['name'] %></td>
+<td>
+	<? if (user_has_role('events_admin')): ?>
+	<%= a_href('edit.html', 'eid', $e['event_id']) %>>Adjust event details</a>
+	<? endif ?> 
+</td><td>
+	<? if (user_has_role('event_manager',$e['event_id']) || user_has_role('events_admin')): ?>
+	<%= a_href('reports/one.html', 'eid', $e['event_id']) %>>Attendance</a>  |  <%= a_href('reports/one-v2.html', 'eid', $e['event_id']) %>>Door checklist</a> | 
+    <br/>
+	        <a href="<%= href('reports/sessions.html', 'eid', $e['event_id']) %>">Sessions</a>
+	        | <a href="<%= href('reports/nametags.html', 'printable', 1, 'eid', $e['event_id']) %>">Nametags</a>
+
+	</td><td>
+	 <%= a_href('/events/register.html','forceregister',1,'event_id', $e['event_id']) %>>Register someone</a>
+	<? endif ?> 
+</td></tr>
+<? endforeach ?>
+</table>
+</div>
+
+
+<h3>Unpublished <%= $archived ? 'and archived' : '' %> events</h3>
+
+<div class=section>
+<p>
+Only event managers and administrators can see these.
+<a href="index.html?archived=1">Click here to include archived events.</a>
+</p>
+
+<ul>
+<? foreach ($unpublished_events as $e): ?>
+	<li><%= $e['name'] %> -- <%= $e['event_start_date'] %>
+
+	<? if (user_has_role('events_admin')): ?>
+	&mdash; <%= a_href('edit.html', 'eid', $e['event_id']) %>>Adjust event details</a>
+	<? endif ?> 
+<? endforeach ?>
+</ul>
+
+</div>
+
+
+
+<h3>Check an attendance record</h3>
+<div class=section>
+<? form_start(); form_end(); ?>
+<? if ($matching): ?>
+Matching records:
+<ul>
+<? foreach ($matching as $m) {
+		printf('<li><a href="%s">#%s</a> (%s): %s &mdash; %s</li>', 
+			href('reports/inspect.html', 'erid', $m['event_registration_id']),
+			  $m['event_registration_id'],
+			$m['paid'] ? 'paid' : 'unpaid', $m['name'], $m['email']);
+} ?>
+</ul>
+
+<? endif ?>
+</div>
+

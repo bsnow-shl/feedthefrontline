@@ -1,0 +1,24 @@
+$id = $_REQUEST['id'];
+if (!$id) {
+	$id = $_SESSION['comment_system_id'];
+}
+$_SESSION['comment_system_id'] = $id;
+
+
+
+require_once 'form.h';
+form_set(array(
+    'table_name' => 'text,required',
+    'singular' => 'text,required',
+    'plural' => 'text,required',
+    'pkey_column' => 'text,required',
+    'title_column' => 'text,required',
+    'registration_required' => 'flag'
+));
+if (form_valid()) {
+	db_update('comment_systems', 'comment_system_id', $id, $_POST);
+    form_add_note('Your changes have been saved.');
+}
+
+$cat = db_row('select * from comment_systems where comment_system_id=?', $id);
+$_REQUEST= $cat;

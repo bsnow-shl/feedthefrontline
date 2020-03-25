@@ -1,0 +1,59 @@
+<!--
+<title>Finalize an invoice under  <cite><%= $c['short_name'] %></cite></title>
+-->
+
+<h3>Change the invoice period</h3>
+<div class="section">
+<p>
+Transactions up to (and including) a specific date can be invoiced:
+</p>
+
+<? form_start("cutoff"); form_end(); ?>
+<p>
+&raquo; <? printf('$%.02f', $uncharged/100.0) ?> ready to be invoiced, up to <%= $cutoff_message %>.
+</p>
+
+
+</div>
+
+<? if ($preview): ?>
+<h3>Items to be invoiced</h3>
+<div class=section>
+
+<? if (!$uncharged_detail): ?>
+	None!
+<? else: ?>
+
+<table class=padded>
+<tr><th>Date</th><th>Name</th><th>Amount</th></tr>
+<? foreach ($uncharged_detail as $ch): ?>
+<tr>
+<td><%= date("Y/m/d", $ch['create_date']) %></td>
+<td><%= $ch['name'] %></td>
+<td align="right"><a href="<%= href("view-item.html", "item", $ch['invoice_item_id']) %>"><?
+	if ($ch['void']) {
+		printf("<strike>%.02f</strike>", $ch['amount']/100.0);
+	} else {
+		printf("%.02f", $ch['amount']/100.0);
+		$running += $ch['amount'];
+	} ?></a></td>
+</tr>
+<? endforeach ?>
+<tr><td></td><td>running total</td><th align="right"><%= sprintf("%.02f", $running/100.0) %></th></tr>
+<? if ($tax_amount): ?>
+<tr><td></td><td>tax <%= $tax_description %></td><th align="right"><%= sprintf("%.02f", $tax_amount/100.0) %></th></tr>
+
+<? endif ?>
+</table>
+<? endif ?>
+
+</div>
+<? endif ?>
+
+<h3>Add a line item for tax</h3>
+<div class="section">
+<? form_start('taxitem');
+  form_end('taxitem');
+?>
+</div>
+

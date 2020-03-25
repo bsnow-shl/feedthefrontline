@@ -1,0 +1,26 @@
+require_once 'i18n.h';
+
+$id = 0+$_REQUEST['id'];
+if (!$id) {
+	$path = split('/', $_SERVER['PATH_INFO']);
+	$id = $path[1];
+}
+
+$category=  i18n_get('document category', $id);
+
+$comments_allowed = db_value('select allow_comments from document_categories where document_category_id=?', $id);
+
+$documents = db_multirow('select *,original_name as attachment_name from documents left outer join uploads using (upload_id) where document_category_id=? order by order_in_category desc',$id);
+
+if (sizeof($documents)) {
+	if (!documents_user_may_view($documents[0]['document_id'])) {
+		die("How'd you get in here?");
+	}
+}
+
+for ($i=0; $i<sizeof($documents); $i++) {
+    $type = $documents[$i]['mime_type'];
+    list($ignored, $documents[$i]['pretty_mimetype'] ) = split('/', $documents[$i]['mime_type']);
+
+}
+i18n_get_batch($documents, 'document', 'document_id');

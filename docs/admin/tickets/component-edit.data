@@ -1,0 +1,30 @@
+
+require_once 'form.h';
+
+$tickets_users = users_with_role('tickets_admin');
+$query = 'select user_id as key, email as value from users where user_id in ('.join(',', $tickets_users).')';
+$emails = join ("\n", db_array('select email from ticket_component_cc where ticket_component_id=?', $_GET['cid']));
+$row = db_row('select * from ticket_components where ticket_component_id=?', $_GET['cid']);
+$short_name = $row['short_name'];
+
+form_set(array(
+    'active' => array('type'=>'flag', 'default' => $row['active']),
+    'responsible' => array('type'=>'menu','required'=>1, 'default' => $row['responsible'], 'sql' => $query),
+    'cc_list' => array('type'=>'bigtext', 'default' => $emails)
+));
+
+if (form_valid()) {
+    db_send('begin');
+    db_send('delete from ticket_component_cc where ticket_component_id=?', $_GET['cid']);
+    db_send('update ticket_components set active=?, responsible=? where ticket_component_id=?', $active, $responsible, $_GET['cid']);
+
+    $emails = explode("\n", $cc_list);
+    foreach ($emails as $e) {
+        $e = rtrim($e);
+        if (is_email($e)) {
+            db_send('insert into ticket_component_cc (ticket_component_id,email) values (?,?)', $_GET['cid'], $e);
+        } 
+    }
+    db_send('commit');
+    redirect('index.html');
+}

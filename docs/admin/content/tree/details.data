@@ -1,0 +1,64 @@
+$content_id = 0+$_GET['content_id'];
+$objid = 0+$_GET['object_id'];
+
+require_once 'form.h';
+require_once 'i18n.h';
+require_once 'users.h';
+
+$is_superadmin = user_has_role('content_super_admin');
+if ($is_superadmin) {
+	$superadmin_form = array(
+		'locked' => 'flag'
+	);
+} else {
+	$superadmin_form = array();
+}
+
+$r = db_row('select * from i18n_content where content_id=?', $content_id);
+$current_item = db_row('select * from i18n_content_map where object_id=? and content_id=?', $objid, $content_id);
+
+$r_details = i18n_get('Content item', $content_id);
+$item_name = $r_details['title'];
+
+$parent = db_value('select parent_content_id from i18n_content_hierarchy where content_id=?', $content_id);
+
+if (!$r) { redirect("index.html"); }
+
+$is_superadmin = user_has_role('content_super_admin');
+if ($is_superadmin) {
+	$superadmin_form = array(
+		'locked' => array('type'=>'flag', 'default' => $r['locked'])
+	);
+} else {
+	$superadmin_form = array();
+}
+
+form_set(array(
+	'short_name'=> array('type'=>'text', 'required' => 1, 'default' => $r['short_name']),
+    'access_right_id' => array('type'=>'menu','default' => $r['access_right_id'], 'sql'=>'select access_right_id as key, name as value from i18n_access_rights order by display_order', 'required'=>1),
+	'parent_content_id' => array('type'=>'menu', 'default' =>$parent, 'sql'=> 'select content_id as key,short_name as value from i18n_content order by short_name'),
+	)+ $superadmin_form + i18n_form_fields('Content item', $content_id)
+);
+if (form_valid()) {
+	db_send('begin');
+	db_send('update i18n_content  set access_right_id=?,short_name=? where content_id=?',
+		 $access_right_id, $short_name, $content_id);
+	if ($is_superadmin) {
+		db_send('update i18n_content set locked=? where content_id=?', $locked, $content_id);
+	}
+
+	if (db_value('select count(*) from i18n_content_hierarchy where content_id=?', $content_id)) {
+		db_send('update i18n_content_hierarchy set parent_content_id=? where content_id=?', $parent_content_id, $content_id);
+	} else {
+		db_insert_hash('i18n_content_hierarchy', array ( 'parent_content_id' => $parent_content_id, 'content_id'=>$content_id, 'display_order'=>db_newid('display_order')));
+	}
+
+	i18n_form_handle('Content item', $content_id);
+	db_send('commit');
+
+	redirect(href('edit-submenu.html', 'content_id', $content_id));
+}
+
+$cat_name = db_value('select short_name from i18n_content where content_id=?', $content_id);
+$type_name = db_value('select class_name from i18n_classes where class_id=?', $r['class_id']);
+

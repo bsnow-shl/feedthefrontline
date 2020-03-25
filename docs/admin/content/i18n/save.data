@@ -1,0 +1,14 @@
+
+require_once 'translation.h';
+
+
+$txn = db_multirow('select source,dest from temp_translations');
+$count = 0;
+foreach ($txn as $t) {
+    $todo[] = array($t['source'], $t['dest']);
+    $count++;
+}
+
+list ($success, $result) = translation_save_translations($_SESSION['admin']['i18n']['editing_txn'], $todo);
+
+$_SESSION['admin']['i18n']['unsaved_changes'] = false;

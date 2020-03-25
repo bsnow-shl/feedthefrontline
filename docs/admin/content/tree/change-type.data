@@ -1,0 +1,25 @@
+require_once 'form.h';
+
+
+$cid = $_GET['content_id'];
+$row = db_row('select class_id,short_name from i18n_content where content_id=?', $cid);
+if (!$row) {  redirect('index.html'); }
+
+
+$name = $row['short_name'];
+
+form_set(array(
+	'new_type'=> array('type'=>'menu', 'sql'=> 'select class_id as key, class_name as value from i18n_classes where editable_in_cms=1', 'default' => $row['class_id'] ),
+));
+
+if (form_valid()) {
+	db_send('begin');
+	$to_del = db_array('select object_id from i18n_content_map where content_id=?', $cid);
+	foreach ($to_del as $oid) {
+		i18n_delete($row['i18n_class_d'], $oid);
+	}
+	db_send('update i18n_content set class_id=? where content_id=?', $new_type, $cid);
+	db_send('commit');
+	redirect(href('edit-item.html', 'content_id', $cid));
+}
+

@@ -1,0 +1,8 @@
+
+$keywords = db_hash_multirow('keyword', 'select keyword,count(*) as count from weblog_entry_keywords group by keyword order by keyword' );
+$keywords2 = db_multirow('select keyword,count(*) as count from document_keywords group by keyword order by keyword');
+foreach ($keywords2 as $k=>$c) {
+	$keywords[$c['keyword']][count] += $c['count'];
+}
+
+

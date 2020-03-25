@@ -1,0 +1,24 @@
+require_once 'comments.h';
+require_once 'form.h';
+$id = $_GET['id'];
+
+$ticket = db_row("select component, tickets.*, date_part('epoch', date_added) as date_added from tickets join ticket_components using (ticket_component_id) where ticket_id=?", $id);
+if (!$ticket) {
+    exit ("No such ticket.");
+}
+$ticket['cc'] = db_array('select email from ticket_component_cc where ticket_component_id=?', $ticket['ticket_component_id']);
+
+$tickets_users = users_with_role('tickets_admin');
+$query = 'select user_id as key, email as value from users where user_id in ('.join(',', $tickets_users).')';
+
+form_set(array(
+    'go' => 'submit', 
+    'assignedto' => array('type'=>'menu','default' => $ticket['assigned_to'], 'required'=>1, 'sql' => $query),
+));
+if (form_valid()) {
+    db_send('update tickets set assigned_to=? where ticket_id=?', $assignedto, $id);
+    $bcc = join(',', db_array('select email from ticket_component_cc where ticket_component_id=?', $ticket['ticket_component_id']));
+    cpf_mail(user_email($assignedto), '[ticket #'.$id.'] transferred to '.user_email($assignedto), sprintf("URL: %s\nRe: %s\n\n%s", href(config_get('site','home').'/admin/tickets/show.html', 'id', $id), $ticket['short_title'], $ticket['description']), array("cc: ".$bcc));
+    form_add_note('Reassigned to (and notified) '.user_email($assignedto));
+}
+

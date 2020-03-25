@@ -1,0 +1,35 @@
+
+require_once 'form.h';
+require_once 'i18n.h';
+
+$pcid = $_GET['pcid'];
+
+form_set(array(
+	'short_name'=>'text,required',
+	'parent_category' => array('type'=>'menu', 'default' => $pcid, 'sql'=>
+				'select category_id as key,short_name as value from shopping_categories order by short_name'
+				)
+	)+i18n_form_fields('Product category')
+);
+if (form_valid()) {
+	db_send('begin');
+	$new_cat_id = db_newid('shopping_categories');
+	db_send('insert into shopping_categories(category_id, short_name) values (?,?)',
+			$new_cat_id, $short_name);
+	if ($parent_category) {
+		db_insert_hash('shopping_category_category_map', array(
+				'category_id' => $new_cat_id,
+				'parent_category_id' => $parent_category,
+				'display_order' => db_newid('display_order')
+				));
+	}
+	i18n_form_handle('Product category', $new_cat_id);
+	db_send('commit');
+    
+    if ($_GET['goback']) {
+        redirect($_GET['goback']);
+    }
+    redirect('index.html');
+}
+
+				

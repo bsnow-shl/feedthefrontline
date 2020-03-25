@@ -1,0 +1,4 @@
+require_once 'users.h';
+require_once 'ann.h';
+
+user_require('announcement_admin');

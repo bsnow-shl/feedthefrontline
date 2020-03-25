@@ -1,0 +1,55 @@
+<!--
+<title>Edit <cite><%= $type_name %></cite></title>
+<subtitle>... one of the <a href="index.html">product types</a> we list.</subtitle>
+-->
+
+
+<? if ($referring_products): ?>
+<h3>Fun facts</h3>
+<div class="section">
+&raquo; <a href="<%= href('/admin/shopping/products/','where[]','product_type_id','where[]', '=?', 'where[]', $ptid) ?>"><%= $referring_products %> products</a> are of this type.
+</div>
+<? endif ?>
+
+<h3>Product attributes</h3>
+<div class="section">
+<p><a href="<%= href('/admin/content/types/type-edit.html', 'classid', $content_class_id) %>">Product attributes</a> are read-only, entered by product administrators.
+</p>
+<p>
+<? $atts = array(); 
+   foreach ($attributes as $att) {
+		$atts[] = $att['pretty_name'];
+} 
+echo '&raquo; '. join(', ', $atts);
+?>
+</p>
+</div>
+
+<h3>Product options</h3>
+<div class="section">
+<p>Product options vary from product to product when they are ordered.</p>
+
+<ul>
+<? foreach ($options as $o): ?>
+<li><%= $o['pretty_name'] %> 
+(<a href="<%= href('drop-option.html', 'ptoid', $o['type_option_id']) %>">drop</a> 
+<? if ($o['option_type']=='menu'): ?>
+| 
+<a href="<%= href('edit-option.html', 'ptoid', $o['type_option_id']) %>">options</a> 
+<? endif ?>
+)
+
+<? endforeach ?>
+</ul>
+
+
+<h5>Add a product option</h5>
+<? form_start(); form_end(); ?>
+</div>
+
+
+<? if ($details_form): ?>
+<h3>Details</h3>
+<div class="section">
+<? form_start('details'); form_end(); ?>
+<? endif ?>

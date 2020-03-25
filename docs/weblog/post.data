@@ -1,0 +1,55 @@
+require_once 'form.h';
+
+$entry_id = 0+$_GET['id'];
+if (!$entry_id) {
+	$entry_id=db_newid('weblog_entries');
+}
+weblog_require_editor($entry_id);
+
+
+$form = array(
+	title => 'text,required',
+	body => array('type'=>'richtext','required'=>1,'simple'=>1),
+	keywords => 'text',
+	keywords_search => array('type'=>'text', 'extra'=> ' autocomplete="off" ', 'autocomplete_sql'=>'select distinct keyword from weblog_entry_keywords'),
+	entry_id => array('type'=>'hidden', value=>$entry_id),
+	'proceed' => array('type'=>'submit', 'value'=>'Proceed')
+);
+if ($_GET['id']) {
+	$form['erase']= array('type'=>'submit', 'value'=>'Erase this post');
+}
+form_set($form);
+
+if (form_valid()) {
+	if ($erase) {
+		db_send('begin');
+		db_send('delete from weblog_entry_keywords where weblog_entry_id=?', $entry_id);
+		db_send('delete from weblog_entries where weblog_entry_id=?', $entry_id);
+		db_send('commit');
+	}
+	else {
+		$uri = preg_replace('/[^a-zA-Z0-9]/', '.', $title);
+		db_insert_or_update('weblog_entries', 'weblog_entry_id', $entry_id,
+			array (
+				weblog_id=>$weblog_row['weblog_id'],						'author'=>user_id(),
+				'entry_title'=>$title,
+				'uri'=>$uri,
+				'body'=>$body
+				)
+				);
+		$keyword_a = split(',', $keywords);
+		db_send('delete from weblog_entry_keywords where weblog_entry_id=?', $entry_id);
+		foreach (split(',', $keywords) as $kw) {
+			if ($kw=='') { continue; }
+			db_send('insert into weblog_entry_keywords (weblog_entry_id, keyword) values (?,?)', $entry_id, $kw);
+		}
+	}
+	redirect(".");
+}
+
+
+$id = 0+$_GET['id'];
+if ($id && db_value('select count(*) from weblog_entries where weblog_id=? and weblog_entry_id=?', $weblog_row['weblog_id'], $id)) {
+	$_REQUEST = db_row('select entry_title as title, body as body from weblog_entries where weblog_entry_id=?', $id);
+	$_REQUEST['keywords'] = join(',', db_array('select keyword from weblog_entry_keywords where weblog_entry_id=?', $id));
+}

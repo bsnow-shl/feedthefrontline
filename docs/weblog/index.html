@@ -1,0 +1,32 @@
+<!--
+<title>Intranet</title>
+-->
+
+
+<table class="padded">
+<tr><th>Weblogs</th><th><? if ($filter) print $filter; else print 'Recent posts'; ?></th></tr>
+<tr><td valign="top">
+
+<dl>
+<? foreach ($weblogs as $wl): ?>
+<dt><a href="/weblog/<%= $wl['uri'] %>/"><%= $wl['weblog_title'] %></a>
+<dd><%= $wl['blurb'] %>
+<? endforeach ?>
+</dl>
+
+</td><td valign="top">
+
+
+<dl>
+<? foreach ($whatsnew as $wn): ?>
+<dt><a href="<%= $wn['link'] %>"><%= $wn['title'] %></a>
+<br/><i>posted by <%= $wn['email'] %></i>
+<dd><?  $stripped = strip_tags($wn['description']);
+				$word_break = @strpos($stripped, ' ', 100);
+				if ($word_break) {
+					$stripped = substr($stripped, 0, $word_break).' ...';
+				}
+				print $stripped; ?>
+<? endforeach ?>
+</dl>
+</td></tr></table>

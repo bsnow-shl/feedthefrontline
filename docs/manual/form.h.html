@@ -1,0 +1,452 @@
+<!--
+<title><cite>form.h</cite> function reference</title>
+<subtitle>part of the <a href="./">CPF manual</a>.</subtitle>
+-->
+
+<div class="section">
+
+The forms facility provides automatic, simple form generation and handling, 
+using a compact language of form definition and validation.
+
+<p/>Forms should be defined and validated in your part's <tt>.data</tt> file,
+and may be laid out in your part's <tt>.html</tt> file.
+
+<p/>
+Functions described on this page:
+<ol>
+<li><a href="#set">form_set()</a> defines a form for the page.
+<li><a href="#start_end">form_start() and form_end()</a> lay out a form</a>
+<li><a href="#was_submitted">form_was_submitted()</a> tells if any form was submitted
+<li><a href="#submitted">form_submitted()</a> tells if you a particular form was submitted
+<li><a href="#valid">form_valid()</a> indicates if a form meets all validation rules
+<li><a href="#error">form_error()</a> notes an error on a form, in custom validation code
+<li><a href="#add_note">form_add_note()</a> makes a note on a form, in custom form responses
+</ol>
+
+<hr/>
+<h2><a name="set">form_set()</a></h2>
+<div class="indented">
+<p> Defines a form on the page.  </p>
+
+
+<h3>Synopsis</h3>
+<p>
+form_set($form_specification)<br/>
+form_set($form_name, $form_specification)
+</p>
+
+<h3>In & out</h3>
+<ul>
+<li><em>form_name</em> -- a string identifying the form, among others on the current page; if not provided, the form is placed under the identifier <cite>default</cite>.
+<li><em>form_specification</em> -- an array of form elements, described below.
+<li><em>returns</em> -- nothing of interest.
+</ul>
+
+<h3>Discussion</h3>
+<p>
+form_set() is used to define what information a form wants, and what validation rules are to be applied to it. It accepts a form specification, which is an array of form <em>widgets</em>.  Every widget has a <em>type</em> and a bunch of <em>constraints</em>.
+</p>
+
+<p>Widgets can be expressed either as a string for simple needs, or as an array for complicated ones:
+
+<code>
+  // this is a form with two equivalently-specified widgets
+  form_set(array(
+     'name'  => 'text',
+     'name2' => array('type'=>'text')
+  ));
+
+</code>
+
+</p><p>
+The string representation can add a comma for a boolean constraint, such as "required":
+
+<code>
+  // this is a form with two equivalently-specified widgets
+  form_set(array(
+      'name'  => 'text,required',
+      'name2' => array(   'type'=>'text', 'required' => 1 )
+  ));
+
+</code>
+
+</p><p>
+<b><big>Constraints</big></b>
+<br/>
+
+Now, we will review some of the basic constraints, and then review each of the 
+widget types, which will have some constraints of their own.
+
+</p><dl>
+<dt>required</dt><dd> almost every form element, except for <cite>checkbox</cite> can specify <cite>required</cite> to insist that the form element be filled in, or (in the case of menus or radio buttons) have an item chosen.
+<dt>default</dt><dd>  can be used to specify a default value for a widget
+if it hasn't been filled in yet:
+<code>
+  'name' => array('type'=> 'text', 'default' => 'Steve'),
+  'gender' => array(  'type'=>'menu', 
+                      'menu' => array(
+                          'M'=>'Male',
+                          'F'=>'Female', 
+                          'P'=>'Prefer not to say'),
+                       'default' => 'P')
+
+</code>
+
+<dt>maxlength</dt><dd> constrains the maximum string length accepted by the browser, and returned by the form handling system, for string-type fields.
+
+<dt>size</dt><dd>measured in <cite>em</cite> typographic units, specifies the apparent width of any given form element. The form's maximum number of accepted characters is governed by <cite>maxlength</cite>, however.
+</dl>
+
+<br/>
+<b><big>Form element types</big></b>
+<br/>
+
+<dl>
+<dt>email</dt><dd> is otherwise equivalent to <cite>text</cite>, except it requires that the input look like an email address.
+
+<dt>text</dt><dd>is a simple text input field.
+<dt>bigtext</dt><dd>is a big text input field, usually rendered as a <tt>textarea</tt>. The field defaults to 30x6, which can be modified by setting the <cite>rows</cite> and <cite>cols</cite> constraints.
+<dt>richtext</d><dd>Employs the TinyMCE fancy-editing system to permit entry of styled text, in a <tt>textarea</tt>.  Use the <cite>rows</cite> and <cite>cols</cite> constraints to adjust its size. Text is returned to your script with HTML tags.
+
+<dt>integer</dt>
+<dd>Is a plain text field that expects an integer. It will accept nothing (unless <cite>required</cite> is set), and both positive and negative numbers of any value, unless <cite>min</cite> and/or <cite>max</cite> are set.  The common shorthand requiring only positive numbers, e.g. for quantities, can be set by setting the <cite>positive</cite> constraint to 1.
+<dt>float</dt><dd>Is otherwise identical to <cite>integer</cite>, but accepts numbers with decimal points in them.
+<dt>dollars</dt><dd>Is otherwise identical to <cite>float</cite>, but accepts numbers with a currency symbol in front.  The value returned to your page scripts will be truncated to 2 decimal digits.
+
+<dt>menu</dt><dd>Renders a series of choices for the user.  Several constraints influence their presentation: you can use <cite>multiple=1</cite> to let the user choose several options; otherwise they can only choose one.  You can use <cite>radio=1</cite> to render the choice as radio buttons. If you use <cite>required=1</cite>, the user will be forced to choose one of the options (or at least one, in the case of a multiple-choice menu).
+
+<p/>
+The contents of the menu <em>itself</em> are dictated by either the <cite>menu</cite> or <cite>sql</cite> constraints.   If you use <cite>menu</cite>, you must provide a series of key/value pairs. The key is the internal identifier, and the value is shown to the user.
+If you use <cite>sql</cite>, you must provide an SQL query that returns two columns, one titled <b>key</b> and the other <b>value</b>.
+
+<p/>
+An example:
+<code>
+form_set(array(
+  'gender' => array('type'=>'menu', 'radio' => 1, 'default'=>'P', 
+                    'required' => 1,
+                    'menu' => array(
+                        'M'=>'male',
+                        'F'=>'female',
+                        'P'=>'prefer not to say')),
+  'country' => array('type'=>'menu', 'required' => 1,
+                'sql'=>'select iso_code as key, name as value
+                        from countries
+            )
+));
+</code>
+
+            
+
+<dt>date</dt><dd>Is a text field that accepts a wide variety of date specifications (e.g. "tomorrow", "next Monday", "2005-09-12") and returns a field of the form YYYY-MM-DD to your page scripts. Refer to the <a href="http://www.gnu.org/software/tar/manual/html_chapter/tar_7.html">GNU date input formats</a>
+
+<dt>datetime</dt><dd>Is similar to <cite>date</cite>, only it returns a field of the form YYYY-MM-DD HH:MM:SS to your page scripts (24-hour time).
+<dt>file</dt><dd>Permits file uploads to your script, safely setting the upload aside for later use.   Specifically, the file is moved under <tt>[server-root]/uploads/</tt> to a filename given by the current timestamp (with milliseconds), and an entry is inserted into the <tt>uploads</tt> table with the file's size, mime type, and original filename.  You are given the primary key to <tt>uploads</tt>.
+
+<p/> An example:
+<code>
+form_set(array(
+  'your_picture' => 'file'
+));
+if (form_valid()) {
+  // $your_picture_upload_id is the pkey to uploads
+  // $your_picture_size is the file size in bytes
+  // $your_picture_name is the original filename 
+  //    on the user's computer
+  // $your_picture_mimetype is the mimetype represented by 
+  //    the user's browser (not necessarily trustworthy)
+
+  $local_filename = db_value('select local_filename from 
+                      uploads where upload_id=?', 
+                      $your_picture_upload_id);
+
+  $f = fopen($_SERVER['DOCUMENT_ROOT'].'../'.$local_filename);
+  // you can now play with the file in $f
+}
+</code>
+
+<dt>visible
+<dd>This is used to render a field in the form that the user is not expected to be able to edit.  For instance, if
+you're asking fora  delivery address but you only deliver to Canada, you might say:
+
+<code>
+  'country' => array('type'=>'visible', 'value'=> 'Canada')
+  </code>
+
+
+<dt>hidden
+<dd>This hold-ver from the old, bad web development days is still supported by the CPF.  It passes a value to the visitor's browser 
+that you can catch when it gets sent back.  If your application requires any degree of security pranoia, you 
+should not trust hidden form fields, and instead rely on server-side variables carried around in $_SESSION.
+<code>
+  'special_id'=> array('type'=>'hidden', 'value'=> '42')
+  </code>
+
+<dt>label
+<dd>This is a inline form label that does not correspond to any particular data.  It is rendered as a simple text line and does not result in values being POSTed to your form.
+
+<code>
+  'password'=> 'password',
+  'note'=> array('type'=>'label', 
+            'value'=>'Passwords should be at least 6 characters.');
+  </code>
+
+
+
+</dd>
+</div>
+
+<h2><a name="start_end">form_start() and form_end()</a></h2>
+<div class="indented">
+<p> Begin and end laying out a form.</p>
+
+<h3>Synopsis</h3>
+<p>
+function form_start($name = 'default', $extra='')
+function form_end()
+</p>
+
+<h3>In & out</h3>
+<dl>
+<dt>name
+<dd>The name of the form, provided to <cite>form_set()</cite> that you want to begin laying out.
+<dt>extra
+<dd>Any extra attributes (e.g. javascript) you want inside your <form> tag.
+</dl>
+
+<h3>Discussion</h3>
+
+<p>Calls to form_start() and form_end() must not be nested.
+</p>
+
+<p>
+The CPF provides manual and automatic form rendering.  With manual rendering, you must specify where the form will display errors, and where it will place form widgets.  Manual rendering takes work and patience.   Automatic rendering is often sufficient, and can be very easily CSS-styled.
+</p>
+
+<p><b>Automatic rendering</b>
+<br/>
+Automatically-rendered forms appear as an HTML table, with three columns.   The
+rows of the table are 1-1 with each key of the form declared to <cite>form_set()</cite>.
+The first column is the keys in the array provided to form_set(), used as labels to prompt the user.   The keys have underscores converted to spaces, and the first letter capitalized, i.e. "your_name" becomes "Your name".
+
+The second column is the form widgets, rendered according to their type and constraints.
+The third column is where any errors for those widgets are rendered.
+
+</p>
+
+<p>Here is an example form, as it is initially rendered:
+</p>
+
+
+<code>
+form_set(array(
+        'name' => 'text,required',
+        'address' => 'text,required',
+        'age' => 'integer,positive'
+));
+form_start();
+form_end();
+</code>
+
+<code>
+&lt;form enctype="multipart/form-data" method=post name="default" >
+&lt;input type=hidden name="_form_id" value="default">
+&lt;table class=formedit>
+
+&lt;tr>
+&lt;th align=right>*&nbsp;Name &lt;/th>
+&lt;td>
+&lt;input  class="_name"  type=text name="name" value="">
+&lt;/td>
+&lt;/tr>
+
+&lt;tr>
+&lt;th align=right>*&nbsp;Address &lt;/th>
+&lt;td>
+&lt;input  class="_address"  type=text name="address" value="">
+&lt;/td>
+&lt;/tr>
+
+&lt;tr>
+&lt;th align=right>Age &lt;/th>
+&lt;td>
+&lt;input  class="_age"  type=text name="age" value="">
+&lt;/td>
+&lt;/tr>
+&lt;/table>
+&lt;input type=submit value=" Proceed ">
+&lt;/form>
+</code>
+
+<p>
+<b>Manual rendering</b>
+<br/>
+Manual rendering is done by emitting HTML tags between calls to form_start() and form_end().  Form widgets are substituted for form keys between @@ symbols, and form errors are substituted for form keys between ## symbols.
+
+</p>
+<p>An example:
+<code>
+&lt;? 
+  form_set(array(
+          'name' => 'text,required',
+          'address' => 'text,required',
+          'age' => 'integer,positive'
+  ));
+  form_start();
+?>
+
+  I need your name: @@name@@
+  &lt;br/>
+  And your address: @@address@@
+  &lt;br/>
+  Age: @@age@@
+
+  &lt;? if (form_submitted() && !form_valid()): ?.
+    There were errors:
+      ##name##
+      ##address##
+      ##age##
+  &lt;? endif ?>
+
+ &lt;? form_end(); ?>
+</code>
+
+</code>
+</div>
+
+<h2><a name="was_submitted">form_was_submitted()</a></h2>
+<div class="indented">
+<p>Tells if any form was submitted</p>
+<h3>Synopsis</h3>
+<p>$form_name = form_was_submitted()</p>
+
+<h3>In & out</h3>
+<ul>
+<li><em>returns</em> -- The name of the form that was submitted, often 'default', or null if none was.
+</ul>
+</div>
+
+
+<h2><a name="submitted">form_submitted()</a></h2>
+<div class="indented">
+<p>Indicates if a particular form was submitted</p>
+<h3>Synopsis</h3>
+<p>boolean = form_submitted($form_name = 'default');
+
+<h3>In & out</h3>
+<ul>
+<li><em>form_name</em> -- The form name (default 'default') that you're interested in.
+<li><em>returns</em> -- True if a form was submitted, and it was the one you're interested in.  False otherwise.
+</ul>
+
+<h3>Discussion</h3>
+form_submitted() is often useful as a prelude to custom validation code.
+Here is a form that will let you type in any number you want, except for 13.
+
+<code>
+form_set(array(
+  'favourite_number' => 'integer'
+));
+if (form_submitted() {
+  if ($favourite_number == 13) {
+    form_error('favourite_number', "Anything but 13, please!");
+} }
+
+if (form_valid()) {
+  assert($favourite_number != 13);
+}
+</code>
+
+</div>
+
+<h2><a name="valid">form_valid()</a></h2>
+<div class="indented">
+<p>Tells you if a form was submitted OK or not.</p>
+<h3>Synopsis</h3>
+<p>form_valid($form_name='default')</p>
+
+<h3>In & out</h3>
+<ul>
+<li><em>form_name</em> -- Which from you want to validate.
+<li><em>returns</em> -- true or false, if the form has validation errors or not
+</ul>
+
+<h3>Discussion</h3>
+<p>
+This function returns a boolean indicating whether the form has validation errors or not.
+It should be regarded as the all-clear to do whatever it was your form was planning to do.
+</p>
+<p>A form is valid if:
+
+<ol>
+<li>All the constraints identified in the form structure are satisfied; for instance, if a field is of type "email" and "required", then the field must have something resembling an email address in it. If a field is numeric, and has a <tt>min</tt> constraint, the value provided must satisfy that constraint.
+<li>No other complaints were added with <tt>form_error</tt>. Refer to <a href="#was_submitted"><tt>form_was_submitted</tt></a> for a code example.
+</ol>
+
+
+
+</div>
+<h2><a name="error">form_error()</a></h2>
+<div class="indented">
+<p>Registers a complaint against a particular form widget</p>
+<h3>Synopsis</h3>
+<p>form_error($widget_name, $complaint)</p>
+
+<h3>In & out</h3>
+<ul>
+<li><em>widget_name</em> -- Must be one of the keys in the array provided to form_set()
+<li><em>complaint</em> -- A human-readable error message detailing your objection.
+
+</ul>
+
+<h3>Discussion</h3>
+You might notice that form_error() doesn't take a form name, to indicate which
+form you're unhappy about. That's because you have to be sure (using <a href="#submitted">form_submitted()</a>) that the form has been submitted.
+See that function's page for an example.
+
+<p/>
+You might not like having English error messages in form-validation code. That's what the <u>localization infrastructure</u> is for.
+</a>
+
+</div>
+
+
+
+
+<h2><a name="add_note">form_add_note()</a></h2>
+<div class="indented">
+<p>Adds a note to the top of an automatically-rendered form.</p>
+<h3>Synopsis</h3>
+<p>form_add_note($message, $form_name='default')</p>
+
+<h3>In & out</h3>
+<ul>
+<li><em>message</em> -- What message you want at the top of the form.
+<li><em>form_name</em> -- Which from you want that message at the top of.
+</ul>
+
+<h3>Discussion</h3>
+<p>
+Its use is probably best demonstrated by several examples:
+
+<code>
+form_set(array(
+  'your_name' => 'text,required'
+));
+if (!form_submitted()) {
+  form_add_note('Please enter your legal name, below.');
+}
+if (form_submitted() && !form_valid()) {
+  form_add_note('There were errors; please fix them.');
+}
+if (form_valid()) {
+  form_add_note("Thanks for the information.");
+}
+</code>
+
+
+</div>
+
+
+
+</div>

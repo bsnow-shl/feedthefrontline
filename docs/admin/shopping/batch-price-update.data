@@ -1,0 +1,27 @@
+require_once 'form.h';
+
+$products = db_multirow('select product_id,short_name,cost,price,sku,pricing_rule_header,pricing_rule_function from shopping_products join shopping_suppliers using (supplier_id) where cost_changed=1');
+foreach ($products as $p) {
+	if ($p['pricing_rule_header'] && $p['pricing_rule_function']) {
+		require_once $p['pricing_rule_header'];
+		eval ('$guess = '.$p['pricing_rule_function'].'($p);');
+	}
+	$form['price_'.$p['product_id']] = array('type'=>'dollars', 'default'=>$guess);
+	$price_list[ $p['product_id'] ] = $guess;
+}
+$form['submit'] = array('type'=>'submit', 'value'=>"Update all these prices");
+
+
+form_set($form);
+if (form_valid()) {
+	foreach ($products as $p) {
+		$var = 'price_'. $p['product_id'];
+		if ($$var) {
+			db_send('update shopping_products set price=?,cost_changed=0 where product_id=?', 100*$$var, $p['product_id']);
+		} else {
+			db_send('update shopping_products set cost_changed=0 where product_id=?', $p['product_id']);
+		}
+	}
+	redirect('index.html');
+
+}

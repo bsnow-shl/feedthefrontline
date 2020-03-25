@@ -1,0 +1,55 @@
+<!--
+<title>Order lookup</title>
+-->
+
+<div class="prettybody">
+<h3><? printf(_('Order %d status'), $summary['shopcart_id']) ?></h3>
+
+<table class="padded">
+<tr><th align="right" valign="top"><%= _('Order status:') %></th><td valign="top">
+<%= $pretty_status %>
+</td></tr>
+<tr><th align="right" valign="top"><%= _('Buyer:') %></th><td valign="top"><?
+        echo  $summary['buyer_email'];
+        if ($summary['buyer_email']) echo  ' (',$summary['buyer_email'],') ';
+        echo $summary['buyer_phone'];
+?>
+</td></tr>
+<tr><th align="right"><%= _('Total:') %></th><td><%= sprintf('$%.02f', $summary['total']/100.0) %> </td></tr>
+</table>
+
+
+<h3><%= _('Items in this order') %></h3>
+<table class="padded">
+<? if ($paid): ?>
+<tr><th><%= _('Item') %></th><th><%= _('Amount paid') %></th><td></td></tr>
+<? else: ?>
+<tr><th><%= _('Item') %></th><th><%= _('Price') %></th><td></td></tr>
+<? endif ?>
+
+<?  $counter = 0;
+    foreach ($details as $d) { 
+	    $counter++;
+?>
+<tr><td><%= $d['title'] %></td><td> <%= sprintf('$%.02f', $d['price']/100.0) %> </td>
+<? if ($summary['status'] == 'delivered'): ?>
+<td>
+<? printf('<a href="%s">%s</a>',
+	href('order-deliver.html', 'shopcart_id', $_GET['id'], 'idx', $counter), _('view this item'));
+?>
+</td>
+<? endif ?>
+</tr>
+<? }  ?>
+</table>
+
+<p><? printf(_('If you have any questions, please contact <a href="%s">customer service</a>.'),
+	 href('/support/contact.html', 'subject', 'Regarding order '.$_GET['id'])) ?></p>
+
+<p><? printf(_('You may also  <a href="%s">begin a new order</a>.'),
+	 href($_SERVER['REQUEST_URI'], 'startover', 1)) ?></p>
+
+
+</div>
+
+

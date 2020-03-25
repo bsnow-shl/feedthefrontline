@@ -1,0 +1,28 @@
+<!--
+<title><%= $title %></title>
+<subtitle>One of <a href="view.html">our RSS feeds</a>.</subtitle>
+-->
+
+<div class=section>
+
+<h2><%= $header['title'] %></h2>
+
+<p>
+<%= $header['description'] %>
+</p>
+
+<b>Last update:</b> <%= $header['pubDate'] %>
+
+<p/>
+
+<? foreach ($posts as $ignored => $post): ?>
+
+<h3><a href="<%= $post['link'] %>"><%= $post['title'] %></a></h3>
+<b>published:</b> <%= $post['pubDate'] %>
+
+<p>
+<%= $post['description'] %>
+</p>
+<? endforeach ?>
+
+</div>

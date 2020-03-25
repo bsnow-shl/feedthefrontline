@@ -1,0 +1,32 @@
+<!--
+<title><%= $cat['title'] %></title>
+-->
+
+<h3><%= $cat['title'] %></h3>
+
+<p>
+<%= $cat['caption'] %>
+</p>
+
+<? if ($subcats): ?>
+<h4>Sub-categories</h4>
+<ol>
+<? foreach ($subcats as $s): ?>
+<li><a href="/shopping/category/<%= $s['short_name'] %>"><%= $s['title'] %></a>
+<? endforeach ?>
+</ol>
+<? endif ?>
+
+<? if ($items): ?>
+
+<table class=padded><tr><th><%= _('Price') %></th><th><%= _('Title') %></th></tr>
+<? foreach ($items as $i): ?>
+<tr><td><? printf("\$%.02f", $i['price']/100) ?></td><td><a href="/shopping/sku/<%= $i['sku'] %>"><%= $i['title'] %></a> </td></tr>
+<? endforeach ?>
+</table>
+<? endif ?>
+
+
+
+
+

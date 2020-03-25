@@ -1,0 +1,26 @@
+<!--
+<title><%= _('Order confirmed') %></title>
+-->
+
+<div class="prettybody">
+
+<h3><%= _('Order confirmed') %></h3>
+
+<? if ($_SESSION['shopping']['redirected_paypal']): ?> 
+<div style="margin-left: 3em;" div="error">
+        <%= _("We haven't received notice from our payment processor that you have paid for this order.  Sometimes that takes a few minutes. Be patient, and watch your email for our confirmation message.") %>
+</div>
+<? endif ?>
+        
+<p>
+<? printf(_("Your order number is <b><span id=\"confirmationNumber\">%d</span></b>."), $shopcart_id); ?>
+
+<? if ($accept_payment): ?>
+    <? printf(_("Please <a href=\"%s\">proceed to pay for your purchase</a>."), href('done.html','paypal',1)) ?>
+<? else: ?>
+    <%= _('Our customer service staff will contact you shortly to make payment arrangements.') %>
+<? endif ?>
+</p>            
+                
+</div>
+

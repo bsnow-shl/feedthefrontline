@@ -1,0 +1,4 @@
+$keywords = db_multirow('select keyword,max(photo_id) as photo_id,count(*) as count from photo_keywords 
+			group by keyword order by keyword');
+
+

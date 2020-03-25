@@ -1,0 +1,29 @@
+
+require_once 'form.h';
+form_set(array(
+	'profiling' => 'flag',
+	'sql_debugging' => array('type'=>'menu', 'required' => 1, 'menu' => 
+				array('0'=>'off', '1'=>'on','detailed'=>'detailed'))
+));
+if (form_valid()) {
+	setcookie('phpprofile', $profiling, 0, '/');
+	setcookie('sqldebug', $sql_debugging, 0, '/');
+} else {
+	$_REQUEST['profiling'] = $_REQUEST['phpprofile'];
+	$_REQUEST['sql_debugging'] = $_REQUEST['sqldebug'];
+}
+
+
+$errors = db_multirow('select error_id, level, user_id, tstamp, level, message, file, file_line from errors order by error_id');
+
+$errtypes = array (
+	'Error','Warning','Parse','Notice','Core Error','Core warning','Compile error','Compile warning','User error','User warning','User notice','Strict','Recoverable error', 'Deprecated', 'User deprecated');
+
+
+function error_type($errno) {
+	global $errtypes;
+	if (!$errno) return "?";
+	$erridx = log($errno,2);
+	if ($erridx >= count($errtypes)) return $errno;
+	return $errtypes[$erridx];
+}

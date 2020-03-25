@@ -1,0 +1,36 @@
+<!--
+<title>Unpaid event registrations</title>
+-->
+
+<div class=section>
+
+<p>The following people need to be called to either pay for their event registration, or cross their name off the attendance list.
+</p>
+
+<? if ($regs): ?>
+
+<table class=padded><tr><th>Name</th><th>Phone</th><th>Event</th><th>Amount due</th><th>Actions</th></tr>
+<? foreach ($regs as $e): ?>
+<? if (($e['event_start_date'] < date('Y-m-d') && !$printed_past_heading)): ?>
+	<tr><th colspan=5>Past events</th></tr>
+	<? $printed_past_heading = true; ?>
+<? endif ?>
+<tr>
+<td><%= $e['name'] %></td>
+<td><%= $e['telephone'] %></td>
+<td><? $info = i18n_get('Event', $e['event_id']); echo $info['title']; ?> on <%= $e['event_start_date'] %></td>
+<td><a href="<%= href('reports/inspect.html', 'erid', $e['event_registration_id']) %>"><%= sprintf("%.02f", $e['price']+$e['tax_total']) %></a></td>
+<td>
+(<a href="<%= href('reports/inspect-change.html', 'erid', $e['event_registration_id'], 'confirmed', 0, 'goback', '/admin/events/call-list.html') %>">not coming</a>
+ | <a href="<%= href('reports/inspect-change.html', 'erid', $e['event_registration_id'], 'paid', 1, 'goback', '/admin/events/call-list.html') %>">paid</a>)
+</tr>
+<? endforeach ?>
+</table>
+<? else: ?>
+
+Nobody to call!
+
+<? endif ?>
+
+</div>
+

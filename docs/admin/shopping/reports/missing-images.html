@@ -1,0 +1,17 @@
+<!--
+<title>Products with no images</title>
+-->
+
+<? if ($missing): ?>
+
+<ol>
+<? foreach ($missing as $m): ?>
+<li><a href="<%= href('/admin/shopping/products/edit.html', 'sku', $m) %>"><%= $m %></a>
+<? endforeach ?>
+</ol>
+
+<? else: ?>
+
+None!  Good job.
+
+<? endif ?>

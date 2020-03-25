@@ -1,0 +1,59 @@
+require_once 'form.h';
+
+
+if ($_GET['pagerole']) {
+	switch ($_GET['pagerole']) {
+	case 'css': 
+		$css = config_get('content','content_css_files');
+		if (!$css) {
+			$css = config_get('content','content_css');
+		}
+
+		if (is_array($css)) {
+			$possibilities = $css;
+		} else {
+			$target = $_SERVER['DOCUMENT_ROOT'].$css;
+		}
+		continue;
+	
+	case 'index': 
+		$target = $_SERVER['DOCUMENT_ROOT'].'index.html';
+		continue;
+
+	case 'template': 
+		$templates = config_get('content','template_files');
+		if (is_array($templates)) {
+			$possibilities = $templates;
+		} else {
+			$target = $_SERVER['DOCUMENT_ROOT'].'_template.html';
+		}
+		continue;
+	}
+
+	if (!$target && !$possibilities) { exit("Bad page role."); }
+	if ($target) {
+		redirect(href('edit-file.html','file', $target));
+	}
+}
+
+
+if (!$possibilities) {
+	chdir($_SERVER['DOCUMENT_ROOT']); 
+	$files = split("\n", `find . -type f | grep -v CVS | grep -v .svn`);
+	foreach ($files as $f) {
+		$menu[$f] = $f;
+	}
+} else {
+  arsort($possibilities);
+	for ($i=0; $i<sizeof($possibilities); $i++) {
+		$menu[ $_SERVER['DOCUMENT_ROOT'].$possibilities[$i] ] = $possibilities[$i];
+	}
+}
+
+form_set(array(
+	'file' => array('type'=>'menu', 'menu'=>$menu)
+));
+if (form_valid()) {
+	redirect(href('edit-file.html', 'file', $file));
+}
+

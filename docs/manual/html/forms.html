@@ -1,0 +1,185 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+<title>Form handling</title>
+<meta name="GENERATOR" content=
+"Modular DocBook HTML Stylesheet Version 1.79">
+<link rel="HOME" title="Content Publishing Framework Manual" href=
+"index.html">
+<link rel="PREVIOUS" title=" db_newid " href="db-dbnewid.html">
+<link rel="NEXT" title="The form description language" href=
+"x609.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2005-03-11T18:12:01">
+</head>
+<body class="CHAPTER" bgcolor="#FFFFFF" text="#000000" link=
+"#0000FF" vlink="#840084" alink="#0000FF">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="3" align="center">Content Publishing Framework
+Manual</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="bottom"><a href=
+"db-dbnewid.html" accesskey="P">Prev</a></td>
+<td width="80%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="bottom"><a href="x609.html"
+accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="CHAPTER">
+<h1><a name="FORMS" id="FORMS"></a>Chapter 5. Form handling</h1>
+<div class="TOC">
+<dl>
+<dt><b>Table of Contents</b></dt>
+<dt>5.1. <a href="forms.html#AEN590">A detailed example</a></dt>
+<dt>5.2. <a href="x609.html">The form description language</a></dt>
+<dt>5.3. <a href="x624.html">Controlling the appearance of your
+forms</a></dt>
+<dt>5.4. <a href="x639.html">Custom form validation</a></dt>
+<dt>5.5. <a href="x642.html">Multiple forms on a page</a></dt>
+<dt>5.6. <a href="forms-end.html">Function reference</a></dt>
+</dl>
+</div>
+<p>Form handling is possibly one of the most annoying and least
+interesting aspects of web development. Even the simplest of form
+systems should let the user see which fields are required, and
+which are not, and should point out mistakes without requiring data
+re-entry, by applying validation rules both canned and custom. And
+of course the system has look out for the ', ", and &gt; symbols
+that inevitably mess things up.</p>
+<p>Form handling systems vary wildly in their approach to these
+problems. Some take an extremely abstract approach, treating each
+form element as an object, and permitting the form's author to
+override the object and provide custom validation functions, or
+custom functions for appearance, error messages, and so on. This
+sounds like a lot of work.</p>
+<p>In contrast, the CPF's form handling system's goal is to support
+quickly bashing out a form, by declaring its characteristics, and
+leaving the specific appearance and behaviour issues for later.
+Here is a form description for a form with three elements (name,
+address, and age). Take a look at <a href=
+"http://tinyplanet.ca/cpf/examples/1.html" target="_top">the
+result</a>.</p>
+<pre class="SCREEN">
+form_set(array(
+        'name' =&gt; 'text,required',
+        'address' =&gt; 'text,required',
+        'age' =&gt; 'integer,positive'
+));
+</pre>
+<p>This form will also politely deal with missing information,
+negative or invalid numbers, and re-displaying the form in case
+there's mistakes. You get all that for free.</p>
+<p>The Content Publishing Framework lets you quickly bash out a
+form and get it on the screen. Later, you can apply some
+refinements - a better layout, more detailed validation, etc.</p>
+<p>You might recall that when you're hand-coding HTML, you have to
+indicate with the &lt;form action=&gt; attribute which URL the form
+should be sent to. That is not the case with the CPF. The idiom we
+use is that web pages with forms on them send the information to
+themselves, verify the information, and if it's good, issue an HTTP
+redirect to the next step or confirmation page. This approach
+provides a lot of flexibility for a number of things, as we shall
+see.</p>
+<div class="SECTION">
+<h1 class="SECTION"><a name="AEN590" id="AEN590">5.1. A detailed
+example</a></h1>
+<p>You saw in <a href="templating.html">Chapter 3</a>&gt; that
+pages are actually split in two: the template and the part. The
+part is itself split into information (a .data extension), and an
+HTML fragment that lays it out (a .php or .html file). In the forms
+facility, you specify form content and rules in the .data file, and
+you may choose to lay out the form in the .php file, or just let
+the system generate a reasonable-looking layout for you.</p>
+<p>Here is a detailed example of a form that collects a name, age,
+and biography from the user. The name is required, the age must be
+positive, and the biography can be left empty.</p>
+<pre class="SCREEN">
+/* form.data */
+require_once 'form.h';
+
+form_set(array(
+        'name' =&gt; 'text,required',
+        'your_age' =&gt; 'integer,positive',
+        'your_biography' =&gt; 'bigtext'
+));
+if (form_valid()) {
+        print "Nice to see you, $name";
+}
+</pre>
+<pre class="SCREEN">
+/* form.php */
+&lt;!--
+&lt;title&gt;Form example&lt;/title&gt;
+--&gt;
+
+&lt;? form_start();
+   form_end(); ?&gt;
+</pre>
+<p><a href="http://tinyplanet.ca/cpf/examples/2.html" target=
+"_top">This is what you'll see when you load up form.php.</a></p>
+<p>As you can see, it infers form labels from the abstract names
+you gave. It intelligently deals with underscores (turning them
+into spaces) and generally looks alright. Try out the live example,
+and submit some information.</p>
+<p>Now let's imagine that a lawyer knocks on your door, and says
+that you can't collect information about children who are younger
+than 15. That's a one-line change:</p>
+<pre class="SCREEN">
+        age =&gt; array('type'=&gt;'integer', 'min'=&gt;16),
+</pre>
+<p><a href="http://tinyplanet.ca/cpf/examples/3.html" target=
+"_top">This is what you get now.</a></p>
+<p>Each of those types -- text, integer, bigtext -- are termed
+<span class="emphasis"><i class="EMPHASIS">widgets</i></span>, a
+term used in desktop application development that refers to
+graphical elements that do something or collect information.
+Although they have some relation to the usual range of form
+elements, they are not necessarily one-to-one. In the form
+descriptor, you simply describe the information you want to
+collect, and leave how it is collected to the framework.</p>
+<p>This pays off when the user agents improve. Right now, some web
+browsers support some kind of styled-text editing field, supporting
+various colours and font choices. Most webmail systems use this
+facility. It's an excellent replacement for the baleful empty stare
+of a TEXTAREA element. When you ask the CPF for a form element of
+type <kbd class="USERINPUT">bigtext</kbd>, it intelligently figures
+out if the remote browser can support rich text editing, and if so,
+uses that.</p>
+<p>Eventually, more interesting widgets will be possible: little
+calendars for entering dates, or calculators to help you figure out
+dollar figures. Most of this is possible with Flash MX or
+incredible feats of Javascript hacking. Eventually, the web will be
+nearly as usable and responsive as a desktop computer circa
+1987.</p>
+</div>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="db-dbnewid.html"
+accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html"
+accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="x609.html"
+accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">db_newid</td>
+<td width="34%" align="center" valign="top">&nbsp;</td>
+<td width="33%" align="right" valign="top">The form description
+language</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

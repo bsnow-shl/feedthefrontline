@@ -1,0 +1,11 @@
+
+if (isset($_GET['category_id'])) {
+    $_SESSION['admin']['ann']['category_id'] = $_GET['category_id'];
+}
+
+if (isset($_GET['include_past'])) {
+    $_SESSION['admin']['ann']['include_past'] = $_GET['include_past'];
+}
+
+redirect('index.html');
+

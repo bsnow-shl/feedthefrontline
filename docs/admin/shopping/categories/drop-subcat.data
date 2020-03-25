@@ -1,0 +1,8 @@
+
+$cid = 0+$_GET['cid'];
+$cid2 = 0+$_GET['cid2'];
+
+db_send('delete from shopping_category_category_map where parent_category_id=? and category_id=?', $cid, $cid2);
+redirect(href('edit.html', 'cid', $cid));
+
+

@@ -1,0 +1,4 @@
+
+require_once 'cache.h';
+
+$stats = memcache_get_extended_stats(_cache_connect());

@@ -1,0 +1,57 @@
+<!--
+<title>Edit category: <cite><%= $cat_name %></cite></title>
+-->
+
+<h3><%= sizeof($contents) %> products in this category</h3>
+<div class="section">
+
+<? if ($contents): ?>
+<table class="padded"><tr><th>SKU</th><th>Title</th><th>Actions</th></tr>
+
+<? foreach ($contents as $c): ?>
+<tr><td><a href="<%= href('/admin/shopping/products/edit.html', 'pid', $c['product_id']) %>"><%= $c['sku'] %></a></td><td><%= $c['visible_public'] ? $c['title'] : '<strike>'.$c['title'].'</strike>' %></td>
+<td>
+<a href="<%= href('drop.html', 'cid', $cid, 'pid', $c['product_id']) %>">drop</a> | 
+<a href="<%= href('move.html', 'cid', $cid, 'pid', $c['product_id'], 'moveup', 1) %>">move up</a> | 
+<a href="<%= href('move.html', 'cid', $cid, 'pid', $c['product_id'], 'movedown', 1) %>">move down</a> 
+
+</td></tr>
+<? endforeach ?>
+<tr>
+<td colspan="2"><a href="<%= href('/admin/shopping/products/add.html', 'cid', $cid, 'goback', $_SERVER['REQUEST_URI'])  %>">Add a new product here...</a></td>
+</tr>
+</table>
+<? endif ?>
+
+<? if( config_get('shopping', 'complicated_product_management') ): ?>
+<h4>Map an existing product here:</h4>
+<? form_start('newproduct'); form_end(); ?>
+</div>
+<? endif ?>
+
+<h3>Subcategories</h3>
+<div class="section">
+
+<table class="padded"><tr><th>Name</th><th>Title</th><th>Actions</th></tr>
+
+<? if ($cat_contents) foreach ($cat_contents as $c): ?>
+<tr><td><a href="<%= href('/admin/shopping/categories/edit.html', 'cid', $c['category_id']) %>"><%= $c['short_name'] %></a></td><td><%= $c['title'] %></td>
+<td>
+<a href="<%= href('drop-subcat.html', 'cid', $cid, 'cid2', $c['category_id']) %>">drop</a> | 
+<a href="<%= href('move-subcat.html', 'cid', $cid, 'cid2', $c['category_id'], 'moveup', 1) %>">move up</a> | 
+<a href="<%= href('move-subcat.html', 'cid', $cid, 'cid2', $c['category_id'], 'movedown', 1) %>">move down</a> 
+
+</td></tr>
+<? endforeach ?>
+<tr><td colspan=2><a href="<%= href('add.html', 'pcid', $cid, 'goback', $_SERVER['REQUEST_URI']) %>">Add a new category here...</a></td></tr>
+</table>
+
+
+<? if( config_get('shopping', 'complicated_product_management') ): ?>
+<h4>Map an existing category into this one:</h4>
+<? form_start('newsubcat'); form_end(); ?>
+<? endif ?>
+
+
+</div>
+

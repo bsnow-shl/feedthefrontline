@@ -1,0 +1,17 @@
+
+
+$id = 0+$_REQUEST['id'];
+
+$uri = db_value('select album_uri from photo_albums where album_id=?', $id);
+$directory = $_SERVER['DOCUMENT_ROOT'].'/'.$uri;
+
+if (!is_dir($directory)) {
+	die ("$directory is not a directory");
+}
+
+chdir($directory);
+system("rm -rf medium/* small/*");
+
+
+redirect(href('rescan.html', 'id', $id));
+

@@ -1,0 +1,9 @@
+
+
+$eid = 0+$_GET['eid'];
+$event_name = db_value('select name from events where event_id=?', $eid);
+if (!$event_name) { redirect('../index.html'); }
+
+$standbys = db_multirow("select *,date_part('epoch',create_tstamp) as create_tstamp from event_standby_registrations where event_id=? order by standby_registration_id", $eid);
+
+

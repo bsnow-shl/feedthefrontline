@@ -1,0 +1,61 @@
+require_once 'form.h';
+require_once 'email.h';
+
+$class = $_GET['class'];
+
+$email_valid_classes = email_get_valid_classes();
+$help = $email_valid_classes[$class]['help'];
+
+$form = email_form_for_class($class);
+form_set($form);
+
+if (form_valid()) {
+	if ($problem_to = db_value('select to_addr from email_accounts where email_domain_id=? and from_addr=?', 
+			$domain, $from_address)) {
+		form_add_note("The address $from_address is already being forwarded to $problem_to.");
+	} else if (!(strpos( $from_address, '@')===false)) {
+		form_add_note('Do not put the @ in the from address. Choose the domain from the pulldown.');
+		$_REQUEST['from_address'] = substr($from_address, 0, strpos($from_address, '@'));
+	} else {
+		db_send('insert into email_accounts (email_account_id, class, email_domain_id, from_addr, to_addr, password,moderator)
+		    values (?,?,?,?,?,?,?)',
+		    db_newid('email_account_id'), $_GET['class'], $domain, $from_address, $to_address, $password,$moderator);
+		if (db_errormessage()) {
+		    form_add_note(db_errormessage());
+		} else {
+			if ($_GET['class'] == 'mailing list') {
+				$prefix = $Gconfig['email']['maillist_prefix'];
+				$maillist = $prefix.$from_address;
+				$domain_name = db_value('select domain_name from email_domains where email_domain_id=?', $domain);
+				$mod = $moderation_rule ? "yes" : "no";
+
+				system("rm -rf /var/lib/ecartis/lists/$maillist");
+
+				umask('0002');
+				system("/usr/lib/ecartis/ecartis >/dev/null -newlist $maillist -admin $moderator");
+
+				$config = "/var/lib/ecartis/lists/".$maillist."/config";
+				system("perl -pi -e \"s/$maillist/$from_address/\" $config");
+				$domain_name = db_value('select domain_name from email_domains where email_domain_id=?', $domain);
+				system("perl -pi -e 's/\@\S+/\\@$domain_name/' $config");
+				system("echo moderated=$mod >>$config");
+				system("echo approved-address: $from_address-repost@$domain_name >>$config");		
+
+				if ($members) {
+					$member_array=split("\r\n", $members);
+					$result = email_get_maillist_files($from_address, $member_array);
+					foreach ($result as $f) {
+						$fh = fopen($f['file'], 'w');
+						fwrite($fh, $f['contents']);
+						fclose($fh);
+					}
+				}
+				
+			}
+		    redirect("index.html");
+		}
+	}
+}
+
+form_set($form);
+

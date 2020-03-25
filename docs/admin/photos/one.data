@@ -1,0 +1,71 @@
+require_once 'photos.h';
+
+# clean up input parameters
+$aid = $_GET['id'];
+if ($_GET['reload'] && !$aid) {
+	$aid = db_value('select album_id from photos where photo_id=?', $_GET['reload']);
+}
+
+
+if ($_REQUEST['_update_photos']) {
+	db_send('begin');
+	foreach ($_REQUEST['info'] as $pid => $details) {
+		db_update('photos', 'photo_id', $pid, array('photo_title' => $details[photo_title], 'caption' => $details[caption]));
+		db_send('delete from photo_keywords where photo_id=?', $pid);
+		foreach (split(',', $details[keywords]) AS $kw) {
+			if ($kw) {
+				if (db_value('select count(*) from photos where photo_id=?', $pid)) {
+					db_send('insert into photo_keywords(photo_id,keyword) values (?,?)', $pid, $kw);
+				}
+			}
+		}
+	}
+
+	# decide if we're moving photos around
+	$num2move = sizeof($_REQUEST['checked']);
+	$target = sizeof($_REQUEST['checked2']);
+	if ($num2move && $target) {
+		$target = array_pop(array_keys($_REQUEST['checked2']));
+
+		# bump everything down after our target
+		$target_order = db_value('select album_order from photos where photo_id=?', $target);
+		if (!$target_order) { exit("Couldn't figure out position of target photo?"); }
+
+		db_send('update photos set album_order=album_order+? where album_id=? and album_order>?', $num2move, $aid, $target_order);
+		foreach (array_keys($_REQUEST['checked']) as $movee) {
+			db_send('update photos set album_order = ? where photo_id=?', ++$target_order, $movee);
+		}
+	}
+
+	db_send('commit');
+}
+
+
+
+$r = db_row('select * from photo_albums where album_id=?', $aid);
+$photos = db_hash_multirow('photo_id','select * from photos where album_id=? order by album_order', $aid);
+$keywords = db_multirow('select * from photo_keywords where photo_id in (select photo_id from photos where album_id=?)', $aid);
+foreach ($keywords as $kw) {
+	if ($photos[$kw[photo_id]][keywords]) 
+		$photos[$kw[photo_id]][keywords] .= ','.$kw[keyword];
+	else
+		$photos[$kw[photo_id]][keywords] = $kw[keyword];
+}
+$reload = $_GET['reload'];
+
+# find subdirectories
+$dir = $_SERVER['DOCUMENT_ROOT'].$r['album_uri'];
+$directories = array();
+
+$dh = opendir($dir);
+while ($dh && ($file = readdir($dh)) !== false) {
+	if ($file == '.' || $file == '..') { continue; }
+	if ($file == 'small' || $file == 'medium')  { continue; }
+	if ($file == 'CVS' )  { continue; }
+	if (is_dir($dir.$file)) {
+		$candidate = $r['album_uri'].$file.'/';
+		$aid = db_value('select album_id from photo_albums where album_uri=?', $candidate); 
+		$directories[$file] = $aid;
+	}
+}
+

@@ -1,0 +1,70 @@
+<!--
+<title>Product catalogue system</title>
+-->
+
+<div class="section">
+<? if ($todo): ?>
+<h3>To do first</h3>
+<ol>
+
+<? foreach ($todo as $url=>$msg): ?>
+<li><a target="_" href="<%= $url %>"><%= $msg %></a>
+<? endforeach ?>
+<li><a href="/admin/shopping/">Reload this page.</a>
+
+</ol>
+<? else: ?>
+<? if ($num_fucked): ?>
+<div class="error"><a href="reports/search.html?paid=0"><%= $num_fucked %> carts are unpaid, but in order processing.</a></a></div>
+
+<? endif ?>
+
+<? if ( !config_get('shopping', 'suppress_cart_reporting')): ?>
+
+<h3>Search for shopcarts</h3>
+<? form_start('search');
+   form_end();
+?>
+
+<? endif ?>
+
+
+<h3>Statistics</h3>
+<ul>
+<li> <a href="products/"><%= $num_prod %> products</a> in <a href="categories/"><%= $num_cat %> categories</a>.
+
+<? if ( !config_get('shopping', 'suppress_cart_reporting')): ?>
+	<? foreach (shopping_get_status_list() as $stat => $ignored): ?>
+		<li><a href="<%= href('reports/search.html', 'status', $stat) %>"><%= sprintf("%d %s shopcarts", $shopcarts[$stat]['count'], $stat) %></a> 
+		<? $seen[$stat]++; ?>
+	<? endforeach ?>
+	<? foreach ($shopcarts as $status => $s): ?>
+    <? if ($seen[$status]) {  continue; } ?>
+		<li><a href="<%= href('reports/search.html', 'status', $status) %>"><%= sprintf("%d %s shopcarts", $s['count'], $status) %></a> 
+	<? endforeach ?>
+<? endif ?>
+</ul>
+
+
+<h3>Batch jobs</h3>
+<ul>
+<li> <a href="batch-photos.html">Upload a batch of photos.</a>
+<br/>
+<li> <a href="batch-price-update.html">Update <%= $batch_price_candidates %> products with changed costs.</a>
+</ul>
+
+<h3>Reports</h3>
+<ul>
+<li> <a href="reports/kitchen-sink.html?page=1">The kitchen sink.</a>
+<li> <a href="reports/price-brackets.html">Price brackets report.</a>
+<li><a href="reports/orphans.html"><%= $num_orphans %> orphans (products that are not in any category)</a>
+<li><a href="reports/missing-images.html">List products with no images</a>
+<li><a href="reports/spreadsheet-export.html">Download</a> or <a href="reports/spreadsheet-import.html">upload</a> a spreadsheet of product information.
+<!--
+<li><a href="reports/compare.html">Make a product comparison PDF</a>
+-->
+</ul>
+<? endif ?>
+
+
+</div>

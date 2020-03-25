@@ -1,0 +1,43 @@
+<!--
+<title>Newsletter Mailing Reports</title>
+-->
+
+<div class="section">
+
+<h3>The facts</h3>
+<ul>
+<li>Created: <%= $mailing['tstamp'] %>
+<li>Subject: <%= $mailing['subject'] %>
+<li>From: <%= htmlspecialchars($mailing['from_line']) %>
+<li><%= $newsletter['num_sent'] %> of <%= $newsletter['num_queued'] %> email messages sent.
+(<a href="<%= href("drilldown.html", "nmid", $nmid, "r", 'sent') %>">View who it was sent to.</a>)
+<li><%= $newsletter['num_bounced'] %> messages bounced.
+(<a href="<%= href("drilldown.html", "nmid", $nmid, "r", 'bounced') %>">View bounce list.</a>)
+</ul>
+
+<? if ($newsletter['num_sent']): ?>
+
+<h3>Response</h3>
+<ul>
+<li><%= $newsletter['num_opened'] %> messages were <a href="<%= href("drilldown.html", "nmid", $nmid, "r", 'opened') %>">definitely opened</a> 
+	<? if ($newsletter['num_sent']) {
+		printf("&mdash; %.02f%% response rate", $newsletter['num_sent'] ? $newsletter['num_opened'] / ($newsletter['num_sent']- $newsletter['num_bounced'])* 100 : 0);
+	} ?>
+	
+<li>The messages were opened <%= $newsletter['sum_opened'] %> times overall.
+<li><%= $newsletter['num_sent'] - $newsletter['num_bounced'] - $newsletter['num_opened'] %> were maybe not seen. <sup>1</sup>
+<li><%= $newsletter['num_unsubscribed'] %> messages led to an un-subscription. 
+<a href="<%= href("drilldown.html", "nmid", $nmid, "r", 'unsubscribed') %>">See who unsubscribed</a>.
+<li><%= $newsletter['num_clickthrough'] %> <%= sprintf("(%.1f%%)", $newsletter['num_sent'] ? $newsletter['num_clickthrough'] *100.0 / $newsletter['num_sent'] : 0) %> messages led to a click-through, for a total of <%= $newsletter['sum_clickthrough'] %> click-throughs.<sup>2</sup> 
+<a href="<%= href("drilldown.html", "nmid", $nmid, "r", 'clickthru') %>">See who clicked through</a> and <a href="<%= href("drilldown.html", "nmid", $nmid, "r", "clickthrudest") %>"> where they went</a>.)
+</ul>
+
+<h4>Methodology notes</h4>
+
+<sup>1</sup> These messages may have been spam-filtered, deleted on sight, or viewed with mail systems that disable our tracking mechanisms.
+<p/>
+<sup>2</sup> A click-through counts towards at least one message opening.
+
+<? endif ?>
+</div>
+

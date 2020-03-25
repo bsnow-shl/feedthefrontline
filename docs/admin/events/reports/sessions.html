@@ -1,0 +1,35 @@
+<!--
+<title>Session attendance report for <cite><%= $event_name %></cite></title>
+-->
+
+<h2>Summary</h2>
+<table class="padded">
+<tr><th>Time slot</th><th>Session</th><th>Attendees</th><th>Capacity</th></tr>
+<? foreach ($sessions as $id=>$sess) {
+    $sub = 0;
+	foreach ( $sess['options'] as $id => $opt) {
+        echo '<tr><td>',substr($sess['info']['session_start'],0,16),'</td>';
+        echo '<td>',$opt['info']['title'], '</td>';
+        echo '<td>', sizeof($opt['attendees']), '</td>';
+        echo '<td>', $opt['info']['capacity'], '</td></tr>';
+        $sub += sizeof($opt['attendees']);
+    }
+    echo '<tr><td></td><td>Total this time slot</td><td>', $sub,'</td></tr><td><td>&nbsp;</td></tr>';
+} ?>
+</table>
+<h1>Session attendance report for <cite><%= $event_name %></cite></h1>
+<br/>
+<div class="section">
+<table class=padded><tr><th>Time Slot</th><th>Session</th><th>Name</th><th>Company</th><th>Email</th><th>Phone</th><th>Paid?</th></tr>
+<? foreach ($sessions as $id=>$sess) {
+	echo '<tr><th>'.substr($sess['info']['session_start'],0,16).'</th><td></td><td></td><td></td><td></td><td></td></tr>';
+	foreach ( $sess['options'] as $id => $opt) {
+		print '<tr><td></td><th>'.$opt['info']['title'].'</th><td colspan="4">'.sizeof($opt['attendees']).' of '.$opt['info']['capacity'].' attendees</td></tr>';
+		foreach ($opt['attendees'] as $att) {
+			printf('<tr><td></td><td></td><td><a href="%s">%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>', href('inspect.html', 'eid', $_GET['eid'], 'erid', $att['event_registration_id']), $att['name'], $att['company'], $att['email'], $att['telephone'], $att['paid']? 'yes':'no');;
+		}
+	}
+} ?>
+</table>
+
+</div>

@@ -1,0 +1,40 @@
+require 'form.h';
+require 'dbadmin.h';
+
+$table = $_REQUEST['table'];
+
+$columns = dbadmin_list_columns($table);
+foreach ($columns as $c) {
+	$type = 'text';
+	if ($type == 'integer') {
+		$type = 'integer';
+	}
+	$form[$c['attname']] = array('type' => $type, 'hint' => $c['default_value'] ? 'default: '.$c['default_value'] : '');
+}
+
+form_set($form);
+
+form_set($form);
+if (form_valid()) {
+	foreach ($_POST as $k=>$v) {
+		if (!is_null($v) && $v !== '') {
+			$toinsert[$k]=$v;
+		}
+	}
+	if ($toinsert) {
+		$result = db_insert_hash($table, $toinsert);
+		if ($result === false) {
+			form_add_note(db_errormessage($result));
+		} else {
+			form_add_note('Update complete.');
+		}
+	} else {
+		form_add_note("Nothing to insert?");
+	}
+	redirect(href('table.html', 'table', $_REQUEST['table']));
+}
+
+
+	
+
+

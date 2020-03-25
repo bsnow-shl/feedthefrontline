@@ -1,0 +1,6 @@
+require 'dump.h';
+
+$assignee_status = db_multirow('select component,ticket_status,count(*) from tickets group by component,ticket_status order by ticket_status,component');
+
+$assignee_status_last_month = db_multirow("select component,ticket_status,count(*) from tickets where date_added > CURRENT_TIMESTAMP - interval '30 days' group by component,ticket_status order by ticket_status,component");
+

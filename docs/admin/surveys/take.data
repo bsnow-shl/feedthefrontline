@@ -1,0 +1,15 @@
+require_once 'form.h';
+require_once 'i18n.h';
+require_once 'survey.h';
+
+$sid = 0+$_GET['sid'];
+
+$row = db_row('select * from surveys where survey_id=?', $sid);
+if (!$row) { exit(); }
+
+list($form, $template)= survey_get_form_for_survey($sid);
+form_set('survey', $form);
+if (form_valid('survey')) {
+	$message = "Thank you for participating in our survey.";
+	survey_handle_submission($sid);
+}

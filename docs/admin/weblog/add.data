@@ -1,0 +1,25 @@
+require_once 'form.h';
+require_once 'users.h';
+
+form_set(array(
+	'weblog_id' => array('type'=>hidden, value=>db_newid('weblogs')),
+	'new_weblog_url_name' => 'text,required',
+	'new_weblog_name' => 'text,required',
+	'new_weblog_description' => 'bigtext',
+	'author' => user_menu_byname()
+));
+
+if (form_valid()) {
+	db_send('begin');
+	db_insert_or_update('weblogs', 'weblog_id', $weblog_id, 
+		array('uri'=> $new_weblog_url_name, 
+		      'weblog_title' => $new_weblog_name,
+		      'blurb' => $new_weblog_description,
+		      'owner' => $author));
+	
+	user_grant_role('weblog_editor', $weblog_id);
+	db_send('commit');
+	redirect("index.html");
+}
+
+

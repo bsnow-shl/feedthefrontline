@@ -1,0 +1,8 @@
+
+<? global $comment; ?>
+
+<h3>drastic action</h3>
+<div class="links">
+   <a href="<%= href("comment-delete.html", 'id', $_GET['id']); %>">Delete this comment</a>
+    <a href="<%= href('/admin/users/bozoify.html', 'user', $comment['user_id'], 'goback', $_SERVER[REQUEST_URI]) %>">Mark this comment's author as a bozo</a>
+</div>

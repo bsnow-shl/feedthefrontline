@@ -1,0 +1,14 @@
+require_once 'form.h';
+
+form_set(array(
+        'name' => 'text,required',
+        'your_age' => array('type'=>'integer', 'min'=>16),
+        'your_biography' => 'bigtext'
+));
+if (form_valid()) {
+        print "Nice to see you, $name";
+}
+
+
+
+

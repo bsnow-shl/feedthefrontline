@@ -1,0 +1,12 @@
+
+$class_id = db_value('select class_id from shopping_product_types join shopping_products using (product_type_id) where product_id=?', 0+$_GET['pid']);
+if ($class_id) {
+		i18n_delete($class_id, 0+$_GET['pid'], 'en');
+		i18n_delete($class_id, 0+$_GET['pid'], 'fr');
+}
+db_send('delete from shopping_product_category_map where product_id=?', 0+$_GET['pid']);
+db_send('delete from shopping_realm_product_map where product_id=?', 0+$_GET['pid']);
+db_send('delete from shopping_products where product_id=?', 0+$_GET['pid']);
+
+redirect('index.html');
+

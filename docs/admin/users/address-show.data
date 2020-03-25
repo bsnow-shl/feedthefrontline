@@ -1,0 +1,9 @@
+$uid = $_GET['uid'];
+$class = $_GET['class'];
+
+$addr = user_get_address($uid, $class);
+$addr['country'] = db_value('select name_en from countries where iso_code=?', $addr['country']);
+
+$user_name = user_name($uid);
+$user_email = user_email($uid);
+

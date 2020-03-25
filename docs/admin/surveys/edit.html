@@ -1,0 +1,65 @@
+<!--
+<title>Edit <cite><%= $survey['short_name'] %></cite></title>
+-->
+
+<div class="section">
+<p>Once a survey is live, you cannot adjust its questions.</p>
+
+<? if ($survey['survey_status']=='draft'): ?>
+
+<? if ($survey['survey_type']=='popquiz'):  ?>
+<h3>Survey question</h3>
+<? 
+	form_start('popquizq');
+	form_end();
+?>
+<? if ($qid) {
+	print '> <a href="'.href('edit-question.html','qid', $qid).'">Edit possible answers</a>';
+} ?>
+
+<? else: ?>
+
+	<h3>Survey questions</h3>
+    <table class=padded><tr>
+    <th>#</th>
+    <th>Question</th>
+    <th>Move</th>
+    <th>Actions</th>
+    </tr>
+	<? if ($questions) foreach ($questions as $q): ?>
+    <tr>
+    <td><%= ++$counter %></td>
+    <td><? $question = i18n_get('Survey question', $q['survey_question_id']); print $question['question']; ?>
+    </td>
+    <td><a href="<%= href('move.html','sqldebug',1,'sid', $_GET['sid'], 'qid', $q['survey_question_id'], 'move', 'up') %>">up</a>
+    |
+    <a href="<%= href('move.html','sqldebug',1,'sid', $_GET['sid'], 'qid', $q['survey_question_id'], 'move', 'down') %>">down</a>
+    </td>
+    <td>
+			<? if ($q['question_type']=='flaglist'): ?> 
+                <a href="<%= href('edit-question.html', 'qid', $q['survey_question_id']) %>">edit options</a>  |
+            <? endif ?>
+			<? if ($q['question_type']=='menu'): ?> 
+                <a href="<%= href('edit-question.html', 'qid', $q['survey_question_id']) %>">edit options</a> |
+                <a href="<%= href('edit-details.html', 'qid', $q['survey_question_id']) %>">edit question</a> |
+            <? endif ?>
+	<a href="<%= href('drop-question.html', 'sid', $sid, 'qid', $q['survey_question_id']) %>">drop</a>
+    </td>
+    </tr>
+	<? endforeach ?>
+	</table>
+
+	<p>Add a question:</p>
+	<? form_start('addquestions'); ?>
+	<? form_end() ?>
+<? endif ?>
+
+
+<?endif ?>
+
+<h3>Survey details</h3>
+<? form_start('details'); form_end(); ?>
+
+
+</div>
+

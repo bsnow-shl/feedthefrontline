@@ -1,0 +1,28 @@
+<!--
+<title>All tickets</title>
+-->
+
+
+<h2>All tickets</h2>
+
+<table class="padded"><tr>
+<th><a style="color: #444; text-decoration: underline" href="showall.html?sortby=ticket_id">ticket #</a></th>
+    <th><a style="color: #444; text-decoration: underline" href="showall.html?sortby=submitter_name">submitter</a></th>
+    <th><a style="color: #444; text-decoration: underline" href="showall.html?sortby=component">component</a></th>
+    <th><a style="color: #444; text-decoration: underline" href="showall.html?sortby=ticket_status">status</a></th>
+    <th><a style="color: #444; text-decoration: underline" href="showall.html?sortby=date_added">date</a></th> 
+    <th>subject</th></tr>
+
+<? foreach ($tickets as $t): ?>
+<tr>
+<td><a href="show.html?id=<%= $t['ticket_id'] %>"><%= $t['ticket_id'] %></a></td>
+<td><%= $t['submitter_name'] %></td>
+<td><%= $t['component'] %></td>
+<td><%= $t['ticket_status'] %></td>
+<td><%= date('Y-M-d',$t['date_added_sec']) %></td>
+<td><%= $t['short_title'] %></td>
+</tr>
+<? endforeach ?>
+</table>
+
+

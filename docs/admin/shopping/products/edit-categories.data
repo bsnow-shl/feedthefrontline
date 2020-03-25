@@ -1,0 +1,52 @@
+require_once 'form.h';
+
+$pid = 0+$_GET['pid'];
+$sku = db_value('select sku from shopping_products where product_id=?', $pid);
+if (!$sku) { redirect('index.html'); }
+
+$category_picker = config_get('shopping','admin_category_picker');
+if (!$category_picker) {
+    exit("That function is mis-configured. Please contact support.");
+}
+
+$menu = array();
+
+foreach ($category_picker as $name => $cid) {
+	$checkboxes = shopping_get_tree_checkboxes($cid);
+	$checkbox_pickers[$name] = $checkboxes;	
+	$menu += $checkboxes;
+}
+
+
+$categories = db_array('select category_id from shopping_product_category_map where product_id=?', $pid);
+foreach ($categories as $c) {
+	$selections[$c] = 1;
+}
+
+form_set('default', $menu, $selections);
+if (form_valid('default')) {
+	db_send('begin');
+	$edits = array();
+	foreach ($menu as $k=>$value) {
+		if ($$k) {
+			if (!$selections[$k]) {
+				# we have to add it
+				$edits[] = "Added $sku to <cite>${value['pretty']}</cite>";
+				db_insert_hash('shopping_product_category_map', array(
+					'category_id' => $k,
+					'product_id' => $pid,
+					'display_order' => -db_newid('display_order')
+				));
+			}
+		} else {
+			if ($selections[$k]) {
+				# it was on but now it's not; delete it
+				db_send('delete from shopping_product_category_map where category_id=? and product_id=?', $k, $pid);
+				$edits[] = "Dropped $sku from <cite>${value['pretty']}</cite>";
+			} 
+		}
+	}
+	db_send('commit');
+
+}
+

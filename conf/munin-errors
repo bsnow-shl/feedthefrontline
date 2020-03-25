@@ -1,0 +1,73 @@
+#!/bin/sh
+# -*- sh -*-
+
+: << =cut
+
+=head1 NAME
+
+sitelog - Plugin to monitor the number of warnings and errors on a CPF installation.
+
+
+=head1 NOTES
+
+If run with the "autoconf"-parameter, give our opinion on whether we
+should be run on this system or not. This is optional, and only used
+by munin-config. In the case of this plugin, we should most probably
+always be included.
+
+=head1 MAGIC MARKERS
+
+ #%# family=auto
+ #%# capabilities=autoconf
+
+=cut
+
+. $MUNIN_LIBDIR/plugins/plugin.sh
+
+if [ "$1" = "autoconf" ]; then
+        echo yes
+        exit 0
+fi
+
+# If run with the "config"-parameter, give out information on how the
+# graphs should look.
+
+if [ "$1" = "config" ]; then
+
+        # The host name this plugin is for. (Can be overridden to have
+        # one machine answer for several)
+
+
+        echo 'graph_title Site errors in '.$PGDATABASE
+
+        # Arguments to "rrdtool graph". In this case, tell it that the
+        # lower limit of the graph is '0', and that 1k=1000 (not 1024)
+        echo 'graph_args --base 1000 -l 0'
+        echo 'graph_vlabel entries'
+        echo 'graph_scale yes'
+        echo 'graph_category tinyplanet'
+        echo 'graph_info Number of notices and errors in the site log.'
+	echo 'notices.label notices'
+	echo 'notices.draw LINE2'
+	echo 'notices.colour 888888'
+	echo 'errors.label errors'
+	echo 'errors.draw LINE2'
+	echo 'errors.colour ff0000'
+	echo 'errors.critical 0:300'
+
+        # Last, if run with the "config"-parameter, quit here (don't
+        # display any data)
+        exit 0
+fi
+
+# If not run with any parameters at all (or only unknown ones), do the
+# real work - i.e. display the data. Almost always this will be
+# "value" subfield for every data field.
+
+ERR=`echo 'select count(*) from errors where level<>256' | psql -At`;
+echo 'errors.value '$ERR
+
+ERR=`echo 'select count(*) from errors where level=256' | psql -At`;
+echo 'warns.value '$ERR
+#/usr/bin/curl $site/admin/errors/special/reporter.php
+

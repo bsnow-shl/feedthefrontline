@@ -1,0 +1,39 @@
+<!--
+<title> Sales report</title>
+-->
+
+<? form_start();  ?>
+<? form_end() ?>
+
+<? if ($results): ?>
+
+<Table class="padded">
+<tr>
+    <th>User Name</th>
+    <th>Email</th>
+    <th>Shopcart #</th>
+    <th>SKU</th>
+    <th>Purchase date</th>
+    <? foreach ($extra_columns as $k=>$pretty): ?>
+        <th><%= $pretty %></th>
+    <? endforeach ?>
+    </tr>
+
+<? foreach ($results as $r): ?>
+<tr>
+    <td><? echo $r['first_name'],' ',$r['last_name'] ?></td>
+    <td><? echo $r['email'] %></td>
+    <td><a href="<%= href('detail.html', 'sid', $r['shopcart_id']) %>"><? echo $r['shopcart_id'] %></a></td>
+    <td><? echo $r['sku'] %></td>
+    <td><? echo substr($r['created_tstamp'],0,16) %></td>
+    <? foreach ($extra_columns as $k=>$pretty): ?>
+        <td><%= $r[$k] %></td>
+    <? endforeach ?>
+</tr>
+
+<? endforeach ?>
+</table>
+
+<? endif ?>
+
+

@@ -1,0 +1,28 @@
+
+require_once 'form.h';
+require_once 'shopping.h';
+if (!config_get('shopping', 'anonymous_ok')) { 
+	require_once 'users.h';
+	user_require(); 
+}
+
+form_set(array(
+	'name' => array('type'=>'text','required'=>1,'pretty'=>_('Name') ),
+	'email_address' => array( 'type'=>'email', 'required' => 1, 'pretty'=>_('Email address')),
+	'phone'=> array('type'=>'text','required'=>1,'pretty'=>_('Phone') )
+));
+if (form_valid()) {
+
+	$result = shopping_finalize_shopcart(array(
+		'name'=>$name,
+		'email'=>$email_address,
+		'phone'=>$phone,
+		'user_id'=>user_id()
+	));
+	if ($result) {
+		$_SESSION['shopcart']['failure'] = $result;
+		redirect('note.html');
+	} else { 
+		redirect("done.html"); 
+	}
+}

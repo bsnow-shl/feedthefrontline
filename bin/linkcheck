@@ -1,0 +1,4 @@
+#!/bin/bash
+export absdir=`dirname $0`/..
+linklint -error -silent -http -host `hostname --fqdn`:`cat $absdir/conf/portnumber.conf` /@
+

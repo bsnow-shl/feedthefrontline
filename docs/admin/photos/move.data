@@ -1,0 +1,35 @@
+$pid = $_REQUEST['photo_id'];
+        
+db_send('begin');
+
+if ($_REQUEST['movedown']) {
+        $current = db_value('select album_order from photos where photo_id=?', $pid);
+        $next = db_value('select min(album_order) from photos where album_order>?', $current);
+        if ($next) {
+                db_send('update photos set album_order=? where album_order=?', $current, $next);
+                db_send('update photos set album_order=? where photo_id=?', $next, $pid);
+        }
+}
+
+
+
+if ($_REQUEST['moveup']) {
+        $current = db_value('select album_order from photos where photo_id=?', $pid);
+        $previous = db_value('select max(album_order) from photos where album_order<?', $current);
+        if ($previous) {
+                db_send('update photos set album_order=? where album_order=?', $current, $previous);
+                db_send('update photos set album_order=? where photo_id=?', $previous, $pid);
+        }
+}
+
+if ($_REQUEST['checked']) {
+	print_a($_REQUEST);
+}
+
+
+
+db_send('commit');
+
+redirect(href("one.html", 'reload', $pid));
+
+

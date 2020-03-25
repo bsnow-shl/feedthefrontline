@@ -1,0 +1,15 @@
+<? global $next,$prev,$page_flow; ?><? if ($next || $prev): ?>
+<table width="100%">
+<tr><td width=33%>
+<? if ($prev) {
+		echo "<a href=\"$prev\">Previous</a>";
+} ?>
+</td><td width=33% align=center>
+<a href="index.html">TOC</a></td>
+<td width=33% align=right>
+<? if ($next) {
+		echo "<a href=\"$next\">Next</a>";
+} ?>
+</td></tr></table>	
+<hr/>
+<? endif ?>

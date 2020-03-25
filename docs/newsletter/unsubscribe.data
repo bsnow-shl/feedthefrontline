@@ -1,0 +1,28 @@
+require_once 'users.h';
+
+
+$path_info = $_SERVER['PATH_INFO'];
+$path_parts = split("/", $path_info);
+
+
+if ($path_parts[1]) {
+        array_shift($path_parts);
+        $track_id = array_shift($path_parts);
+
+        $row = db_row('select user_id,newsletter_subscriptions.newsletter_subscription_id from newsletter_queue join newsletter_subscriptions using (newsletter_subscription_id) where newsletter_queue_id=?', $track_id);
+        $uid = $row['user_id'];
+        $sub_id = $row['newsletter_subscription_id'];
+
+        if ($uid) {
+                user_add_diary($uid, "Unsubscribed from newsletter by clicking on link in newsletter.");
+                db_send("update newsletter_subscriptions set parameter='0' where newsletter_subscription_id=?", $sub_id);
+                db_send('update newsletter_queue set unsubscribed=1,opened=1 where newsletter_queue_id=?', $track_id);
+        }
+
+        $nlrow = db_row('select * from newsletters join newsletter_mailings using (newsletter_id) join newsletter_queue using (newsletter_mailing_id) where newsletter_queue_id=?', $track_id);
+        if ($nlrow['unsubscribe_callback']) {
+          if ($nlrow['callback_header']) require_once($nlrow['callback_header']);
+          call_user_func($nlrow['unsubscribe_callback'], $nlrow['extra_info']);
+        }
+}
+

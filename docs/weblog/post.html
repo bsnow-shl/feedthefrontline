@@ -1,0 +1,28 @@
+<!--
+<title>Post to <a href="./"><%= $weblog_row['weblog_title'] %></a></title>
+<behaviour>
+			'a#addToKeywords' : function(el) { el.onclick = function() {
+					kw = document.getElementById('_keywords');
+					kwSearch = document.getElementById('_keywords_search');
+					if (kw && kwSearch) {
+						if (kw.value) {
+							kw.value += ','+kwSearch.value;
+						} else {
+							kw.value = kwSearch.value;
+						}
+					}
+			}}
+</behaviour>
+
+-->
+
+
+<? form_start(); ?>
+<table>
+<tr><th>* Title</th><td>@@title@@</td></tr>
+<tr><th>* Body</th><td>@@body@@</td></tr>
+<tr><th>Keywords</th><td>@@keywords@@ <a id="addToKeywords">&laquo;</a>@@keywords_search@@</td></tr>
+</table>
+
+<? form_end(); ?>
+

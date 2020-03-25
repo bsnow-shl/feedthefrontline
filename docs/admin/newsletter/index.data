@@ -1,0 +1,24 @@
+
+
+$newsletter_query = db_multirow("select newsletter_id,name,parameter as type,count(*) as count from newsletters left outer join newsletter_subscriptions using (newsletter_id) 
+		where parameter is not null and parameter != '0' 
+		group by newsletter_id,name,parameter
+		order by parameter");
+foreach ($newsletter_query as $q) {
+	if (!$newsletters[$q['name']]) {
+		$newsletters[$q['name']] = array( 'name' => $q['name'], 'counts' => array(), 'newsletter_id' => $q['newsletter_id']);
+	}
+	$newsletters[$q['name']]['counts'][$q['type']] = $q['count'];
+}
+
+
+$mailings = db_multirow('select newsletter_mailings.newsletter_mailing_id,description,
+  count(*) as num_queued,
+	sum(sent) as num_sent
+
+	from newsletter_mailings join newsletter_queue using (newsletter_mailing_id)
+	group by newsletter_mailing_id, description
+	order by newsletter_mailing_id desc
+');
+
+

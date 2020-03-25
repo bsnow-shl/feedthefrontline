@@ -1,0 +1,7 @@
+
+$strong_shopcart_id = shopping_strong_shopcart_id();
+
+list ($details, $summary) = shopping_get_shopcart_contents();
+
+shopping_clear_shopcart();
+

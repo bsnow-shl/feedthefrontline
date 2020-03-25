@@ -1,0 +1,19 @@
+
+require_once 'users.h';
+require_once 'form.h';
+user_require();
+
+
+if (strpos($_SERVER['PHP_SELF'],'.xml')) {
+  template_disable();
+  header('Content-type: application/xml');
+}
+
+
+form_set('navsearch', array(
+	'search' => array('type'=>'text', 'cols'=>5, 'extra' => ' style="width: 175px" placeholder="Search..." '), 
+	'go' => 'submit'
+));
+if (form_valid('navsearch')) {
+	redirect(href('tld-filter.html', 'kw', $search));
+}

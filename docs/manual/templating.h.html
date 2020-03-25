@@ -1,0 +1,115 @@
+<!--
+<title>Templating system: function reference</title>
+<subtitle>part of the <a href="./">CPF manual</a>.</subtitle>
+
+-->
+
+<div class="section">
+This page documents all the interesting functions you gain with the templating system.
+These are defined in <cite>includes/templating.h</cite>, but there is no need to include that file, since
+it is included automatically.
+
+<p/>
+Index:
+<ol>
+<li><a href="#find">template_find</a> &mdash; Search backwards through the document tree for a file.
+<li><a href="#include">template_include</a> &mdash; Search backwards through the document tree for a file and includes it.
+<li><a href="#disable">template_disable</a> &mdash; Disable running _template.html
+</ol>
+
+<dl class=functions>
+
+
+<dt><a name=find>template_find</a></dt>
+<dd class=intro>
+Search backwards through the document tree for a file.
+</dd>
+<dd class=synopsis>
+    string template_find(string filename, bool current_dir_only=false);
+</dd>
+
+<dd class=description>
+One of the more powerful features of the templating facility is the ability to include files into the current page, where the file depends on which part of the site the user is looking at. This is often use to include contextual help, or useful "you are here" bread crumbs on web sites.
+
+<p/>
+<cite>template_find()</cite> can be called either from a part or a template. It searches backwards through the directory tree, beginning from the one the part is being served from, until it finds the <em>filename</em> specified, or hits the document root.
+
+<p/>
+<em>filename</em> is the filename to go looking for, and <em>current_dir_only</em> is a boolean indicating whether the templating system should only search the current directory. This function returns the path to the file if it was found, or null if it wasn't found.
+
+<p/>
+This would be useful, for instance, if you wish to have different navigation features depending on where the visitor is in the site. You might have a directory structure like so:
+
+<pre class=screen>
+docs/_template.html
+docs/index.html
+
+docs/ordering/menu.html
+docs/ordering/index.html
+
+docs/support/menu.html
+docs/support/index.html
+docs/support/faq/index.html
+</pre>
+
+In <cite>_template.html</cite> you can say something like this:
+
+<pre class=screen>
+if (template_find('menu.html')) {
+	echo '&lt;h2>menu&lt;/h2>';
+	/* locate and display menu.html in any of my parent directories */
+	template_include('menu.html');
+}
+</pre>
+
+In the above example, only <cite>docs/index.html</cite> will not result in a menu being displayed.
+
+<p/>
+	See also template_include.
+</dd>
+
+
+
+
+
+<dt><a name=include>template_include</a></dt>
+<dd class=intro>
+Searches backwards through the document tree for a file and includes it.
+</dd>
+
+<dd class=synopsis>
+void template_include(string filename, bool current_dir_only=false);
+</dd>
+
+<dd class=description>
+Searches backwards through the directory tree from the current part looking for the given filename, and if it's found, streams it out to the browser. If the file is not found, nothing is output and the function returns.
+
+<em>filename</em> is the filename to go looking for, and <em>current_dir_only</em> is a boolean indicating whether the templating system should only search the current directory. This function returns nothing of interest.
+
+The file that is included is run through the templating system in the usual fashion: first its .data counterpart is run, then the file itself. The file may contain PHP code that is run in the usual way.
+</dd>
+
+
+
+
+<dt><a name=disable>template_disable</a></dt>
+<dd class=intro>
+Turns off templating for the duration of this web request
+</dd>
+
+<dd class=synopsis>
+void template_disable();
+</dd>
+
+<dd class=description>
+	There may be occasions when you don't want your template file to be run while serving a particular web hit. This is sometimes done while serving pages meant to be printed out, or when you don't want to distract the visitor with unnecessary links to go other places, such as while completing an eCommerce order. This is also required when serving up binary files, such as images or PDF.
+
+<p/>
+	When placed in your part's <cite>.data</cite> file, a call to <cite>template_disable()</cite> will prevent the <cite>_template.html</cite> file from being used while serving the page. Your part will have to provide all the ceremonial material of a web page: HTML, HEAD, BODY, and so on.
+
+</dd>
+
+</dl>
+
+</div>
+

@@ -1,0 +1,76 @@
+require_once 'bboard.h';
+
+global $base_href;
+$base_href='/bboard/';
+
+
+$info = split('/', $_SERVER[SCRIPT_URL]);
+
+$short = $info[2];
+$forum = db_row('select * from bboards where short_name=?', $short);
+$uri = '/bboard/'.$forum['short_name'].'/';
+if ($forum['whatsnew_id']) {
+	$rss_url = '/rss/'.db_value('select short_name from whatsnew where whatsnew_id=?', $forum['whatsnew_id']);
+}
+if (!$forum || !bboard_user_may_read($forum['bboard_id'])) {
+	print "No such bulletin board.";
+	exit;
+}
+
+$post = $info[3];
+
+$is_forum_admin = user_has_role('bboard_admin');
+
+##BS: sql clause for a moderated forum
+if (bboard_config($short)=="approval") {
+  if ($is_forum_admin && $_REQUEST['approval']=='unapproved') {
+    $approval_clause = " and not approved ";
+  } else if ($is_forum_admin && $_REQUEST['approval']=='all') {
+    $approval_clause = "";
+  } else {
+    $approval_clause = " and approved ";
+  }
+
+  $approval_col = "approved,";
+} else {
+  $approval_col = "";
+  $approval_clause = "";
+}
+
+if ($post<1) {
+	# retrieve all recent topics 
+	$topics = db_multirow("select bboard_message_id,headline,first_name,last_name,screen_name, $approval_col (select count(*) from bboard_messages as b1 where b1.parent_post = bboard_messages.bboard_message_id $approval_clause) as msgcount
+	         from bboard_messages,users 
+			where author=user_id 
+			  and parent_post is null
+			  and bboard_id=? $approval_clause
+			order by post_date DESC", $forum[bboard_id]);
+	
+	if (count($topics) && $post != 'older') {
+		$topics = array_slice($topics, 0, $forum['definition_of_old']);
+	}
+} else {
+	# retrieve a topic
+	# not using * because attachments are in there
+	$topic = db_multirow("select author, bboard_message_id, $approval_col first_name, last_name, screen_name, headline, body, size as attachment_size, original_name as attachment_name,  mime_type, date_part('epoch', post_date) as post_date_unix from users,bboard_messages left outer join uploads using (upload_id)
+				where author=user_id 
+				  and (bboard_message_id=? or parent_post=?) $approval_clause
+				order by post_date", $post, $post);
+}
+
+function thumbnail_for($msgid) {
+	$file = '.thumbnails/thumb-'.$msgid.'.jpg';
+
+	if (file_exists($file)) return $file;
+	
+	# see if we can make a thumbnail: is it a jpeg?
+	$upload_row = db_row('select mime_type,local_filename from uploads,bboard_messages as bm WHERE
+				uploads.upload_id = bm.upload_id and bboard_message_id=?', $msgid);
+	$mime = $upload_row['mime_type'];
+	if ($mime != 'image/jpeg') return ''; 
+
+	$local = $_SERVER['DOCUMENT_ROOT'].$upload_row['local_filename'];
+	system("convert -geometry 450 $local $file");
+	if (file_exists($file)) return $file;
+	return '';
+}

@@ -1,0 +1,30 @@
+<!--
+<title>Browse by date</title>
+<subtitle>... within <a href="./"><%= $weblog_row['weblog_title'] %></a>.</subtitle>
+-->
+
+<? foreach ($entries as $year=>$year_entries): ?>
+
+  <h2><%= $year %></h2>
+
+  <div class="section">
+
+  <? foreach ($year_entries as $month=>$month_entries): ?>
+  
+  <h3><%= $month %></h3>
+
+  <dl>
+  <? foreach ($month_entries as $day=>$day_entries): ?>
+  <dt><%= $day %></dt>
+  
+   <? foreach ($day_entries as $ign=>$r): ?>
+   <dd><a href="article/<%= $r['weblog_entry_id'] %>"><%= $r['entry_title'] %></a></dd>
+   <? endforeach ?>
+  <? endforeach ?>
+  </dl>
+ <? endforeach ?>
+ </div>
+<? endforeach ?>
+
+
+

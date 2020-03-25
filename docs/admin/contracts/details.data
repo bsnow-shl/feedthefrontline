@@ -1,0 +1,10 @@
+require_once 'form.h';
+
+$cid = 0+$_GET['contract'];
+$c = db_row('select short_name,retired,due_days, contract_terms  from contracts where contract_id=?', $cid);
+if (!$c) { redirect("index.html"); }
+
+$uncharged = db_value("select sum(amount) from contract_invoice_items where invoice_id is null and contract_id=? and void=0", $cid);
+
+$unpaid_invoices = db_multirow('select invoice_id,cached_amount,sum(payment_amount) as amount_paid from contract_invoices left outer join contract_invoice_diary using (invoice_id) where contract_id = ? AND paid=0 and void=0 group by invoice_id,cached_amount order by invoice_id', $cid);
+

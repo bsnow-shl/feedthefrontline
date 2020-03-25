@@ -1,0 +1,43 @@
+$what = $_REQUEST['what'];
+$which = $_REQUEST['which'];
+$show_other_comments = $_REQUEST['verbose'];
+
+require_once 'comments.h';
+require_once 'users.h';
+
+$csys = db_row('select * from comment_systems where table_name=?', $what);
+if (!$csys) { exit ("what?"); }
+
+global $singular;
+$singular = $csys['singular'];
+$which_row = db_row("select * from ${csys['table_name']} where ${csys['pkey_column']}=?", $which);
+
+if (!user_id() && $csys['registration_required']) {
+	$forget_it_pal = 1;
+} else {
+	require_once 'form.h';
+	require_once 'users.h';
+
+	if (user_id()) {
+	    form_set(array(
+            'comment' => 'bigtext,required'
+	    ));
+	    $email = db_value('select email from users where user_id=?', user_id());
+	    form_add_note($email. ' says:');
+	} else {
+	    form_set(array(
+            'comment' => 'bigtext,required',
+            'name' => 'text',
+            'email' => 'text'
+	    )); 
+	    form_add_note('If you have an account with us, you can <a href="'.user_login_link().'">log in</a> before recording your comment.');
+	}
+
+
+	if (form_valid()) {
+	    db_send('insert into comments(comment_system_id, commented_thing, user_id, comment) values (?,?,?,?)', $csys['comment_system_id'], $_REQUEST['which'], user_id(), $comment);
+
+	    $goback = $_GET['goback'];
+	    redirect($goback);
+	}
+}

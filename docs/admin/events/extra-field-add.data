@@ -1,0 +1,21 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+$eid = 0+$_GET['eid'];
+if (!$eid) { redirect('index.html'); }
+
+db_send('begin');
+$class_id = db_value('select class_id from i18n_classes  where class_name=?', 'Event '.$eid.' fields');
+if (!$class_id) {
+	$class_id = db_newid('i18n_classes');
+	db_insert_hash('i18n_classes', array(
+		'class_id' => $class_id,
+		'class_name' => 'Event '.$eid.' fields',
+		'editable_in_cms' => 0
+	));
+}
+db_send('commit');
+$_SESSION['goback'] = href('/admin/events/edit.html','eid', $eid);
+$_SESSION['minimalist'] = 1;
+
+redirect(href('/admin/content/types/type-edit.html','classid', $class_id));

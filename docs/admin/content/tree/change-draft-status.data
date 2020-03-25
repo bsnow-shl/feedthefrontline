@@ -1,0 +1,36 @@
+
+
+$content_id = $_GET['content_id'];
+$object_id = $_GET['object_id'];
+$content_class_id = db_value('select class_id from i18n_content where content_id=?', $content_id);
+
+switch ($_GET['action']) {
+	case 'drop': 
+		db_send('begin');	
+		i18n_delete($content_class_id, $object_id);
+		db_send('delete from i18n_content_map where content_id=? and object_id=?', $content_id, $object_id);
+		db_send('commit');	
+		redirect(href('edit-item-drafts.html', 'content_id', $content_id));
+		break;
+	
+	case 'post':
+		if (!$_GET['confirm']) { $post_needs_confirm = 1; } else {
+			db_send('begin');
+			$current_objid = i18n_get_current_content_objid($content_id);
+			db_send('update i18n_content_map set takedown_datetime=CURRENT_TIMESTAMP where content_id=? and object_id=?', $content_id, $current_objid);
+			db_send('update i18n_content_map set posting_datetime = CURRENT_TIMESTAMP where content_id=? and object_id=?', $content_id, $object_id);
+			$to_erase = db_array('select object_id from i18n_content_map where content_id=? and  posting_datetime is null', $content_id);
+			foreach ($to_erase as $erase_objid) {
+				i18n_delete($content_class_id, $erase_objid);
+				db_send('delete from i18n_content_map where content_id=? and object_id=?', $content_id, $erase_objid);
+			}
+			db_send('commit');
+			redirect('edit-item.html', 'content_id', $content_id);
+		}
+		break;
+
+	case 'preview':
+		$_SESSION['content']['preview'][$content_id] = $object_id;
+		$short_name = db_value('select short_name from i18n_content where content_id=?', $content_id);
+		redirect('/content/'.$short_name);
+}

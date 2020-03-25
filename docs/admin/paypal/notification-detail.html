@@ -1,0 +1,31 @@
+<!--
+<title>Notification <%= $nid %> details</title>
+-->
+
+<p>
+This notification was received as part of PayPal transaction <a href="<%= href('txn-detail.html', 'txnid', $info['paypal_transaction_id']) %>">#<%= $info['paypal_transaction_id'] %> </a>.
+</p>
+
+<h3>Notification header</h3>
+<div class=section>
+<table>
+<? foreach ($info as $k=>$v) {
+	echo '<tr><th>',$k,'</th><td>',$v,'</td></tr>';
+} ?>
+</table>
+</div>
+
+<h3>Notification body</h3>
+<div class=section>
+<table>
+<? foreach ($rows as $r) {
+	echo '<tr><th>',$r['key'],'</th><td>',$r['value'],'</td></tr>';
+} ?>
+</table>
+</div>
+
+<h3>Delete this notification</h3>
+<div class=section>
+<? form_start(); form_end(); ?>
+</div>
+

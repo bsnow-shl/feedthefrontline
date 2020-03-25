@@ -1,0 +1,121 @@
+<!--
+<title>Edit an event</title>
+-->
+
+<h3>Event details</h3>
+<div class=section>
+
+<b>Title of event:</b> <%= $event['title'] %><br/>
+<b>Date(s) of event:</b> <%= $event['event_start_date'] . (
+		$event['event_end_date'] ? 
+			' to '.$event['event_end_date'] :
+			'' ) %><br/>
+<b>Registration period:</b> <%= $event['registration_start_date'] .  ' to '.$event['registration_end_date']  %><br/>
+<b>Registration status:</b> <%= event_refuses_registrations($eid) ? event_refuses_registrations($eid) : 'open' %><br/>
+<b>Attendees:</b> <a href="<%= href('reports/one.html', 'eid', $eid) %>"><%= $event['attendees']. ' out of a maximum of '.$event['max_attendees'] %></a><br/>
+<b>Taxation model:</b> <%= $tax_model %><br/>
+<b>Publishing status:</b> <%= $event['publishing_status'] %><br/>
+
+
+
+<p>
+(<%= a_href('edit-details.html', 'eid', $eid) %>>Click here to edit these details or the main content page</a>)
+</p>
+<p>Additional content:
+<ul>
+
+<? form_start('new_content'); ?>
+<? foreach ($additional_content as $a): ?>
+<li><a href="<%= href('edit-content.html', 'eacid', $a['event_additional_content_id']) %>"><%= $a['short_name'] %></a>
+<? endforeach ?>
+<li>New content page name: @@short_name@@ @@add@@
+<? form_end(); ?>
+
+</ul>
+
+
+</div>
+
+<? if (!$edit_details): ?>
+
+<h3>Price points for registration</h3>
+
+<div class=section>
+<ul>
+<? foreach ($price_point as $p): ?>
+<li>
+	<? $strike = strpos($p['pricing_availability_callback'], 'false')>0; ?>
+	<? if ($strike) { echo '<strike>'; } ?>
+	<%= sprintf("%.02f", $p['price']) %> &mdash; <%= $p['name'] %>  
+	<? if ($strike) { echo '</strike>'; } ?>
+<? if ($p['not_droppable']): ?>
+	<? if (!$strike): ?>
+	&mdash; (<%= a_href('pricepoint-drop.html', 'eid', $eid, 'hide', 1, 'epid', $p['event_pricing_id']) %>>hide</a>)
+	<? endif ?>
+<? else: ?>
+	&mdash; (<%= a_href('pricepoint-drop.html', 'eid', $eid, 'epid', $p['event_pricing_id']) %>>drop</a>)
+<? endif ?>
+<? if ($p['editing_page']): ?>
+	&mdash; (<%= a_href($p['editing_page'], 'pid', $p['event_pricing_id']) %>>edit</a>)
+<? endif ?>
+<? endforeach ?>
+</ul>
+
+<h5>Add a price point</h5>
+<? form_start('pricing'); form_end(); ?>
+</h3>
+
+</div>
+
+<h3>Sessions</h3>
+ <div class="section">
+ <p>For some conferences, you may want to offer attendees a choice of tracks of talks to attend. If you want to manage
+ or limit the attendance at these sessions, use this facility.</p>
+ 
+ <ol>
+ <? foreach ($sessions as $s): ?>
+ <li>
+ <a href="<%= href('session-edit.html', 'sid', $s['event_session_id']) %>"><%= date("Y-m-d g:i a", $s['session_start_unix']) %> time slot</a>: <%= $s['count']==1 ? "${s['count']} session" : "${s['count']} sessions" %>
+ <? if ($s['count']==0): ?><a href="<%= href('session-drop.html', 'eid', $eid, 'sid', $s['event_session_id']) %>">(drop)</a><? endif ?>
+ </li>
+ <? endforeach ?>
+ <li><a href="<%= href('session-add.html', 'eid', $eid) %>">Add a time slot...</a>
+</div>
+
+<h3>Additional fields</h3>
+<div class="section">
+
+<ol>
+<? foreach ($extra_fields as $f): ?>
+<li><%= $f['field_name'] %>
+<? endforeach ?>
+<li><a href="<%= href('extra-field-add.html', 'eid', $eid) %>">Add one...</a>
+</ol>
+</div>
+
+<h3>Event managers</h3>
+<div class=section>
+These people can add attendees by hand, and obtain attendance reports.
+
+<ul>
+<? foreach ($managers as $m): ?>
+<li><%= user_name($m) %>
+<? endforeach ?>
+
+<li><%= a_href('manager-add.html', 'eid', $eid) %>>Add one...</a>
+</ul>
+</div>
+
+
+<h3>Other tasks</h3>
+<div class=section>
+<ul>
+<li>You can <a href="<%= href('custom-outgoing.html', 'eid', $eid) %>">customize the outgoing confirmation message</a>.
+<!--
+<li>You can <a href="<%= href('custom-confirmation', 'eid', $eid) %>">specify a message to be sent after the event attendance is paid for</a>.
+-->
+</div>
+
+<? endif ?>
+
+

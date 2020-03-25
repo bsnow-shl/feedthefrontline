@@ -1,0 +1,10 @@
+
+$uploads = db_multirow('select * from uploads');
+
+$problems = array();
+foreach ($uploads as $u) {
+	if (!file_exists($_SERVER['DOCUMENT_ROOT'].'/'.$u['local_filename'])) {
+		$u['problem'] = 'file not found';
+		$problems[] = $u;
+	}
+}

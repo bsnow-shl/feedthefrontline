@@ -1,0 +1,50 @@
+require_once 'i18n.h';
+
+
+# pull every product as long as it's in some category
+$realms = db_multirow('select * from shopping_realms');
+$realm = '';
+if ($_GET['realm']) {
+	$realm = $_GET['realm'];
+	$extra_from = " shopping_realm_product_map join shopping_products using (product_id) ";
+	$extra_where = " and realm_id=? ";
+	$params[] = $realm;
+
+	$current_realm = db_value('select pretty_name from shopping_realms where realm_id=?', $_GET['realm']);
+	$title_extra = ": $current_realm catalog";
+} else { 
+	$extra_from = " shopping_products ";
+	$current_realm = 'all';
+}
+
+$products_query = db_multirow("select product_id,sku,price,shopping_categories.short_name 
+			from $extra_from join shopping_product_category_map using (product_id) join shopping_categories using (category_id) 
+			where visible_public=1 $extra_where order by sku", $params);
+
+foreach ($products_query as $q) {
+	if (!$processed[ $q['product_id'] ] ) {
+	 	$processed [ $q['product_id'] ] = $q;
+	}
+	$processed [ $q['product_id'] ] ['categories'] [] = $q['short_name'];
+}
+
+$products = array_values($processed);
+$num_products = sizeof($products);
+
+$bucketsize = 30;
+$max_pageno = ceil(sizeof($products)/$bucketsize);
+
+if (!isset($_GET['page'])) {
+	$_GET['page']='1';
+}
+
+if ($_GET['page']>0) {
+	$pageno = min($_GET['page'], $max_pageno) -1;
+
+	$products = array_slice($products, $pageno*$bucketsize, $bucketsize);
+}
+
+i18n_get_batch($products, 'Product', 'product_id');
+
+
+

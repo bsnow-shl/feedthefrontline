@@ -1,0 +1,16 @@
+
+$entry_id =  array_pop($path_info); 
+
+if (!$weblog_row['weblog_id'] || !$entry_id) {
+	redirect ("../");
+}
+
+$post = db_row("select weblog_entry_id,entry_title,uri,date_part('epoch', posting_date) as posting_date , first_name, last_name, email, body from weblog_entries,users where weblog_id=? and author=user_id and weblog_entry_id=?", $weblog_row['weblog_id'], $entry_id);
+
+if (!$post) {
+	print("No such post. Start <a href=\"/weblog/\">from the top</a>.");
+	exit;
+}
+
+$kw = db_array('select keyword from weblog_entry_keywords where weblog_entry_id=?', $post[weblog_entry_id]);
+

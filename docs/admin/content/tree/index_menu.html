@@ -1,0 +1,11 @@
+<div class="context"><div class="links">
+<a href="add-item.html">Add a new item</a>
+
+<? if (user_has_role('content_nerd')): ?>
+<a href="/admin/content/edit-picker.html?pagerole=template">Edit site-wide template</a>
+<a href="/admin/content/edit-picker.html?pagerole=css">Edit site-wide CSS</a>
+<a href="/admin/content/edit-picker.html?pagerole=mailcss">Edit email CSS</a>
+<a href="/admin/content/edit-picker.html?pagerole=index">Edit home page</a>
+<a href="/admin/content/edit-picker.html">Edit some other file...</a>
+<? endif ?>
+</div>

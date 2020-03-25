@@ -1,0 +1,19 @@
+
+$em = $_GET['em'];
+if ($_GET['id']) {
+	$em = db_value('select email_sandbox_id from email_sandbox where id=? order by tstamp desc limit 1', $_GET['id'] );
+}
+if (!$em) {
+	$em = db_value('select email_sandbox_id from email_sandbox order by tstamp desc limit 1');
+}
+
+$e = db_row('select * from email_sandbox where email_sandbox_id=?', $em);
+
+$e['message'] = preg_replace_callback("/(((ftp|https?):\/\/|mailto:)[^\n\t\r\"> ]*[^., \n\t\r>])/", create_function('$matches', '
+	static $counter=0;
+	return sprintf("<a id=\"link%d\" href=\"%s\">%s</a>", ++$counter, $matches[0], $matches[0]);
+	'), $e['message']);
+	
+if (!$e) {
+	redirect("index.html");
+}

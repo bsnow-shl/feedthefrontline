@@ -1,0 +1,38 @@
+<? global $member_categories; 
+   global $pid;
+?>
+
+<div class="context">
+<div class="links">
+<h4>This product appears in...</h4>
+
+<?
+   if ($member_categories) foreach ($member_categories as $r) {
+	echo '<a href="',href('/admin/shopping/categories/edit.html', 'cid', $r['category_id']),'">',$r['short_name'],'</a>';
+} ?>
+<a href="<%= href('edit-categories.html', 'pid', $pid) %>"><b>Edit categories...</b></a>
+</div></div>
+
+<div class="context"><div class="links">
+<h4>Image</h4>
+
+<? global $sku; shopping_product_image($sku, 'S') ?>
+<a href="<%= href('upload-image.html', 'pid', $pid) %>">Upload a new image...</a>
+</div>
+</div>
+
+<div class="context">
+<div class="links">
+
+<? if (!$not_droppable): ?>
+<h4>Drastic actions</h4>
+<a onclick="return confirm('Really delete?')" href="<%= href('delete.html', 'pid', $pid) %>">Delete this product</a>
+</div>
+
+<? if ($callback = config_get('shopping', 'edit_menu_callback')) {
+    require_once 'shopping-local.h';
+    $callback($_GET['pid']);
+} ?>
+
+</div>
+<? endif ?>

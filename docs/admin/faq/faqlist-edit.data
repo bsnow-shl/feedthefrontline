@@ -1,0 +1,15 @@
+require_once 'i18n.h';
+
+
+$faq_id = 0+$_GET['faq_id'];
+$faq_details = db_row('select * from faqs where faq_id=?', $faq_id);
+$faq_name = $faq_details['faq_name'];
+if (!$faq_name) {
+	redirect('index.html');
+}
+
+
+
+$questions = db_multirow('select * from faq_questions where faq_id=? order by order_in_faq', $faq_id);
+i18n_get_batch($questions, 'FAQ question', 'faq_question_id');
+

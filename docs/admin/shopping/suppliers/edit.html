@@ -1,0 +1,19 @@
+<!--
+<title>Edit <cite><%= $supplier_name %></cite></title>
+-->
+
+<div class="section">
+All you can really do is identify which contract this supplier is under.
+
+<? form_start(); form_end(); ?>
+
+</div>
+
+<h3>Fun facts</h3>
+<div class="section">
+&raquo; <a href="<%= href('/admin/shopping/products/', 'where[]', 'supplier_id','where[]','=?','where[]',$sid) %>"><%= $supplier_products %> products</a> from this supplier.<br/>
+<? if (!$supplier_products): ?>
+&raquo;  Since it's unused, you can <a href="<%= href('delete.html', 'sid', $sid) %>">delete it.</a><br/>
+<? endif ?>
+</div>
+

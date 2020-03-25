@@ -1,0 +1,12 @@
+<div 
+	class=context><div 
+	class=links>
+	<a 
+	href="/admin/surveys/"><b>Survey admin</b></a>
+	<? if (!config_get('surveys', 'public_disabled')): ?>
+		<a href="/surveys/">Public surveys</a>
+	<? endif ?>
+<? if (user_has_role('content_type_admin')): ?>
+<a href="/admin/content/types/">Content types</a>
+<? endif ?>
+</div></div>

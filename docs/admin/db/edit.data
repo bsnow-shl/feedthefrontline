@@ -1,0 +1,47 @@
+require 'form.h';
+
+require 'dbadmin.h';
+
+$table = $_REQUEST['table'];
+$rowid = 0+$_REQUEST['rowid'];
+
+$row = db_row("select rowid,* from $table where rowid=?", $rowid);
+
+$form = array();
+foreach ($row as $k => $v) {
+	$type = 'text';
+	if (sizeof($v)>10) {
+		$type='bigtext';
+	}
+	if ($k == 'rowid') {
+		$type='visible';
+	}
+	$form[$k] = array('type'=>$type, 'value'=>$v);
+}
+$form['proceed'] = 'submit';
+$form['delete_this_row'] = 'submit';
+
+form_set($form);
+if (form_valid()) {
+	if ($delete_this_row) {
+		$result = db_send("delete from $table where rowid=?", $rowid);
+		if ($err = db_errormessage($result)) {
+			exit($err);
+		}
+		redirect(href('table.html', 'table', $table));
+	} else {
+		unset($_POST['rowid']);
+		unset($_POST['proceed']);
+		unset($_POST['delete_this_row']);
+		$result = db_update($table, 'rowid', $rowid, $_POST);
+		if ($result === false) {
+			form_add_note(db_errormessage(db_open()));
+		} else {
+			redirect(href('table.html', 'table', $table));
+		}
+	}
+}
+
+	
+
+

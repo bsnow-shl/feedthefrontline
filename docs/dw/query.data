@@ -1,0 +1,82 @@
+
+function get_number_ops() {
+	return array('sum'=>'sum', 'count'=>'count', 'stddev'=>'standard deviation', 'variance'=>'variance', 'min'=>'min', 'max'=>'max', 'average'=>'average'); 
+}
+
+require_once 'dw.h';
+require_once 'form.h';
+
+$fact = dw_get_facts($_GET['fact_id']);
+if (!sizeof($fact)) { die; }
+$fact = $fact[0];
+
+$fact_name = $fact['pretty_name'];
+
+$numbers = dw_get_fact_numbers_for($fact);
+foreach ($numbers as $n) {
+	$number_map[$n['fact_number_id']] = $n['pretty_name'];
+}
+
+
+$dimensions = dw_get_dimensions_for($fact);
+foreach ($dimensions as $d) {
+	$dimensions_map[$d['dimension_id']] = $d['pretty_name'];
+	$attributes = dw_get_attributes_for($d);
+	foreach ($attributes as $a) {
+		$onchange_hash[$d['dimension_id']][$a['column_name']] = $a['pretty_name'];
+	}
+}
+
+$query = $_SESSION['query'];
+if ($_GET['clear']) { $query = array(); }
+
+
+
+# build form
+
+$form[number_op] = array('type'=>'menu',required=>0,'menu' => 
+				$number_ops = get_number_ops() );
+$form[number_list] = array('type'=>'menu','required'=>0, 'menu'=>$number_map);
+$form[group_dimensions] = array('type' => 'menu', 'menu' => $dimensions_map, 'onchange_widget'=>'group_attributes', 'onchange_widget_menu' => $onchange_hash);
+$form[group_attributes] = array('type' => 'menu');
+
+$form[submit] = array('type'=>'submit',value=>'Add this to the query');
+form_set('numbers',$form);
+
+# validate form
+if (form_valid('numbers')) {
+	if ($number_op) {
+		$query[numbers][] = array('field'=>$number_list, 'op'=>$number_op);
+	}
+	$_SESSION['query'] = $query;
+}
+
+$query = $_SESSION['query'];
+$numbers_list = $query[numbers];
+
+
+$_REQUEST = array();
+
+
+# build query
+function build_query($query, $fact) {
+	$sql = "select ";
+
+	$numbers = dw_get_fact_numbers_for($fact);
+	foreach ($numbers as $n) {
+		$number_map[$n['fact_number_id']] = $n['column_name'];
+	}
+	$number_ops = get_number_ops();
+
+	$tables = array($fact['table_name']);
+
+	foreach ($query[numbers] as $n) {
+		$func = $number_ops[$n['op']];
+		$fields[] = $func.'('.$number_map[$n['field']].')';
+	}
+
+	return 'select '.join(',',$fields).' from '.join(',',$tables);
+}
+$q =  build_query($query, $fact);
+
+

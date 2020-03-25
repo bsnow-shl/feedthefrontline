@@ -1,0 +1,28 @@
+<!--
+<title>Custom confirmation message for <cite><%= $event_name %></cite></title>
+-->
+
+<div class="section">
+<p>
+<b>Note</b> that this message is only sent after the event attendance is marked paid.
+</p>
+
+<? form_start(); ?>
+<pre>
+Subject: Event registration #____ is paid
+From: itSMF Admin &lt;admin@itsmf.ca>
+To: Registrant &lt;email@domain.com>
+
+Thank you for paying for this event attendance.
+
+@@part_1@@
+
+You can view event details at http://wwww.itsmf.ca/events/details/____/.
+
+</pre>
+
+<? form_end(); ?>
+
+</div>
+
+

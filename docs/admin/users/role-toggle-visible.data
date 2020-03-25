@@ -1,0 +1,6 @@
+require_once 'users.h';
+user_require('role_admin');
+
+db_send('update roles set visible=1-visible where role_id=?', $_GET['role']);
+redirect('roles.html');
+

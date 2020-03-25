@@ -1,0 +1,6 @@
+<div class="context"><div class="links">
+<h4>This category</h4>
+<? global $cid; ?>
+<a href="<%= href('details.html', 'cid', $cid) %>">Edit details...</a>
+<a onclick="return confirm('Really delete?');" href="<%= href('delete.html', 'cid', $cid) %>">Delete...</a>
+</div></div>

@@ -1,0 +1,268 @@
+// <?
+require_once 'i18n.h';
+require_once 'form.h';
+require_once 'events.h';
+require_once 'users.h';
+
+$eid = 0+$_POST['event_id'];
+if (!$eid) {
+	$eid = 0+$_GET['event_id'];
+}
+if (!$eid) {
+	redirect("index.html");
+}
+
+user_require();
+
+$einfo = i18n_get('Event', $eid);
+$event_row = db_row('select * from events where event_id=?', $eid);
+
+$reason = event_refuses_registrations($eid);
+$is_events_admin = user_has_role('events_admin') || user_has_role('event_manager', $eid);
+$require_postal = db_value('select require_postal_fields from events where event_id=?', $eid);
+
+
+if ($reason && $is_events_admin) {
+	form_add_note("<p>Normally, people can't register because they are told <i>\"".$reason.'"</i>. However, as an event administration you can force registration.</p>');
+	$reason = '';
+}
+
+if (!$reason) {
+	$custom = event_is_custom($eid);
+	if ($custom) {
+		form_set('default', $custom['form_struct'], $custom['form_defaults']);
+		if (form_submitted('default')) {
+			eval ("${custom['form_submitted_handler']} (); ");
+		}
+		if (form_valid('default')) {
+			eval ("\$result = ${custom['form_valid_handler']} (); ");
+			redirect(href("register-2.html", 'reg_id', $result['reg_id'],'confirm',$result['confirm']));
+		}
+	} else {
+		$event_is_free = 1;
+
+		$price_possibilities = db_multirow('select pricing_availability_header,pricing_availability_callback,pricing_constraint_id,event_pricing_id,show_to_public,price from event_pricing where event_id=? order by price desc',$eid);
+        i18n_get_batch($price_possibilities, 'Event pricing', 'event_pricing_id');
+
+		if (!$price_possibilities) { redirect('index.html'); }
+
+		# Come up with a price list.
+		#
+		# We want to show the prices that are better than the ones being offered,
+		# so we have to do 2 passes.
+
+		$price_list = array();
+		$best_price = 100000;
+		for ($i=0; $i<sizeof($price_possibilities); $i++) {
+			$p = &$price_possibilities[$i];
+			$p['permitted'] = true ;
+	    if ($p['pricing_constraint_id']) {
+                $ruleset = db_row('select * from event_pricing_constraints where constraint_id=?', $p['pricing_constraint_id']);
+                $p['show_to_public'] = $ruleset['show_to_public'];
+				if ($ruleset['header']) {
+					$code = "require_once  '".$ruleset['header']."'; ";
+				}
+
+				$code .= 'list($permitted,$whynot,$whynot_url) = '.$ruleset['function'].'($p["event_pricing_id"]);';
+				eval ($code);	
+
+                $p['show_to_public'] = $ruleset['show_to_public'];
+                $p['permitted'] = $permitted;
+                $p['whynot'] = $whynot;
+                $p['whynot_url'] = $whynot_url;
+            }
+			if ($p['pricing_availability_callback']) {
+				if ($p['pricing_availability_header']) {
+					$code = "require_once  '".$p['pricing_availability_header']."'; ";
+				}
+
+				$code .= 'list($permitted,$whynot,$whynot_url) = '.$p['pricing_availability_callback'].'($p);';
+				eval ($code);	
+                $p['permitted'] = $permitted;
+                $p['whynot'] = $whynot;
+                $p['whynot_url'] = $whynot_url;
+			}
+
+			if ($p['permitted']) {
+				$price_list[$p['event_pricing_id']] = '$'.$p['price'] .' --  '.$p['description'];
+				if (!$first_valid_price) $first_valid_price = &$p;
+				$best_price = min($p['price'], $best_price);
+				if ($p['price']>0) { $event_is_free = 0; }
+			} else {
+				$p['refused']=1;
+			}
+		}
+
+		for ($i=0; $i<sizeof($price_possibilities); $i++) {
+			$p = &$price_possibilities[$i];
+			if (!$p['refused']) continue;
+			if ($p['show_to_public']) {
+                $whynot = $p['whynot'];
+                $whynot_url = $p['whynot_url'];
+
+                if (!$whynot) {
+                    $whynot = _('members only');
+                    $whynot_url = user_login_link(_("Login required."));
+                }
+
+                if ($whynot_url) {
+                    $price_list['x'.$p['event_pricing_id']] = array(
+                        'extra' => 'disabled',
+                        'value' => sprintf('<span class="disabled">$%s &mdash; %s</span> - <a href="%s">%s</a>', $p['price'], $p['description'], href($whynot_url, 'eid', $eid, 'epid', $p['event_pricing_id']), $whynot)
+                    );
+                } else {
+                    $price_list['x'.$p['event_pricing_id']] = array(
+                        'extra' => 'disabled',
+                        'value' => sprintf('<span class="disabled">$%s &mdash; %s</span> - <span class="error">%s</span>', $p['price'], $p['description'], $whynot)
+                    );
+                }
+				if ($p['price']>0) { $event_is_free = 0; }
+			}
+		}
+
+
+
+		if (!form_was_submitted()) {
+			$details = user_details();
+			$first_name = $details['first_name'];
+			$last_name = $details['last_name'];
+			$email = $details['email'];
+			$phone = $details['contact_phone'];
+			$company = $details['company'];
+			$address = $details['street_address'];
+			$city = $details['city'];
+			$province = $details['province'];
+			$country = $details['country'];
+			$postal_code = $details['postal_code'];
+		}
+
+		$method_menu = array();
+		foreach (db_array('select payment_method_id from event_payment_methods') as $id) {
+            if ($event_row['creditcard_only'] && $id != 2) { continue; }
+			if (!$first_payment_method) { $first_payment_method = $id; }
+			$info = i18n_get('Event payment method', $id);
+			$method_menu[$id]=$info['description'];
+		}
+
+		$tax_id = $event_row['tax_scheme_id'];
+		if ($tax_id) {
+			$tax_info = i18n_get('Tax scheme', $tax_id);
+		}
+
+ 
+		# figure out our sessions
+		$sessions_query = db_multirow("select event_sessions.event_session_id, event_sessions.session_start, event_sessions.duration, 
+			event_session_options.session_option_id, event_session_options.capacity, sum(confirmed) as count
+			from event_sessions join event_session_options using (event_session_id) left outer join event_session_registrations using (session_option_id) left outer join event_registrations using (event_registration_id)
+			where event_sessions.event_id=?
+			group by event_sessions.event_session_id, event_sessions.session_start, event_sessions.duration,   event_session_options.session_option_id, event_session_options.capacity
+			order by session_start, capacity desc", $eid);
+		i18n_get_batch($sessions_query, 'Event session option', 'session_option_id');
+		$sessions = $refuse = $form_extra = array();
+		foreach ($sessions_query as $q) {
+			$sessions[ $q['event_session_id' ]] ['info'] = $q;
+			$full = ($q['count'])>=$q['capacity'] ? ' disabled ' : '';
+			if ($full) { $refuse[ $q['session_option_id'] ] = 1; }
+			$sessions[ $q['event_session_id']]['menu'][$q['session_option_id']] = array(
+				'value'=>sprintf('%s%s%s - %s', $full ? '<strike>':'', $q['title'], $full ? '</strike>' : '', ($q['capacity'] - $q['count']).' seats available'), 
+				'extra' => $full ? ' disabled ' : '');
+		}
+		foreach ($sessions as $id=>$info) {
+			$form_extra[ $id ] = array('type'=>'menu', 'radio'=>1, 'menu' => $info['menu']);
+		}
+
+
+		if (sizeof($price_list)==0) { exit("You cannot register for this event. Please <a href=\"".user_login_link()."\">log in as a member</a>."); }
+
+		$postal_fields = array();
+		if (!$event_row['disable_postal_fields']) {
+			$postal_fields =  array(
+				'company' => array('type'=>'text', 'required'=>0, 'default'=>$company, 'pretty'=>_('Company')),
+				'address' => array('type'=>'text', 'required'=>0, 'default'=>$address, 'pretty'=>_('Address')),
+				'city' => array('type'=>'text', 'required'=>0, 'default'=>$city, 'pretty'=>_('City')),
+				'province' => array('type'=>'text', 'required'=>0, 'default'=>$province, 'pretty'=>_('Province')),
+				'country' => array('type'=>'text', 'required'=>0, 'default'=>$country, 'pretty'=>_('Country')),
+				'postal_code' => array('type'=>'text', 'required'=>0, 'default'=>$postal_code, 'pretty'=>_('Postal code')),
+			);
+		}
+		form_set('default', $x=array(
+			'price' => (sizeof($price_list)>1 ? 
+					array('type'=>'menu','required'=>1,'radio'=>1,menu=>$price_list, pretty=>_('Price') ) :
+					array('type'=>'visible', 'pretty'=>_('Price'), 'default'=>join('',array_values($price_list)))),
+			'tax' => array('type'=>'visible', 'value'=>$tax_id ? $tax_info['description'] : 'n/a', 'pretty'=>_('Tax') ),
+			'payment_method' => $event_is_free ? 
+						array('type'=>'hidden', 'value' => array_shift(array_keys($method_menu))) : 
+						sizeof($method_menu)>1 ? 
+							array('type'=>'menu', 'radio' => 1, 'required'=>1, 'menu'=>$method_menu, 'pretty'=>_('Payment method')) :
+							array('type'=>'visible','pretty'=>_('Payment method'), 'default' => join('', array_values($method_menu)))
+						,
+			'first_name' => array('type'=>'text', 'required'=>1, 'default'=>$first_name, 'pretty'=>_('First Name')),
+			'last_name' => array('type'=>'text', 'required'=>1, 'default'=>$last_name, 'pretty'=>_('Last Name')),
+			'email_address' => array('type'=>'email', 'required'=>1, 'default'=>$email, 'pretty'=>_('Email address')),
+			'phone' => array('type'=>'text', 'required'=>1, 'default'=>$phone, 'pretty'=>_('Phone')))
+			+ $postal_fields + array(
+			'reg_id' => array('type' => 'hidden', 'required'=>1,value=>( $reg_id ? $reg_id : db_newid('event_registrations')))
+		) + i18n_form_fields('vent '.$eid.' fields', null, 'en' ) + $form_extra + array('proceed'=>'submit'), array(), array('contents_at_end'=>1));
+		if (form_was_submitted()) {
+			if ($sessions_query) {
+				foreach ($sessions as $id=> $q) {
+					if (!$_POST[$id]) {
+						form_add_note(_('You forgot to specify which sessions you will be attending.'));
+						form_error('oops', '');
+						continue;
+					}
+					if ($_POST[$id] && $refuse[$id]) {
+						form_add_note(_('One of the sessions you chose is full.'));
+						form_error('oops', '');
+						continue;
+					}
+				}
+			}
+		}
+
+		if (form_was_submitted() && !form_valid()) {
+			form_add_note(_("Some information is missing. Please correct your registration form."));
+		}
+		if (form_valid()) {
+			if (!$price_list[$price] || $price_list[$price][refused]==1) {
+				$price = $first_valid_price['event_pricing_id'];
+			}
+
+			db_send('begin');
+			i18n_form_handle('Event '.$eid.' fields', $reg_id);
+			db_insert_or_update('event_registrations', 'event_registration_id', $reg_id, array(
+				'user_id' => user_id(),
+				'payment_method_id' => $payment_method ? $payment_method : $first_payment_method,
+				'paid' => 0,
+				'confirmed' => 1,
+				'event_pricing_id' => $price ? $price : $first_price,
+				'first_name' => $first_name,
+				'last_name' => $last_name,
+				'email' => $email_address,
+				'telephone' => $phone,
+				'company' => $company,
+				'address' => $address,
+				'city' => $city,
+				'needs_approval' => $event_row['manual_approval'],
+				'province' => $province,
+				'country' => $country,
+				'postal_code' => $postal_code,
+			));
+			$confirm = db_value("select date_part('epoch', create_datetime) from event_registrations where event_registration_id=?", $reg_id);
+			if ($sessions_query) {
+				foreach ($sessions as $id=> $q) {
+					if ($_POST[$id]) {
+						db_insert_hash('event_session_registrations', array(
+							'event_registration_id' => $reg_id,
+							'session_option_id' => $_POST[$id]
+						));
+					}
+				}
+			}
+
+			db_send('commit');
+			redirect(href("register-2.html", 'reg_id', $reg_id,'confirm',$confirm));
+		}
+	}
+}
+

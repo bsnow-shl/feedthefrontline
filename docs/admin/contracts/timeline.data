@@ -1,0 +1,27 @@
+require_once 'form.h';
+
+form_set(array(
+	'start_date' => 'date',
+	'end_date' => 'date'
+));
+
+if (form_valid()) {
+	if ($start_date) { $start_date = strtotime($start_date); }
+	if ($end_date) { $end_date = strtotime($end_date); }
+}
+
+$timeline = db_multirow("select invoice_id,contract_id,void,void_date,paid,paid_date,cached_amount as amount,null as note, date_part('epoch', create_date) as tstamp from contract_invoices 
+	union all
+select invoice_id,null as contract_id, null as void, null as void_date, null as paid_date, null as paid, payment_amount as amount,note, date_part('epoch', tstamp) as tstamp from contract_invoice_diary
+
+		order by tstamp");
+
+foreach ($timeline as $t) {
+	if ($t['void']>0) { $voided[$t['invoice_id']] = 1; }
+	if ($start_date && $t['tstamp'] < $start_date) { continue; }
+	if ($end_date && $end_date < $t['tstamp'] ) { continue; }
+
+	$index[ date("Y-m", $t['tstamp']) ] []= $t;
+}
+
+$contracts = db_hash_multirow('contract_id', 'select contract_id, short_name from contracts');

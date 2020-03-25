@@ -1,0 +1,11 @@
+<div class=context><div class=links>
+<h3><a href="/admin/content/">Content admin</a></h3>
+
+<? $c = db_value('select count(*) from i18n_txn_todo'); if ($c): ?><a href="/admin/content/txn-todo.html"><%= $c %> pending translations</a><? endif ?>
+<a href="/admin/content/view-drafts.html">Manage drafts</a>
+<a href="/admin/content/i18n/">System translations</a>
+<? if (user_has_role('content_type_admin')): ?>
+<a href="/admin/content/types/">Content types</a>
+<a href="/admin/content/stats/">Statistics</a>
+<? endif ?>
+</div></div>

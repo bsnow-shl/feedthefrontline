@@ -1,0 +1,13 @@
+$tree = array();
+
+$query = db_multirow('select content_id,short_name,parent_content_id from i18n_content left outer join i18n_content_hierarchy using (content_id) order by display_order, short_name');
+i18n_get_batch($query, 'Content item', 'content_id');
+
+foreach ($query as $r) {
+	$tree[$r['content_id']]['short_name'] = $r['short_name'];
+	$tree[$r['content_id']]['title'] = $r['title'];
+	$tree[$r['content_id']]['parent_content'] = $r['parent_content_id'];
+	$tree[$r['parent_content_id']]['subtree'][] = $r['content_id'];
+}
+
+

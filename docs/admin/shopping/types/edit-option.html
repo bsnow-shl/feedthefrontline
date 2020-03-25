@@ -1,0 +1,19 @@
+<!--
+<title>Edit <cite><%= $option_name %></cite></title>
+<subtitle>... part of the  <cite><a href="<%= href("edit.html", "ptid", $type_row['product_type_id']) %>"><%= $type_row['short_name'] %></a></cite> product type</subtitle>
+-->
+
+<div class="section">
+
+<h3>Choices</h3>
+<ul>
+<? foreach ($choices as $c): ?>
+<li><%= $c['pretty_name'] %> &mdash; <%= sprintf('$%.02f', $c['price_premium']/100.0) %>
+<? endforeach ?>
+</ul>
+
+
+<h3>Add a choice</h3>
+<? form_start(); form_end(); ?>
+
+</div>

@@ -1,0 +1,18 @@
+<!--
+<title>Fun with memcache</title>
+-->
+
+<div class="section">
+<p><%= $message %></p>
+
+<? foreach ($stats as $server => $info): ?>
+<h3><%= $server %></h3>
+<dl>
+<? foreach ($info as $k=>$v):  ?>
+<dt><%= $k %>
+<dd><%= $v %>
+<? endforeach ?>
+</dl>
+<? endforeach ?>
+
+</div>

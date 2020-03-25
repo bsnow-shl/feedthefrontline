@@ -1,0 +1,22 @@
+require_once 'users.h';
+
+
+function bboard_user_may_post($bboard_id) {
+	if (user_has_role('bozo')) {
+		return 0;
+	}
+
+	if (db_value('select restrict_to_permission from bboards where bboard_id=?', $bboard_id)) {
+		return db_value('select count(*) from bboards,roles,user_role_map where
+			bboards.bboard_id=? AND
+			bboards.restrict_to_permission = roles.role_name AND
+			roles.role_id = user_role_map.role_id AND
+			user_id=?', $bboard_id, $_SESSION[user_id] );
+	} else {
+		return 1;
+	}
+}
+
+function bboard_user_may_read($bboard_id) {
+	return bboard_user_may_post($bboard_id);
+}

@@ -1,0 +1,17 @@
+$acct_id = $_GET['id'];
+$info = db_row('select * from email_accounts where email_account_id=?', $acct_id);
+
+if ($_GET['sure']) {
+    $class = db_value('select class from email_accounts where email_account_id=?', $acct_id);
+    if ($class == 'mailing list') {
+	$from_address = db_value('select from_addr from email_accounts where email_account_id=?', $acct_id);
+	$prefix = $Gconfig['email']['maillist_prefix'];
+	$maillist = $prefix.$from_address;
+	if ($maillist) {
+		system("rm -rf /var/lib/ecartis/lists/$maillist");
+	}
+    }
+    db_send('delete from email_accounts where email_account_id=?', $acct_id);
+    redirect('index.html');
+}
+

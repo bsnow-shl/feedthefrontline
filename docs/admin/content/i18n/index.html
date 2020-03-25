@@ -1,0 +1,16 @@
+<!--
+<title>Manage translations</title>
+-->
+
+<div class="section">
+
+<p>Choose a language translation to manage:</p>
+
+<ul>
+<? foreach ($txns as $t): ?>
+<li><%= $t %> - <a href="<%= href('load.html','txn', $t) %>">reload from disk</a> | <a href="<%= href('edit.html', 'txn', $t) %>">resume editing session</a></li>
+<? endforeach ?>
+</ul>
+</p>
+
+</div>

@@ -1,0 +1,5 @@
+require_once 'users.h';
+
+$weblogs = db_multirow("select weblog_id, uri, weblog_title as title, first_name ||' ' ||last_name as author_name from weblogs,users
+	 where owner=user_id");
+

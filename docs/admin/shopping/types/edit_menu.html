@@ -1,0 +1,10 @@
+<? global $not_droppable; 
+   if (!$not_droppable): ?>
+<div class="context">
+<div class="links">
+<h3>Drastic actions</h3>
+<a href="<%= href("drop.html", 'ptid', $ptid) %>">Drop this type.</a>
+</div>
+</div>
+
+<? endif ?>

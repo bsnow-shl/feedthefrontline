@@ -1,0 +1,53 @@
+
+require_once 'form.h';
+
+$fields = el_user_fields(false);
+$sid = 0+$_GET['sid'];
+$survey_name = db_value('select short_name from surveys where survey_id=?', $sid);
+
+form_set(array(
+    'email' => 'text', 
+    'company' => 'text',
+    'user_type' => $fields['user_type'], 
+    'exclude_invited' => array('type'=>'flag', 'default' => 1, 'pretty' => 'Exclude users with invitations to this survey')
+));
+
+if (form_valid()) {
+  if ($email) {
+    $where .= "and lower(email) like ?";
+    $params[] = '%'.strtolower($email).'%';
+  }
+  if ($company) {
+    $where .= "and lower(company) like ?";
+    $params[] = strtolower($company);
+  }
+  if ($user_type) {
+    $where .= "and user_type = ?";
+    $params[] = $user_type;
+  }
+  if ($exclude_invited) {
+    $where .= " and user_id not in (select user_id from survey_invitations where survey_id=?) ";
+    $params[] = $sid;
+  }
+  $search_results = db_multirow("select user_id,email,first_name,last_name from users where true $where", $params);
+  $_SESSION['admin']['surveys']['invite_users'] = $search_results;
+}
+
+form_set('invites', array('invitations_valid_until'=> array('type'=>'timestamp', 'default' => '1 month')
+      ));
+if (form_valid('invites')) {
+  db_send('begin');
+  $uid = user_id();
+  foreach ($_SESSION['admin']['surveys']['invite_users'] as $s) {
+    db_insert_hash( 'survey_invitations', array(
+        'invitation_id' => db_newid('survey_invitations'),
+        'survey_id' => $sid,
+        'user_id' => $s['user_id'],
+        'created_by' => $uid,
+        'invitation_status' => 'unsent',
+        'valid_until' => $invitations_valid_until
+    ));
+  }
+  db_send('commit');
+  redirect(href('multipage-edit.html', 'sid', $sid));
+}

@@ -1,0 +1,12 @@
+<!--
+<title>Keywords</title>
+<subtitle>in <a href="./">this</a> weblog</subtitle>
+-->
+
+<? foreach ($keywords as $r): ?>
+<? $size=10+6*log($r['count']); ?>
+<a href="/weblog/?keyword=<%= $r['keyword'] %>" style="font-size: <%= $size %>pt">
+<%= $r['keyword'] %>
+</a>
+<? endforeach ?>
+

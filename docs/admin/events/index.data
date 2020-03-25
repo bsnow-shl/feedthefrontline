@@ -1,0 +1,36 @@
+
+require_once 'i18n.h';
+require_once 'form.h';
+
+$published_events = db_multirow("select event_id,name from events where publishing_status='published'");
+
+form_set(array(
+	'confirmation_number' => 'integer',
+	'name' => 'text'
+));
+if (form_was_submitted()) {
+	if (!$confirmation_number && !$name) {
+		form_error('confirmation_number', 'Please provide one of these fields.');
+	}
+	if ($confirmation_number) {
+		if (!db_value('select count(*) from event_registrations where event_registration_id=?', $confirmation_number)) {
+			form_error('confirmation_number', 'No such confirmation record.');
+		}
+	}
+}
+if (form_valid()) {
+	if ($name) {
+		$matching = db_multirow('select event_registration_id, paid, confirmed, name, email from event_registrations where lower(name) like ?', '%'.strtolower($name).'%');
+	} else {
+		redirect(href('reports/inspect.html', 'erid', $confirmation_number));
+	}
+}
+
+$archived = $_GET['archived'];
+if ($archived) {
+	$unpublished_condition = "where publishing_status in ('archived', 'unpublished') order by event_start_date desc";
+}  else {
+	$unpublished_condition = "where publishing_status in ('unpublished') order by event_start_date desc";
+}
+$unpublished_events = db_multirow('select event_id,name, event_start_date from events '.$unpublished_condition);
+

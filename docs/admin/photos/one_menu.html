@@ -1,0 +1,23 @@
+<div class="links">
+<h3>actions</h3>
+<a href="<%= href("rescan.html", 'id', $_GET['id']) %>">Rescan this directory for new photos</a>
+<a href="<%= href("erase-thumbnails.html", 'id', $_GET['id']) %>">Re-create thumbnails</a>
+</div>
+
+<? global $directories; global $r; ?>
+
+<? if (sizeof($directories)): ?>
+	<h3>sub-folders</h3>
+	<Div class="links">
+	<? foreach ($directories as $dir => $aid): ?>
+		<? if ($aid): ?>
+			<a href="one.html?id=<%= $aid %>"><%= $dir %></a>
+		<? else: ?>
+			<a href="./?album_uri=<%= $r['album_uri'].$dir %>&parent_album=<%= $_GET['id']%>"><%= $dir %></a>
+		<? endif ?>
+	<? endforeach ?>
+	</div>
+<? endif ?>
+
+</div>
+

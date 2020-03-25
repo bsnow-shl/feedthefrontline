@@ -1,0 +1,15 @@
+<!--
+<title>Weblog facilities admin</title>
+-->
+
+<div class="section">
+These are the weblogs that have been set up.
+
+<ul>
+<? foreach ($weblogs as $w): ?>
+<li><a href="/weblog/<%= $w['uri'] %>/"><%= $w['title'] %></a> (owned by <%= $w['author_name'] %>)</li>
+<? endforeach ?>
+</ul>
+
+</div>
+

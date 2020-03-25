@@ -1,0 +1,128 @@
+//<?
+
+require_once 'i18n.h';
+require_once 'events.h';
+require_once 'dbadmin.h';
+require_once 'form.h';
+
+$info = i18n_get('Event', $eid);
+$pretty_name = $info['title'];
+
+
+$custom = event_is_custom($eid);
+$sql_select = $sql_join = '';
+$extra_cols = array();
+if ($custom) {
+	if ($t = $custom['linkin_table']) {
+		$sql_select = ", $t.*";
+		$sql_join = " left outer join $t using (event_registration_id) ";
+
+		$extra_cols_query = dbadmin_list_columns($custom['linkin_table']);	
+		foreach ($extra_cols_query as $col) {
+			$extra_cols[] = $col['attname'];
+		}
+	}
+}
+
+$details = db_multirow("select 
+	needs_approval,confirmed,paid,er.event_registration_id as reg_id,price, ep.name as price_name,pm.short_name as payment_method_name,er.first_name,er.last_name,telephone,email,company,address,city,province,country,postal_code, date_part('epoch', er.create_datetime) as create_tstamp , date_part('epoch', paid_datetime) as paid_tstamp $sql_select
+	from  event_pricing as ep  join event_registrations as er using(event_pricing_id) join event_payment_methods as pm using (payment_method_id) $sql_join
+	where event_id=? $sql_where order by event_registration_id", $eid);
+if ($details) {
+	i18n_get_batch($details, "Event $eid fields", 'reg_id');
+	$extra_cols += db_array('select field_name from i18n_fields join i18n_classes using(class_id) where class_name=?', 
+		"Event $eid fields");
+}
+
+$approval_list = $det[0][0] = $det[0][1] = $det[1][0] = $det[1][1] = array();
+foreach ($details as $d) {
+	if ($d['confirmed'] && $d['needs_approval']) {
+		$approval_list[] = $d;
+	}
+	$det[$d['confirmed']][$d['paid']][] = $d;
+}
+
+$sum[0][0] = sizeof($det[0][0]);
+$sum[1][0] = sizeof($det[1][0]);
+$sum[1][1] = sizeof($det[1][1]);
+$sum[0][1] = sizeof($det[0][1]);
+
+
+$histo = array();
+foreach ($details as $d) {
+	if ($d['confirmed']) {
+		$histo[$d['price_name']] ++;
+	}
+} 
+
+function render_list($conf, $paid, $extra_list = array()) {
+	if (! ($conf==0 && $paid==1)) {
+		echo '<h3>Attendees: '.($conf?'coming':'backed out') .' / '.($paid?'paid for event':'not yet paid').'</h3>';
+	}
+	echo '<div class=section>';
+	global $det;
+	global $eid;
+	global $extra_info, $extra_cols;
+
+
+	echo '<table class="padded"><tr><th>Reference #</th><th>Last name</th><th>First name</th><th>Constituent ID</th><th>Price</th><th>Price point</th><th>Language</th><th>Created</th><th>Paid</th><th>Paymethod</th><th>Phone #</th><th>Email</th><th>Company</th><th>Title</th><th>Address</th><th>City</th><th>Province</th><th>Country</th><th>Postal code</th>';
+	if ($extra_info) {
+		echo '<th>Notes</th>';
+	}
+	if ($extra_cols) {
+		foreach ($extra_cols as $c) {
+			if ($c=='constituent_id' || $c=='language_id') { continue; }
+			echo "<th>".form_beautify_identifier($c).'</th>';
+		}
+	}
+	echo '</tr>';
+	$to_render = $det[$conf][$paid]+ $extra_list;
+
+	if ($to_render) foreach ($to_render as $d) { 
+		echo '<tr>';
+		echo '<td><a href="inspect.html?eid='.$eid.'&erid='.$d['reg_id'].'">'.$d['reg_id'].'</a></td>';
+		echo '<td>'.$d['last_name'].'</td>';
+		echo '<td>'.$d['first_name'].'</td>';
+		echo '<td>'.$d['constituent_id'].'</td>';
+		echo '<td>'.$d['price'].'</td>';
+		echo '<td>'.$d['price_name'].'</td>';
+		echo '<td>'.$d['language_id'].'</td>';
+		echo '<td>'.date("Y-m-d H:m", $d['create_tstamp']).'</td>';
+		if ($d['paid_tstamp']) {
+			echo '<td>'.date("Y-m-d H:i", $d['paid_tstamp']).'</td>';
+		} else {
+			echo '<td>-</td>';
+		}
+		echo '<td>'.$d['payment_method_name'].'</td>';
+		echo '<td>'.$d['telephone'].'</td>';
+		echo '<td>'.$d['email'].'</td>';
+		echo '<td>'.$d['company'].'</td>';
+		echo '<td>'.$d['title'].'</td>';
+
+		echo '<td>'.$d['address'].($d['address_2'] ? '<br>'.$d['address2'] : '').'</td>';
+		echo '<td>'.$d['city'].'</td>';
+		echo '<td>'.$d['province'].'</td>';
+		echo '<td>'.$d['country'].'</td>';
+		echo '<td>'.$d['postal_code'].'</td>';
+		if ($extra_info) {
+			$info = $extra_info[ $d['reg_id'] ];
+			echo '<td>';
+			if ($info) foreach ($info as $k=>$v) {
+				echo "$k: $v<br/>";
+			}
+			echo '</td>';
+		}
+		if ($extra_cols) {
+			foreach ($extra_cols as $c) {
+				echo "<td>".$d[$c].'</td>';
+			}
+		}
+		echo '</tr>';
+		$att_subtot += $d['price'];
+	}
+	echo '<tr><th colspan=4>subtotal</th><th>'.sprintf("%.02f", $att_subtot).'</th>';
+	echo '</tr>';
+	echo '</table></div>';
+}
+
+// ?>

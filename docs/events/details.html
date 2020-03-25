@@ -1,0 +1,41 @@
+<!--
+<title><%= $info['title'] %></title>
+<subtitle><%= $info['Subtitle'] %></subtitle>
+-->
+
+<div class=section>
+<b><%= _("Event date(s):") %></b> <%= date('l F j, Y', strtotime($info['event_start_date'])) %>
+<? if ($info['event_end_date']): ?>
+<b> <%= _('to') %> </b> <%= date('l F j, Y', strtotime($info['event_end_date'])) %>
+<? endif ?>
+<br/>
+<b><%= _('Registration closes:')%></b>  <%= date('l F j, Y', strtotime($info['registration_end_date'])) %>
+<? if ($reason): ?>
+<div class="registration-error error"><%= ucfirst($reason) %></div>
+<? else: ?>
+	<br/>
+	<? if ($reg_id): ?>
+		<br/><b><%= sprintf(_('You are registered for this event. Your registration reference number is %s.'), $reg_id) %></b>
+		<? if ($paid): ?>
+			<%= _("We have you on file as having paid for this event.") %>
+		<? else: ?>
+			<%= _("You have <em>not yet paid</em> for this event, though.") %>
+			<%= a_href('/events/register-2.html', 'reg_id', $reg_id, 'confirm', $confirm) %>><%= _("Click here</a> to proceed with payment.") %>
+		<? endif ?>
+	<? else: ?>
+    <? if (strlen($info['description']) > 4000): ?>
+		<form method=POST action="register.html?event_id=<%= $eid %>"><input type=hidden name="event_id" value="<%= $eid %>"><input type=submit value="<%= _("Click here to register for this event") %>" /></form>
+    <? endif ?>
+	<? endif ?>
+	<br/>
+<? endif ?>
+
+
+	<p>
+	<%= $info['description'] %>
+	</p>
+	<? if (!$reg_id && !$reason): ?>
+		<form method=POST action="register.html?event_id=<%= $eid %>"><input type=hidden name="event_id" value="<%= $eid %>"><input type=submit value="<%= _("Click here to register for this event") %>" /></form>
+	<? endif ?>
+
+</div>

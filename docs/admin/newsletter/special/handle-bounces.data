@@ -1,0 +1,31 @@
+require_once 'users.h';
+
+$bounce_folder = '/var/www/.mail/bounces/';
+
+$short_name = config_get('site','short_name');
+
+$bounces_file = $bounce_folder.'bounces-'.$short_name;
+
+$bounces_file_target = $bounces_file.'-processing';
+
+
+$counter=0;
+if (is_readable($bounces_file)) {
+	$rc = rename($bounces_file, $bounces_file_target);
+	$fh = fopen($bounces_file_target,'r');
+	while (!feof($fh)) {
+		$line = rtrim(fgets($fh, 80));
+		if ($sid = db_value('select newsletter_subscription_id from newsletter_queue where newsletter_queue_id=?', $line)) {
+			$uid = db_value('select user_id from newsletter_subscriptions where newsletter_subscription_id=?', $sid);
+
+			db_send('update newsletter_queue set bounced=1 where newsletter_queue_id=?', $line);
+			user_add_diary($uid, 'Email bouncing; unsubscribed from newsletter.');
+			db_send('update newsletter_subscriptions set parameter=0 where user_id=?', $uid);
+		}
+		$counter++;
+	}
+	fclose($fh);
+	unlink($bounces_file_target);
+}
+
+

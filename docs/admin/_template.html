@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>@@TITLE@@</title>
+<link rel="stylesheet" type="text/css" href="/admin/_template/style1.css" media="all" />
+<meta name="keywords" content="@@KEYWORDS@@" />
+<meta name="description" content="@@DESCRIPTION@@" />
+<? global $_cpf_head_magic; echo $_cpf_head_magic; ?>
+</head>
+<body>
+
+<br/>
+
+<? if (!$_GET['printable']): ?>
+	<table cellspacing=5 cellpadding=5  width=900 align=center><tr><td id="header" colspan="2">
+
+	<table><tr><td width=110 valign="middle">
+	</td><td valign="middle"><h1>@@title@@</h1>
+	<h2>@@subtitle@@</h2>
+	</td><td valign="middle"></td></tr></table>
+	</td>
+	</tr>
+
+
+	<tr><td valign=top id="menus">
+
+	<?
+	global $SCRIPT_FILENAME;
+
+	$pathinfo = pathinfo($_SERVER['SCRIPT_FILENAME']);
+	$filename = $pathinfo['basename'];
+	$filename = substr($filename, 0, strlen($filename)-strlen($pathinfo['extension'])-1).
+		'_menu.'.$pathinfo['extension'];
+	$try_files = array('_menu.html', $filename);
+	$container_yet = 0;
+	foreach ($try_files AS $try) {
+	    if (template_find($try,$try != '_menu.html')) {
+		echo '<div class="box">';
+		template_include($try, $try != '_menu.html');
+		echo '</div>';
+	    }
+	}
+	?>
+
+	</td><td valign=top id="content">
+    <div class="header"><div style="float:right"> <a href="<%= href($_SERVER['REQUEST_URI'], 'printable', 1) %>">Printable/Excel-ready</a></div>
+    <a href="/">Home</a> | <a href="/admin/">Admin</a>
+	<?
+		$script_path = explode('/', CPF_SELF);
+
+		for ($i = count($script_path)-1; $i >= 1;  $i--) {
+			$directory = join('/', array_slice($script_path, 0, $i));
+			$template_file = $_SERVER['DOCUMENT_ROOT'].$directory.'/.dir.txt';
+			if (file_exists($template_file)) {
+				$dir = trim(read_whole_file($template_file));
+				$out = " → <a href=\"$directory/\">$dir</a> $out";
+			}
+		}
+		print $out;
+	?>
+	→ @@title@@ 
+	</div>
+<? endif ?>
+
+
+<? if ($_SESSION['special_message']) {
+    print '<div class="error">';
+    print $_SESSION['special_message'];
+    print '</div>';
+    $_SESSION['special_message'] = '';
+} ?>
+
+##PART##
+
+<address class=footer>
+<a href="http://tinyplanet.ca/"><img border=0 style="margin: 15px; border: 5px solid white" src="/admin/_template/tinyplanet-small.jpg" alt="Tiny Planet" /></a>
+</address>
+
+<? if (!$_GET['printable']): ?>
+</td>
+</tr>
+</table>
+<? endif ?>
+
+</body>
+</html>

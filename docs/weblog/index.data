@@ -1,0 +1,22 @@
+require_once 'whatsnew.h';
+
+
+if ($_GET['keyword']) {
+	$whatsnew = db_multirow("select '/weblog/'||weblogs.uri||'/article/'||weblog_entry_id as link, entry_title as title,body as description, email as email from users join weblog_entries on (user_id=author) join weblog_entry_keywords using (weblog_entry_id), weblogs where weblogs.weblog_id=weblog_entries.weblog_id and keyword=?
+			order by posting_date desc limit 5", $_GET['keyword']);
+  $filter = "Keyword: ".$_GET['keyword'];
+}
+
+$weblogs = db_multirow('select uri, weblog_title, blurb from weblogs ');
+if (sizeof($weblogs)==0) {
+		print("Uh. No weblogs defined yet.  <a href=\"/admin/weblog/\">Log in as admin</a> to fix that.</a>");
+		exit;
+}
+if (sizeof($weblogs)==1) {
+		redirect($weblogs[0][uri].'/');
+}
+
+if (!$filter) {
+	$whatsnew = whatsnew_get(2);
+	array_shift($whatsnew);
+} 

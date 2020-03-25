@@ -1,0 +1,8 @@
+<div class=links>
+<a href="/admin/events/"><b>Events admin</b></a>
+<a href="/events/">Events (public site)</a>
+<? if (user_has_role('events_admin')): ?>
+<a href="add.html">New event...</a>
+<? endif ?>
+</div>
+

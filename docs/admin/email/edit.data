@@ -1,0 +1,61 @@
+require_once 'form.h';
+require_once 'email.h';
+
+$id = $_GET['id'];
+$row = db_row('select * from email_accounts where email_account_id=?', $id);
+$class = $row['class'];
+
+$email_valid_classes = email_get_valid_classes();
+$help = $email_valid_classes[$class]['help'];
+
+$form = email_form_for_class($class);
+$form['from_address']['type'] = 'visible';
+$form['from_address']['value'] = $row['from_addr'];
+form_set($form);
+
+if (form_valid()) {
+    if (!(strpos( $from_address, '@')===false)) {
+        form_add_note('Do not put the @ in the from address. Choose the domain from the pulldown.');
+        $_REQUEST['from_address'] = substr($from_address, 0, strpos($from_address, '@'));
+    } else {
+        db_send('begin');
+        db_send('delete from email_accounts where from_addr=?', $from_address);
+        db_send('insert into email_accounts (email_account_id, class, email_domain_id, from_addr, to_addr, password, moderator)
+            values (?,?,?,?,?,?,?)',
+            db_newid('email_account_id'), $class, $domain, $from_address, $to_address, $password,$moderator);
+        db_send('commit');
+
+	if ($members) {
+		$member_array=split("\r\n", $members);
+		$result = email_get_maillist_files($from_address, $member_array);
+		foreach ($result as $f) {
+			$fh = fopen($f['file'], 'w');
+			fwrite($fh, $f['contents']);
+			fclose($fh);
+		}
+	}
+
+        if (db_errormessage()) {
+            form_add_note(db_errormessage());
+        } else {
+            redirect("index.html");
+        }
+    }
+}
+
+if (!form_was_submitted()) {
+    $_REQUEST['to_address'] = $row['to_addr'];
+    $_REQUEST['password'] = $row['password'];
+    $_REQUEST['moderator'] = $row['moderator'];
+    if ($form['members']) {
+    	$path = "/var/lib/ecartis/lists/".$Gconfig['email']['maillist_prefix'].$row['from_addr'].'/users';
+	$contents = read_whole_file($path);
+	$fh = fopen($path,'r');
+	while ($line = fgets($fh)) {
+		$members .= substr($line, 0, strpos($line,':'))."\n";
+	}
+	$_REQUEST['members'] = $members;
+    }
+}
+
+

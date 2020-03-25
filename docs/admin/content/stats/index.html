@@ -1,0 +1,26 @@
+<!-- 
+<title>Content statistics</title>
+-->
+
+
+<div class="section">
+
+<table><tr><th>Class</th><th># of items</th><th>Action</th></tr>
+
+<? foreach ($stats as $s): ?>
+<tr>
+<td><%= $s['class_name'] %></td>
+<td><%= $s['count'] %></td>
+<td>
+<? if ($s['editable_in_cms']) {
+	echo '<a href="'. href('purge.html', 'class_id', $s['class_id']).'">purge dead items</a>';
+} ?>
+</td>
+</tr>
+<? endforeach ?>
+</table>
+
+
+</div>
+
+

@@ -1,0 +1,54 @@
+
+require_once 'form.h';
+require_once 'users.h';
+
+if ($_GET['party_1']) {
+	$extra .= " AND party_1=? ";
+	$params[] = $_GET['party_1'];
+	$other_constraints .= "Invoices payable to ".user_email($_GET['party_1']).'. ';
+}
+if ($_GET['party_2']) {
+	$extra .= " AND party_2=? ";
+	$params[] = $_GET['party_2'];
+	$other_constraints .= "Invoices payable from ".user_email($_GET['party_2']).'. ';
+}
+$extra .= " AND (contract_invoices.create_date >= ? AND contract_invoices.create_date <= ?)";
+$params[] = $_GET['begin_date'];
+$params[] = $_GET['end_date'];
+
+$line_items = db_multirow("select invoice_item_id, amount, is_tax, date_part('epoch', contract_invoices.create_date) as create_date, date_part('epoch', paid_date) as paid_date, invoice_id, contracts.contract_id, short_name, party_1, party_2, u1.first_name as p1_fname, u1.last_name as p1_lname, u1.company as p1_company, u2.first_name as p2_fname, u2.last_name as p2_lname, u2.company as p2_company 
+	from contract_invoice_items join contract_invoices using (invoice_id),
+		contracts, users as u1, users as u2 
+	WHERE contracts.contract_id = contract_invoices.contract_id  
+		AND party_1=u1.user_id and party_2=u2.user_id and contract_invoices.void!=1 and contract_invoice_items.void !=1 ". $extra, $params);
+
+foreach ($line_items as $c) {
+  $iid = $c['invoice_id']; 
+  $cid = $c['contract_id'];
+
+  if (!isset($contracts[$cid])) {
+  	$contracts[$cid] = $c;
+  }
+
+  if (!isset($invoices[$iid])) {
+	  $invoices[$iid]['contract_id'] = $cid;
+	  $invoices[$iid]['paid_date'] = $c['paid_date'];
+	  $invoices[$iid]['create_date'] = $c['create_date'];
+	  $contracts[$cid]['invoices'][]  = $iid;
+  }
+  
+  $invoices[$iid]['total'] += $c['amount'];
+  $contracts[$cid]['total'] += $c['amount'];
+  $total += $c['amount'];
+
+  if ($c['is_tax']) {
+	  $invoices[$iid]['tax'] += $c['amount'];
+	  $contracts[$cid]['tax'] += $c['amount'];
+	  $taxes += $c['amount'];
+  } else {
+	  $invoices[$iid]['subtotal'] += $c['amount'];
+	  $contracts[$cid]['subtotal'] += $c['amount'];
+	  $subtotal += $c['amount'];
+  }
+}
+

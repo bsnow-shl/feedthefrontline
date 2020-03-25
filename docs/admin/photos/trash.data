@@ -1,0 +1,27 @@
+require_once 'photos.h';
+require_once 'form.h';
+
+$photo = $_GET['photo'];
+$direction = $_GET['direction'];
+$names = db_row('select album_id, large_uri,medium_uri,small_uri from photos where photo_id=?', $photo);
+
+
+form_set(array(
+	'yes' => array('type'=>'submit', value=>'yes'),
+	'no' => array('type'=>'submit', value=>'no'),
+));
+if (form_valid()) {
+	if ($yes) {
+		$directory = $_SERVER['DOCUMENT_ROOT'];
+		unlink($directory.$names['large_uri']);
+		unlink($directory.$names['small_uri']);
+		unlink($directory.$names['medium_uri']);
+	}
+	photo_album_rescan($names['album_id']);
+	$photo = db_value('select max(photo_id) from photos where album_id=? and photo_id<=?', $names['album_id'], $photo); 
+	redirect(href('one.html', 'reload', $photo, 'id', $names['album_id']).'#'.$photo);
+}
+
+
+
+

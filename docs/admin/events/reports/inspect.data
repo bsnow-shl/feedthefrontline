@@ -1,0 +1,35 @@
+require_once 'i18n.h';
+require_once 'events.h';
+require_once 'paypal.h';
+require_once 'form.h';
+
+$erid = 0+$_GET['erid'];
+
+
+$attendee = db_row("select *,date_part('epoch', create_datetime) as create_datetime from event_registrations where event_registration_id=?",$erid);
+$method = db_row('select * from event_payment_methods where payment_method_id=?', $attendee['payment_method_id']);
+
+$pricing = db_row('select * from event_pricing where event_pricing_id=?',$attendee['event_pricing_id']);
+$event = db_row('select * from events where event_id=?',$pricing['event_id']);
+
+
+
+$custom_fields = array();
+$custom = event_is_custom($pricing['event_id']);
+if ($custom && ($t=$custom['linkin_table'])) {
+	$custom_fields = db_row("select * from $t where event_registration_id=?", $erid);
+}
+
+$custom_fields += i18n_get('Event '.$pricing['event_id'].' fields', $erid);
+
+
+$taxes = taxes_calculate($pricing['price'],  $event['tax_scheme_id']);
+
+$invoices = db_array("select paypal_transaction_id from paypal_transactions where paypal_system_id=(select paypal_system_id from paypal_systems where paypal_system_name='Event attendance payment') and system_reference=? ", $erid);
+$paypal_invoice_id = $invoices[sizeof($invoices)-1];
+
+$audit_log = db_multirow("select date_part('epoch', diary_timestamp) as diary_datetime, note from event_registration_diary where event_registration_id=? order by diary_timestamp", $erid);
+
+$sessions = db_multirow('select * from event_session_registrations join event_session_options using (session_option_id) join event_sessions using (event_session_id) where event_registration_id=?', $erid);
+i18n_get_batch($sessions, 'Event session option', 'session_option_id');
+

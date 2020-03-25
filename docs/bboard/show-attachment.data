@@ -1,0 +1,15 @@
+require_once 'uploads.h';
+
+$msgid = 0+$_REQUEST['msgid'];
+
+$row = db_row('select bboard_id, upload_id from bboard_messages where bboard_message_id =?', $msgid);
+
+if (bboard_user_may_read($row['bboard_id'])) {
+	upload_replay($row['upload_id']);
+	exit;
+} else {
+	print "Nothing to show.";
+	exit;
+}
+
+

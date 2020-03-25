@@ -1,0 +1,51 @@
+require_once 'form.h';
+require_once 'dbadmin.h';
+
+$order = $_REQUEST['order'];
+if ($order) {
+	$_SESSION['dbadmin_order'] = $order;
+} else {
+	$order = $_SESSION['dbadmin_order'];
+}
+$table = $_GET['table'];
+
+
+form_set(array(
+	'where_clause' => array('type'=>'text', 'default'=>'true')   ,
+	'doit' => array('type'=>'hidden',value=>1),
+));
+if (form_valid()) {
+}
+if (!$where_clause) {
+	$where_clause = 'true';
+}
+if ($order) {
+	$orderby =" order by $order";
+}
+
+form_set("query", array('query'=>'text,required'));
+if (form_valid('query')) {
+	db_send('query');
+}
+
+
+template_disable();
+
+$cols = dbadmin_list_columns($table);
+$makeit=1;
+for ($i=0; $i<sizeof($cols); $i++) {
+	if ($cols[$i]['attname']=='rowid') { 
+		$makeit=0;
+	}
+}
+
+if ($makeit) {
+	db_send("alter table $table add column rowid serial");
+}
+
+$rows = db_multirow("SELECT rowid,* FROM $table where $where_clause $orderby");
+$keys = array_keys($rows[0]);
+
+$row_count = count($rows);
+
+

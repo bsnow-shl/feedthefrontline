@@ -1,0 +1,39 @@
+
+require_once 'form.h';
+
+$retired = ($_GET['showall'] == 1) ? 1 : 0;
+$contracts = db_multirow('select contract_id, short_name, party_1, party_2, u1.first_name as p1_fname, u1.last_name as p1_lname, u1.company as p1_company, u2.first_name as p2_fname, u2.last_name as p2_lname, u2.company as p2_company from contracts,users as u1, users as u2 
+		WHERE party_1=u1.user_id and party_2=u2.user_id and (contract_id in (select contract_id from contract_invoices where paid=0 and void=0) or retired in (0,?))', $retired);
+
+
+for ($i=0; $i<sizeof($contracts); $i++) {
+  $c = $contracts[$i];
+  $contracts[$i]['paid'] = db_value('select sum(cached_amount) from contract_invoices where void=0 and paid=1 and contract_id=?', $c['contract_id'])/100.0;
+  $contracts[$i]['unpaid'] = db_value('select sum(cached_amount) from contract_invoices where void=0 and paid=0 and contract_id=?', $c['contract_id'])/100.0;
+  $contracts[$i]['uninvoiced'] = db_value('select sum(amount) from contract_invoice_items where invoice_id is null and void=0 and contract_id=?', $c['contract_id'])/100.0;
+	$party_idx[ $c['party_1'] ] = sprintf ("%s c/o %s %s", $c['p1_company'], $c['p1_fname'], $c['p1_lname']);
+	$contract_idx[ $c['party_1'] ][] = &$contracts[$i];
+}
+
+form_set(array(
+	'invoice_number'=>'text',
+	'item_amount' => 'dollars'
+));
+if (form_valid()) {
+	if ($item_amount>0) {
+		$invoice_number = db_value('select invoice_id from contract_invoices where cached_amount=?', $item_amount*100);
+	}
+	if ($invoice_number) {
+		$parts = split('-', $invoice_number);
+		$invoice_no = array_pop($parts);
+		redirect(href('/admin/contracts/view-invoice.html', 'invoice', $invoice_no));
+	}
+
+	if ($item_amount) {
+		$criteria[] = " amount=".($item_amount*100);
+	}
+	$search_results = db_multirow("select *,date_part('epoch', create_date) as create_date from contract_invoice_items where true and ".join(" AND ", $criteria));
+	$searched = true;
+}
+
+$overdue = db_multirow ('select invoice_id,cached_amount,due_date from contract_invoices where void=0 and paid=0 and due_date < CURRENT_TIMESTAMP');

@@ -1,0 +1,29 @@
+
+# pull every product as long as it's in some category
+$price_list = db_array('select price from shopping_products where product_id in (select product_id from shopping_product_category_map)');
+
+for ($i=0; $i<20; $i++) {
+	$bucks[$i*20]=0;
+}
+
+foreach ($price_list as $p) {
+	if ($p<5000) {
+		$brackets['less than 50']++;
+	}
+	if ($p>= 3000 && $p < 7500) {
+		$brackets['30-75'] ++;
+	}
+	if ($p>= 6000 && $p < 14000) {
+		$brackets['60-140'] ++;
+	}
+	if ($p>= 10000 ) {
+		$brackets['100+'] ++;
+	}
+
+	$p = floor($p/2000);
+	$p *= 20;
+	$bucks[$p]++;
+	$num_found++;
+}
+
+ksort($bucks);

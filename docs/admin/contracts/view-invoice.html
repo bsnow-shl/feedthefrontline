@@ -1,0 +1,131 @@
+<!--
+<title>Invoice N<%= $invoiceid %></title>
+-->
+
+<? if (false && $invoice['void']): ?>
+
+	This contract is void, and is not payable.
+
+<? else: ?>
+
+<? function render($ch) { ?>
+	<tr>
+	<td><%= date("Y/m/d", $ch['tstamp']) %></td>
+	<td><%= $ch['name'] %></td>
+	
+	<td align="right">
+		<? if (!$_GET['printable']): ?>
+			<a href="<%= href("view-item.html", "item", $ch['invoice_item_id']) %>">
+		<? endif ?>
+		<?
+		if ($ch['void']) {
+			printf("<strike>%s</strike>", number_format($ch['amount']/100.0,2,'.',','));
+		} else {
+			echo number_format($ch['amount']/100.0,2,'.',',');
+			$rc = $ch['amount'];
+		} ?>
+		<? if (!$_GET['printable']): ?>
+			</a>
+		<? endif ?>
+		</td>
+	</tr>
+  <? return $rc; ?>
+<? } ?>
+
+<? if ($_GET['printable']): ?>
+<html>
+<head><link rel="stylesheet" type="text/css" href="/admin/printed.css" media="all"  />
+</head><body>
+<? endif ?>
+
+<table  border=0 width="100%">
+<tr><th class="sans" colspan="2" style="font-weight: 1600; font-family: Copperplate, Copperplate Gothic, Palatino Linotype, Trebuchet MS, arial, sans-serif; font-size: 400%;">
+<? if ($invoice['void']): ?><b style="color: red">VOID</b><? endif ?> 
+<? if ($invoice['paid']): ?><b style="color: red">PAID</b><? endif ?> 
+INVOICE<br/></th></tr>
+<tr><td >
+<? printf("<b>%s</b><br>c/o %s<br>%s<br>%s", $u1['details']['company'], $u1['name'], $u1['details']['address'], $u1['details']['address_2']);
+?>
+</td><td valign="top">
+	<?  printf("invoice N%d<br/>issued: %s<br/>due: %s<br/><br/>", $invoice['invoice_id'], date('Y-m-d', $invoice['create_date']), $invoice['due_date']);
+	?>
+</td></tr>
+<tr>
+<td width="60%"><?
+	printf("<br/><br/><b>Bill to:</b><br/>%s<br>c/o %s<br>%s<br>%s", $u2['details']['company'], $u2['name'],  $u2['details']['address'], $u2['details']['address_2']);
+?> </td>
+<td width="20%">&nbsp;</td>
+
+</tr>
+</table>
+
+<br/>
+<br/>
+<br/>
+<br/>
+	<table class=padded width="100%">
+	<tr><th style="border: 1px solid black; width: 10em; ">Date</th><th style="border: 1px solid black;">Name</th><th style="border: 1px solid black; width: 10em;">Amount</th></tr>
+	<? foreach ($invoice_items as $ch) {
+       if ($ch['is_tax'])  { $tax_items[] = $ch; continue; }
+       $running += render($ch);
+  } ?>
+  
+	<tr></tr>
+  <tr><td><br/><br/><br/></td></tr>
+
+	<tr><td></td><th align=right>billable items</th><th align="right"><%= number_format( $running/100.0, 2, '.',',') %></th></tr>
+
+	<? if ($tax_items) foreach ($tax_items as $ch) {
+		$running += render($ch);
+	  } ?>
+
+  <tr><td></td><th align=right>subtotal</th><th align="right"><%= number_format($running/100.0, 2, '.',',') %></th></tr>
+  
+  <? if ($payments): ?>
+  	<? foreach ($payments as $p) {
+		if ($p['amount']) {
+			printf('<tr><td></td><td align=right>Payment received %s</td><td align="right">-%s</td></tr>', date("Y-m-d", $p['tstamp']), number_format($p['amount']/100.0,2,'.',','));
+		}
+	} ?>
+  <? else: ?>
+  	<tr><td>(no payments yet)</td></tr>
+  <? endif ?>
+	<tr><td></td><th align=right>amount due</th><th align="right"><%= number_format(($running-$total_payments)/100.0,2,'.',',') %></th></tr>
+	</table>
+  
+  <br/>
+  
+  <? foreach ($notes as $n) {
+  	print "<p><em>$n</em></p>";
+  } ?>
+  <? if ($invoice['void']): ?>
+	<p style="color: red">This invoice is void, and not payable.</p>
+  <? else: ?>
+	  <p><em> Thank you for doing business with us! Please make cheques payable to  <%= $u1['details']['company'] %>.  </em></p>
+  <? endif ?>
+	</div>
+
+
+<? endif ?>
+
+<? if ($_GET['printable']): ?>
+</body></html>
+<? endif ?>
+
+<? if (!$_GET['printable']): ?>
+
+<h3>Audit trail</h3>
+<ul>
+<li>Created: <%= date("Y-m-d H:d", $invoice['create_date']) %> by <%= user_name($invoice['created_by']) %> (<%= user_email($invoice['created_by']) %>)
+<? foreach ($audit as $a): ?>
+<li><%= date("Y-m-d H:i:s", $a['tstamp']) %>: <%= $a['note'] %>
+<? endforeach ?>
+</ul>
+
+
+<h3>Actions</h3>
+<? form_start();
+   form_end(); ?>
+
+
+<? endif ?>

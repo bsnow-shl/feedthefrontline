@@ -1,0 +1,11 @@
+
+require_once 'i18n.h';
+
+$classid = $_GET['class'];
+$objid = $_GET['obj'];
+
+$class_name = db_value('select class_name from i18n_classes where class_id=?', $classid);
+
+i18n_delete($class_name, $objid);
+redirect(href('sysobjects.html', 'type', $classid));
+

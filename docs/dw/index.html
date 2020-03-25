@@ -1,0 +1,38 @@
+<!--
+<title>Data warehousing</title>
+-->
+
+
+Our datawarehouse lets you study:
+
+<? foreach ($warehouse as $fact): ?>
+	<h2><a href="<%= href('query.html', 'fact_id', $fact['fact']['fact_id']) %>"><%= $fact['fact']['pretty_name'] %></a></h2>
+
+	For sales, we track:
+	<?
+		foreach ($fact['numbers'] as $n) {
+			$track[]= $n['pretty_name'];
+		}
+		print join(', ', $track);
+	?>
+	
+
+	<p/>
+	Sales can be sliced and diced by:
+
+	<table class=pretty><tr>
+	<? foreach ($fact['dimensions'] as $d): ?>
+	<th><%= $d['dimension']['pretty_name'] %><br/>(<%= $d['dimension']['count'] %> loaded)</th>
+	<? endforeach ?>
+	</tr><tr>
+	<? foreach ($fact['dimensions'] as $d): ?>
+	<td nowrap valign=top>
+	<? foreach ($d['attributes'] as $a): ?>
+	<%= $a['pretty_name'] %><br/>
+	<? endforeach ?>
+
+	</td>
+	<? endforeach ?>
+	</table>
+
+<? endforeach ?>

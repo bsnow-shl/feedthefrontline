@@ -1,0 +1,35 @@
+$fqid = $_REQUEST['faq_question_id'];
+        
+db_send('begin');
+
+if ($_REQUEST['movedown']) {
+        $current = db_value('select order_in_faq from faq_questions where faq_question_id=?', $fqid);
+        $next = db_value('select min(order_in_faq) from faq_questions where order_in_faq>?', $current);
+        if ($next) {
+                db_send('update faq_questions set order_in_faq=? where order_in_faq=?', $current, $next);
+                db_send('update faq_questions set order_in_faq=? where faq_question_id=?', $next, $fqid);
+        }
+}
+
+
+
+if ($_REQUEST['moveup']) {
+        $current = db_value('select order_in_faq from faq_questions where faq_question_id=?', $fqid);
+        $previous = db_value('select max(order_in_faq) from faq_questions where order_in_faq<?', $current);
+        if ($previous) {
+                db_send('update faq_questions set order_in_faq=? where order_in_faq=?', $current, $previous);
+                db_send('update faq_questions set order_in_faq=? where faq_question_id=?', $previous, $fqid);
+        }
+}
+
+if ($_REQUEST['checked']) {
+	print_a($_REQUEST);
+}
+
+
+
+db_send('commit');
+
+redirect($_GET['refer']);
+
+

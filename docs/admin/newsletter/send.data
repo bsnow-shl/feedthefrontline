@@ -1,0 +1,130 @@
+//<?
+
+require_once 'form.h';
+require_once 'users.h';
+require_once 'newsletter.h';
+
+user_require('newsletter_sender');
+
+newsletter_check_system_lists();
+
+if ($_GET['clonefrom']) {
+	$clonefrom = db_row('select * from newsletter_mailings where newsletter_mailing_id=?', $_GET['clonefrom']);
+	$clonefrom['subject_of_email'] = $clonefrom['subject'];
+	$clonefrom['bodytext'] = file_get_contents($_SERVER['DOCUMENT_ROOT'].$clonefrom['path'].'/index.html');
+}
+
+if (config_get('content','mail_css')) {
+    $stylesheet_file = $_SERVER['DOCUMENT_ROOT'] . config_get('content','mail_css');
+}
+$stylesheet_file = $_SERVER['DOCUMENT_ROOT'] . config_get('content','content_css');
+
+$where = $_SERVER['DOCUMENT_ROOT'].config_get('newsletter','outgoing_root');
+
+// figure out which directories are there
+chdir($where);
+
+$h = opendir($where);
+while ($dir = readdir($h)) {
+    if ($dir=='.' || $dir=='..' || $dir=='CVS' || !is_dir($dir)) { continue; }
+    $item = '/'.config_get('newsletter','outgoing_root').'/'.$dir.'/';
+    $dir_list[$item] = $item;
+}
+closedir($h);
+
+$rel_where = config_get('newsletter','outgoing_root');
+
+$editions = newsletter_editions();
+$editions['*'] = 'All subscribers';
+form_set('default', array(
+	'mailing_id' => array('type'=>'hidden', 'default'=>db_newid('newsletter_mailings')),
+	'newsletter_id' => array('pretty' => 'Mailing List', 'type'=>'menu', 'sql'=>'select newsletter_id as key, name as value from newsletters'),
+	'description' => 'text,required',
+	'distribution_list' => array('type'=>'menu', 'required' => 1, 'default' => 'test', 'menu'=> $editions),
+	'subject_of_email' => 'text,required',
+	'sender_name' => array('type'=>'text', 'required'=>1, 'default' => user_name()),
+	'sender_email' => array('type'=>'email', 'required'=>1, 'default' => user_email()),
+    'bodytext' => 'richtext',
+    'path_to_files_under_document_root' => array('type'=>'menu','required'=>0,'menu'=>$dir_list),
+), $clonefrom);
+
+if (form_valid()) {
+    if (!$path_to_files_under_document_root) {
+        // generate a new directory
+        $nl_path = strtr( substr( base64_encode(mhash(MHASH_SHA512, getmicrotime(). $i['sid'].$i['uid'])).getmicrotime() ,0, 16), '+=/', '012');
+
+        $full_path = $where . '/' . $nl_path;
+        mkdir($full_path);
+
+        // read stylesheet
+        $stylesheet = file_get_contents($stylesheet_file);
+
+        if (strpos($bodytext,'<html')!== false) {
+            $nhtml = $bodytext;
+        } else {
+            // generate the HTML
+            $nhtml = <<<NHTML
+<html>
+<head>
+<title>$subject_of_email</title>
+<style type="text/css"><!--
+$stylesheet
+--></style>
+</head>
+<body>
+$bodytext
+<img src="%%tracking_image%%" width="1" height="1" alt="" />
+</body>
+</html>
+NHTML;
+        }
+
+        $shome = config_get('site', 'home');
+        $nhtml = preg_replace('{src="/images}', "src=\"{$shome}images", $nhtml);
+        $nhtml = preg_replace('/href="http:\\/\\//', 'href="%%http%%', $nhtml); 
+        $nhtml = preg_replace('/unsubscribe_link/', '%%unsubscribe_link%%', $nhtml); 
+
+        // write out the HTML
+        $nfile = fopen($full_path . '/' . 'index.html', 'w');
+        fwrite($nfile, $nhtml);
+        fclose($nfile);
+
+        // generate the sender rfc822 addy etc.
+        $dr_path = $rel_where . '/' . $nl_path . '/';
+    } else {
+        $dr_path = $path_to_files_under_document_root;
+    }
+        
+    $from = "$sender_name <$sender_email>";
+
+    // put it all in the db
+	db_send('begin');
+	db_send('insert into newsletter_mailings(newsletter_mailing_id, newsletter_id, description, path, subject, sender_name, sender_email, from_line) values (?,?,?,?,?,?,?,?)',
+			$mailing_id,
+			$newsletter_id, 
+			$description,
+			$dr_path,
+			$subject_of_email, $sender_name, $sender_email, $from);
+	if ($distribution_list!='*') {
+		$distribution_sql = " AND parameter='$distribution_list' ";
+	}
+	$to_insert = db_multirow("select  newsletter_subscriptions.user_id as uid, max(newsletter_subscription_id) as sid from newsletter_subscriptions where newsletter_id=? and parameter != '0' $distribution_sql group by user_id", $newsletter_id);
+
+	$row = array(
+		'newsletter_mailing_id' => $mailing_id,
+	);
+	foreach ($to_insert as $i) {
+		$row['newsletter_queue_id'] = strtr( substr( base64_encode(mhash(MHASH_SHA512, getmicrotime(). $i['sid'].$i['uid'])).getmicrotime() ,0, 16), '+=/', '012');
+		$row['newsletter_subscription_id'] = &$i['sid'];
+		db_insert_hash('newsletter_queue', $row);
+	}
+	db_send('commit');
+	$send_count = db_value('select count(*) from newsletter_queue where newsletter_mailing_id=?', $mailing_id);
+	if ($send_count < 100) {
+		$extra = '<a href="'.href('special/xmit.html','id', $mailing_id).'">Push out the messages.</a>';
+	}
+	form_add_note(db_value('select count(*) from newsletter_queue where newsletter_mailing_id=?', $mailing_id)." addresses scheduled for sending. $extra");
+}
+
+//?>
+

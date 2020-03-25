@@ -1,0 +1,32 @@
+<!--
+<title>Custom outgoing message for event #<cite><%= $eid %></cite></title>
+-->
+
+<div class="section">
+
+
+<? form_start(); ?>
+<pre>
+Subject: Event registration confirmation
+From: <%= config_get('site','owner') %> - <%= config_get('site','owner-email') %>
+
+To: Registrant &lt;email@domain.com>
+
+Thank you for registering for:
+      Event name
+      which begins on yyyy-mm-dd.
+
+
+Your confirmation number is ______.
+
+You can view event details at http://wwww.itsmf.ca/events/details/____/.
+
+You can confirm (or make) payment at http://www.itsmf.ca//events/confirm/___/_____/ .
+
+</pre>
+
+<? form_end(); ?>
+
+</div>
+
+

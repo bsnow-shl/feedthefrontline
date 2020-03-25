@@ -1,0 +1,11 @@
+
+require_once 'shopping.h';
+$pid = $_GET['pid'];
+
+if (!config_get('shopping', 'anonymous_ok')) { 
+	require_once 'users.h';
+	user_require(); 
+}
+
+shopping_add_product_to_shopcart($pid);
+redirect('cart.html');

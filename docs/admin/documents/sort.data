@@ -1,0 +1,26 @@
+require_once 'i18n.h';
+
+$cat_id = 0+$_GET['id'];
+$category = db_multirow('select document_id from documents where document_category_id=?', $cat_id);
+i18n_get_batch($category, 'document', 'document_id');
+
+
+function by_name($a, $b) {
+	$an = strtolower($a['name']);
+	$bn = strtolower($b['name']);
+
+	if ($an == $bn) return 0;
+	return ($an< $bn) ? -1 : 1;
+}
+
+usort($category, 'by_name');
+
+db_send('begin');
+foreach ($category as $cat) {
+	db_send('update documents set order_in_category=? where document_id=?', db_newid('display_order'), $cat['document_id']);
+}
+db_send('commit');
+
+redirect(href('one.html', 'category_id', $cat_id));
+
+

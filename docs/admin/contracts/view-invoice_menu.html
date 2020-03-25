@@ -1,0 +1,9 @@
+<div class="links">
+<h3>this invoice</h3>
+<a href="<%= href('view-invoice.html', 'invoice', $_GET['invoice'], 'printable',1) %>">Printable version</a>
+<a href="<%= href('charge-interest.html', 'invoice', $_GET['invoice']) %>">Charge interest</a>
+
+<!-- entropy at work
+<a href="<%= href('view-invoice-pdf.php', 'invoice', $_GET['invoice'], 'printable',1) %>">PDF version</a>
+-->
+</div>

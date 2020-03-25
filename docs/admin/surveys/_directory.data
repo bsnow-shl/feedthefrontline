@@ -1,0 +1,2 @@
+require_once 'users.h';
+user_require('survey_admin');

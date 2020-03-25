@@ -1,0 +1,32 @@
+require_once 'form.h';
+
+unset ($_GET[count]);
+unset($_GET[sqldebug]);
+$where = unserialize($_GET['where']);
+unset($_GET[where]);
+
+foreach ($_GET as $k=>$v) {
+    if ($v=='\N') {
+    	$where[] = " $k is null ";
+    } else {
+	    $where[] = " $k = ? ";
+        $params[] = $v;
+    }
+}
+
+if (!$where) {
+    $where[] = 'true';
+}
+
+$fields_fn = config_get('users', 'fields_callback');
+$fields = array('user_id'=>1,'email'=>1,'first_name'=>1,'last_name'=>1);
+if ($fields_fn) {
+	$fields += $fields_fn();
+}
+
+$fields_sql = join(',', array_keys($fields));
+$sql = 'select '. $fields_sql . ' from user_reporting_view where '.join(' and ', $where);
+$result = db_multirow($sql,$params);
+template_disable();
+
+$newsletter = db_value('select count(*) from newsletters');

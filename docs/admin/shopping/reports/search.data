@@ -1,0 +1,28 @@
+
+$where[] = 'true';
+
+if ($_GET['screwed']) { 
+		$where[] = 'paid=? and status in (?,?)';
+		$params[] = 0;
+		$params[] = 'delivered';
+}
+
+if (isset($_GET['paid'])) { 
+		$where[] = 'paid=?';
+		$params[] = $_GET['paid'];
+}
+
+if ($_GET['status']) { 
+		$where[] = 'status=?';
+		$params[] = $_GET['status'];
+}
+
+if ($_GET['user_id']) {
+	$where[] = 'user_id=?';
+	$params[] = $_GET['user_id'];
+}
+
+$where_sql = join (' and ', $where);
+
+$carts = db_multirow('select * from shopping_shopcarts where '.$where_sql.' order by shopcart_id desc', $params);
+

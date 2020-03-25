@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+<title>An example</title>
+<meta name="GENERATOR" content=
+"Modular DocBook HTML Stylesheet Version 1.79">
+<link rel="HOME" title="Content Publishing Framework Manual" href=
+"index.html">
+<link rel="UP" title="The Templating System" href=
+"templating.html">
+<link rel="PREVIOUS" title="The Templating System" href=
+"templating.html">
+<link rel="NEXT" title="Understanding parts" href="x219.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2005-03-11T18:12:01">
+</head>
+<body class="SECTION" bgcolor="#FFFFFF" text="#000000" link=
+"#0000FF" vlink="#840084" alink="#0000FF">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="3" align="center">Content Publishing Framework
+Manual</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="bottom"><a href=
+"templating.html" accesskey="P">Prev</a></td>
+<td width="80%" align="center" valign="bottom">Chapter 3. The
+Templating System</td>
+<td width="10%" align="right" valign="bottom"><a href="x219.html"
+accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="SECTION">
+<h1 class="SECTION"><a name="TEMPLATING-TUTORIAL" id=
+"TEMPLATING-TUTORIAL">3.2. An example</a></h1>
+<p>A basic CPF template looks something like this:</p>
+<pre class="SCREEN">
+&lt;html&gt;
+ &lt;head&gt;
+   &lt;title&gt;page title&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+ ##PART##
+ &lt;/body&gt;
+&lt;/html&gt;
+</pre>
+<p>Imagine there's a file called page.html that looks like
+this:</p>
+<pre class="SCREEN">
+Hello world!
+</pre>
+<p>Notice that there is no markup whatsoever in this page. It's
+just one line with two words on it. When a web browser pulls
+page.html through the CPF, this is what it will see:</p>
+<pre class="SCREEN">
+&lt;html&gt;
+ &lt;head&gt;
+   &lt;title&gt;page title&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+Hello world!
+ &lt;/body&gt;
+&lt;/html&gt;
+</pre>
+<p>The magic token <samp class="COMPUTEROUTPUT">##PART##</samp> in
+the template has been replaced with the contents of the part.</p>
+<p>The part can do more than appear verbatim inside the template:
+certain elements of the part are extracted and substituted into the
+template. The simplest example is giving your page a title that web
+browsers can understand, via HTML's &lt;title&gt; tag. Let's change
+the template like so:</p>
+<pre class="SCREEN">
+&lt;html&gt;
+ &lt;head&gt;
+   &lt;title&gt;&#64;&#64;TITLE&#64;&#64;&lt;title&gt;
+ &lt;head&gt;
+ &lt;body&gt;
+##PART##
+ &lt;body&gt;
+&lt;html&gt;
+</pre>
+<p>And change the part like so:</p>
+<pre class="SCREEN">
+&lt;--
+&lt;title&gt;Greetings&lt;/title&gt;
+--&gt;
+
+Hello, world!
+</pre>
+<p>If this page is put through the templating system, the browser
+gets something like this:</p>
+<pre class="SCREEN">
+&lt;html&gt;
+ &lt;head&gt;
+   &lt;title&gt;Greetings&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+Hello, world!
+ &lt;/body&gt;
+&lt;/html&gt;
+</pre>
+<p>Notice that the title has been extracted from the part, and
+sucked into the template. The other tokens that can be used in
+substitutions are discussed in <a href=
+"templating-process.html">Section 3.4</a>.</p>
+<p>Here are some useful guidelines to keep in mind while designing
+a template:</p>
+<ul>
+<li>
+<p>Only use absolute URL references to style sheets and images in
+your templates. In other words, <kbd class="USERINPUT">&lt;style
+href="/path/to/my/sheet.css" /&gt;</kbd> -- see the slash on
+<tt class="LITERAL">/path</tt>? This will prevent your template
+from breaking when you try to serve a page located in a
+subdirectory of the server root.</p>
+</li>
+<li>
+<p>Use image width, height, and alt attributes <span class=
+"emphasis"><i class="EMPHASIS">particularly</i></span> in
+<tt class="FILENAME">_template.html</tt> to improve page loading
+performance.</p>
+</li>
+<li>
+<p>Periodically validate your pages with a quality validator like
+those from the <a href="http://www.htmlhelp.com/" target="_top">Web
+Design Group</a> or <a href="http://www.w3c.org/" target=
+"_top">W3C</a>. At least your home page. You'll avoid annoying lots
+of people if you serve good HTML.</p>
+</li>
+</ul>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="templating.html"
+accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html"
+accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="x219.html"
+accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">The Templating
+System</td>
+<td width="34%" align="center" valign="top"><a href=
+"templating.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">Understanding parts</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+
+$nmid = 0+$_GET['nmid'];
+
+$mailing = db_row('select * from newsletter_mailings where newsletter_mailing_id=?', $nmid);
+if (!$mailing)  { exit(); }
+
+
+switch ($report_style = $_GET['r']) {
+	case 'sent':
+		$report = db_multirow('select email from newsletter_queue join newsletter_subscriptions using (newsletter_subscription_id) join users using (user_id) where sent=1 and newsletter_mailing_id=?', $nmid);
+		break;
+
+  case 'unsubscribed':
+		$report = db_multirow('select email from newsletter_queue join newsletter_subscriptions using (newsletter_subscription_id) join users using (user_id) where unsubscribed!=0 and newsletter_mailing_id=?', $nmid);
+		break;
+
+  case 'bounced':
+		$report = db_multirow('select email from newsletter_queue join newsletter_subscriptions using (newsletter_subscription_id) join users using (user_id) where bounced=1 and newsletter_mailing_id=?', $nmid);
+		break;
+
+	case 'opened':
+		$report = db_multirow('select email,opened as count from newsletter_queue join newsletter_subscriptions using (newsletter_subscription_id) join users using (user_id) where opened!=0 and newsletter_mailing_id=?', $nmid);
+		$has_count = 1;
+		break;
+
+	case 'clickthru':
+		$report = db_multirow('select email,clicked_through as count from newsletter_queue join newsletter_subscriptions using (newsletter_subscription_id) join users using (user_id) where clicked_through!=0 and newsletter_mailing_id=?', $nmid);
+		$has_count = 1;
+		break;
+
+	case 'clickthrudest':
+		$report = db_multirow('select email,url from newsletter_clickthroughs join newsletter_queue using (newsletter_queue_id) join newsletter_subscriptions using (newsletter_subscription_id) join users using (user_id) where clicked_through != 0 and newsletter_mailing_id=?', $nmid);
+		break;
+
+
+}
+
+
+$histogram = array();
+if ($has_count) {
+	foreach ($report as $r) {
+		$histogram[$r['count']]++;
+	}
+}

@@ -1,0 +1,31 @@
+
+require_once 'form.h';
+require_once 'i18n.h';
+
+
+$faq_id = 0+$_GET['faq_id'];
+if (!$faq_id) { redirect('index.html'); }
+
+form_set(
+	i18n_form_fields('FAQ question')
+);
+
+if (form_valid()) {
+	db_send('begin');
+	$question_id = db_newid('faq_questions');
+
+	if ($after = $_GET['after_question_id']) {
+		$order = db_value('select order_in_faq from faq_questions where faq_question_id=?', $after);
+		db_send('update faq_questions set order_in_faq=order_in_faq+1 where order_in_faq>? and faq_id=?', $order, $faq_id);
+	} else {
+		$order =  db_newid('display_order');
+	}
+	db_send('insert into faq_questions (faq_question_id, faq_id, order_in_faq) 
+			values (?,?,?)',
+					$question_id, $faq_id, $order);
+	i18n_form_handle('FAQ question', $question_id);
+	db_send('commit');
+	redirect(href('faqlist-edit.html', 'faq_id', $faq_id));
+
+}
+

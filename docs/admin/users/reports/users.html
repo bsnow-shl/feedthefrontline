@@ -1,0 +1,100 @@
+<!--
+<title>Membership report</title>
+-->
+
+<? if ($result): ?>
+<h2>Count of members <%= $groupby %></h2>
+<? if ($where): ?>Constraints: <? print_a($where); ?><?endif ?>
+<br/>
+    <table border=1><tr><th>
+  <?
+    print join('</th><th>', array_keys($result[0]));
+    print '</th></tr>';
+    foreach ($result as $r) {
+        print '<tr>';
+        foreach ($r as $i) {
+            print '<td>';
+            if (is_null($i)) { 
+                $i = '<i>n/a</i>';
+            }
+            print $i;
+            print '</td>';
+        }
+	if ($r['count']) {
+		$r['where'] = serialize($where);
+		print '<td><a href="'.href('drilldown.html', $r).'">show</a></td>';
+	}
+    } 
+    ?>
+    </tr></table>
+
+    <p>
+	To re-run this report, bookmark <a href="<%= $url %>">this link</a>.
+    </p>
+    <? if (!$url_already_added):  ?>
+        <p>You can also add it to the list of <A href="<%= href('store-report.html', 'url', $url) %>">canned reports</a>.
+    <? endif ?>
+
+<? else: ?>
+<? form_start(); ?>
+<h2>Choose groupings</h2>
+<div class="section">
+
+<p>Choose how you would like to sub-divide your report.</p>
+
+Group-by #1: @@sub_divide[0]@@
+<br/>
+Group-by #2: @@sub_divide[1]@@
+<br/>
+Group-by #3: @@sub_divide[2]@@
+<br/>
+Group-by #4: @@sub_divide[3]@@
+<br/>
+Group-by #5: @@sub_divide[4]@@
+</div>
+
+<h2>Choose constraints</h2>
+
+<div class="section">
+<p>
+Then, maybe, choose which user records you want to match:
+</p>
+<table><tr><th>field</th><th>operator</th><th>value</th></tr>
+<tr>
+<td>@@constraint_field[0]@@</td>
+<td>@@constraint_rule[0]@@</td>
+<td>@@constraint_value[0]@@</td>
+</tr>
+<tr>
+<td>@@constraint_field[1]@@</td>
+<td>@@constraint_rule[1]@@</td>
+<td>@@constraint_value[1]@@</td>
+</tr>
+<tr>
+<td>@@constraint_field[2]@@</td>
+<td>@@constraint_rule[2]@@</td>
+<td>@@constraint_value[2]@@</td>
+</tr>
+<tr>
+<td>@@constraint_field[3]@@</td>
+<td>@@constraint_rule[3]@@</td>
+<td>@@constraint_value[3]@@</td>
+</tr>
+<tr>
+<td>@@constraint_field[4]@@</td>
+<td>@@constraint_rule[4]@@</td>
+<td>@@constraint_value[4]@@</td>
+</tr>
+<tr>
+<td>@@constraint_field[5]@@</td>
+<td>@@constraint_rule[5]@@</td>
+<td>@@constraint_value[5]@@</td>
+</tr>
+</table>
+
+
+
+</div>
+
+<?  form_end(); ?>
+<? endif ?>

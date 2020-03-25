@@ -1,0 +1,21 @@
+$cid = 0+$_GET['contract'];
+
+if ($_GET['sure']==1) {
+	# delete it
+	db_send('begin');
+	db_send('delete from contract_invoice_item_diary where invoice_item_id in (select invoice_item_id from contract_invoice_items where contract_id=?)', $cid);
+	db_send('delete from contract_invoice_diary where invoice_id in (select invoice_id from contract_invoices where contract_id=?)', $cid);
+	db_send('delete from contract_invoice_items where contract_id=?', $cid);
+	db_send('delete from contract_invoices where contract_id=?', $cid);
+	db_send('delete from shopping_product_category_map where product_id in (select product_id from shopping_products  where supplier_id in (select supplier_id from shopping_suppliers  where contract_id=?))', $cid);
+	db_send('delete from shopping_products where supplier_id in (select supplier_id from shopping_suppliers  where contract_id=?)', $cid);
+	db_send('delete from shopping_suppliers where contract_id=?', $cid);
+	db_send('delete from contracts where contract_id=?', $cid);
+	db_send('commit');
+
+	redirect('index.html');
+}
+
+$c = db_row('select short_name from contracts where contract_id=?', $cid);
+
+

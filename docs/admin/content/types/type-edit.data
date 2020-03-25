@@ -1,0 +1,62 @@
+//<?
+require_once 'form.h';
+
+$classid = 0+$_GET['classid'];
+
+$class= db_row('select * from i18n_classes where class_id=?', $classid);
+if (!$class) exit("No such class.");
+
+form_set('classdetails', array(
+	'class_name' => 'text,required',
+    'pretty_name_en' => array('type'=>'text','pretty' => 'Pretty name'),
+	'editable_in_cms' => 'flag',
+        'table_name' => 'text',
+        'read_medium' => array('type'=>'menu', 'required'=>1, 'default' => 1, 'menu'=> array('1' => 'i18n tables', '2' => 'individual table', '3' => 'filesystem')),
+        'store_i18n' => array('type'=>'flag', 'hint'=>''),
+        'store_table' => array('type'=>'flag', 'hint'=>''),
+        'store_filesystem' => array('type'=>'flag', 'hint'=>''),
+        'editable_in_cms' => array('type'=>'flag','pretty' => 'Editable in CMS')
+), $class);
+if (form_valid('classdetails')) {
+	db_update('i18n_classes', 'class_id', $classid, 
+    array('class_name'=>$class_name,
+        'pretty_name_en' => $pretty_name_en,
+          editable_in_cms=>$editable_in_cms));
+	form_add_note('Details updated.', 'classdetails');
+}
+
+
+$form_types = form_get_types();
+
+form_set('addfield', array(
+	'field_name' => 'urifragment,required',
+	'type' => array('type' => 'menu', 'default'=>'1', 'required' => 1,'menu' =>&$form_types ),
+	'special_type' => 'text'
+));
+if (form_submitted('addfield')) {
+	if (db_value('select count(*) from i18n_fields where class_id=? and field_name=?', $classid, $field_name)) {
+		form_error('field_name', 'A field with that name already exists.');
+	}
+}
+if (form_valid('addfield')) {
+	if ($special_type) { 
+		$typetoinsert = $special_type; 
+	} else {
+		$typetoinsert =  $form_types[$type];
+	}
+
+	db_send('insert into i18n_fields(field_id,precedence,class_id, field_name, pretty_name_en, field_type) values (?,?,?,?,?,?)',
+            db_newid('i18n_fields'), db_newid('display_order'), $classid, $field_name, form_beautify_identifier($field_name), $typetoinsert);
+}
+
+
+$fields = db_multirow('select * from i18n_fields where class_id=? order by precedence', $classid);
+
+$goback = $_SESSION['goback'];
+if ($_GET['goback']) {
+	unset($_SESSION['minimalist']);
+	unset($_SESSION['goback']);
+	redirect($goback);
+}
+
+

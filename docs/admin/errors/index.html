@@ -1,0 +1,46 @@
+<!--
+<title><%= sizeof($errors) %> PHP Errors</title>
+-->
+
+<? form_start();
+   form_end(); ?>
+
+<br/>
+
+<? if (sizeof($errors)): ?>
+<table class=padded>
+<th>err#</th>
+<th>type</th>
+<th>user</th>
+<th>message</th>
+<th>when</th>
+<th>where</th>
+
+<? foreach ($errors as $err): ?>
+<tr>
+<td class="<%= ($count % 2) ? "odd" : "even" %>">
+<a href="details.html?id=<%= $err['error_id'] %>"> <%= $err['error_id'] %></a>
+</td><td class="<%= ($count % 2) ? "odd" : "even" %>">
+	<%= error_type($err['level']) %>
+</td><td class="<%= ($count % 2) ? "odd" : "even" %>">
+ 	<%= user_email($err['user_id']) %>	
+
+</td><td class="<%= ($count % 2) ? "odd" : "even" %>">
+
+<a href="details.html?id=<%= $err['error_id'] %>">
+<%= $err['message'] %>
+</a>
+</td><td class="<%= ($count % 2) ? "odd" : "even" %>">
+<%= humanize_timestamp($err['tstamp']) %>
+</td><td class="<%= ($count % 2) ? "odd" : "even" %>">
+<%= basename($err['file']) %> line 
+<%= $err['file_line'] %>
+</td>
+</tr>
+<? $count++; ?>
+<? endforeach ?>
+</table>
+
+<? else: ?>
+Zarro boogs found.
+<? endif ?>

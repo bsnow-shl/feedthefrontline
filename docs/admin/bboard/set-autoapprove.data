@@ -1,0 +1,15 @@
+
+require_once 'users.h';
+
+$user = 0+$_GET['user'];
+$bboard = 0+$_GET['bboard'];
+
+user_grant_role($user, 'bboard_autoapprove', $bboard);
+
+db_send("update bboard_messages set approved='t' where author=? and bboard_id = ?", $user, $bboard);
+
+$user_name = user_name($user);
+$user_email = user_name($email);
+
+
+

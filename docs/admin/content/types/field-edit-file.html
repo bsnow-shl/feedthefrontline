@@ -1,0 +1,46 @@
+<!--
+<title>Edit file settings</title>
+-->
+
+<? if ($note): ?>
+    <p class="error">Your changes have been saved.</p>
+<? endif ?>
+
+<? form_start();  ?>
+<h3>File types</h3>
+
+<p>Accepted content types: <i><%= $file['file_require_mime'] ? join (', ', $file['file_require_mime']) : 'none' %></i>.
+</p>
+<ol>
+<li><a href="<%= href($self, 'mimeset', 'image') %>">Require image</a></li>
+<li><a href="<%= href($self, 'mimeset', 'video') %>">Require video</a></li>
+<li><a href="<%= href($self, 'mimeset', 'pdf') %>">Require pdf</a></li>
+<li><a href="<%= href($self, 'mimeset', 'html') %>">Require html</a></li>
+<li>Require @@mimereq@@</li>
+</ol>
+
+<p>Custom error message on failed file-type check: @@file_require_mime_pretty@@</p>
+
+<? if ($_GET['mimeset']=='image'): ?>
+
+<h3>Image settings</h3>
+
+<p><b>Image aspect:</b> between @@aspmin@@ and @@aspmax@@ (use decimals or "16:9")</p> 
+<p><b>Image resolution:</b> width @@resxmin@@ to @@resxmax@@, height @@resymin@@ to @@resymax@@</p>
+<p><b>Automatically rescale</b> images to @@rescale@@</p>
+<p><b>Automatically convert</b> images to @@reformat@@</p>
+<p><b>Alpha channel requirements</b>: @@alpha@@</p>
+
+<? endif ?>
+
+
+<? if ($_GET['mimeset']=='video'): ?>
+
+<h3>Video settings</h3>
+
+<p><b>Video aspect:</b> between @@videoaspectmin@@ and @@videoaspectmax@@</p>
+
+<? endif ?>
+
+<? form_end(); ?>
+

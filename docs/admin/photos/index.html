@@ -1,0 +1,21 @@
+<!--
+<title>Photography Control Panel</title>
+-->
+
+<div class="section">
+These are the photo albums you've got. There are <%= $count %> photos.
+
+<ul>
+<? foreach ($albums as $r): ?>
+<li><a href="<%= href('one.html', 'id', $r['album_id']) %>"><%= $r['title'] %></a> (<%= $r['photo_count'] %> photos)</li>
+<? endforeach ?>
+</ul>
+
+</div>
+
+<div class="section">
+<h3>Or add a new one:</h3>
+
+<? form_start(); form_end(); ?>
+
+</div>

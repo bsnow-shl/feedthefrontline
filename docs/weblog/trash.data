@@ -1,0 +1,16 @@
+
+$id = 0+$_GET['id'];
+
+weblog_require_editor($id);
+
+$post = db_row('select * from weblog_entries where weblog_entry_id=?', $id);
+if ($_GET['yes']) {
+	db_send('delete from weblog_entry_keywords where weblog_entry_id=?', 
+		$id);
+	db_send('delete from weblog_entries where weblog_entry_id=?', 
+		$id);
+	redirect(".");
+}
+
+
+

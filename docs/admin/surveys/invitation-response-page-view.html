@@ -1,0 +1,14 @@
+<!--
+<title><%= $user_name %> response: page <%= $pid %></title>
+-->
+
+<dl>
+<? foreach ($fields as $f): ?>
+<dt>
+<b><%= $f['field_name'] %></b> 
+</dt>
+<dd>
+<%= $response[ $f['field_name'] ] %>
+</dd>
+<? endforeach ?>
+</dl>

@@ -1,0 +1,10 @@
+require_once 'users.h';
+
+$tickets = db_multirow("select ticket_id,email,component,submitter_name, submitter_email,description,date_part('epoch', date_added) as date_added from users join tickets on (assigned_to=user_id) join ticket_components using (ticket_component_id) where ticket_status='open' and user_id=? order by ticket_id desc ", user_id());
+
+$bycomponent =  array();
+foreach ($tickets as $t) {
+	$bycomponent[$t['component']][$t['ticket_id']] = $t;
+}
+
+

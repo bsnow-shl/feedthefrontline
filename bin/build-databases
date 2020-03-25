@@ -1,0 +1,131 @@
+#!/usr/bin/perl -s
+
+use Config::IniFiles;
+
+my $dbname = $dbname;
+
+use strict;
+BEGIN {
+    my $old = `pwd`;
+    chop $old;
+
+    my $root = `dirname $0`;
+    chomp $root;
+
+    if ( $root !~ m#^/# ) {
+        chdir $root;
+        my $pwd = `pwd`;
+        chomp $pwd;
+        $root = $pwd;
+        $root =~ s/\n//g;
+        $root =~ s/\/$//g;
+    }
+
+    $root =~ s#/[^/]*$##g;
+
+    chdir $root;
+}
+
+my $db = $ARGV[0];
+my $dbuser = undef;
+
+if (not defined $db) {
+    $db = `basename \`pwd\``;
+    chop $db;
+    if ($db eq 'trunk') {
+      my $olddb = $db;
+      chdir('..');
+      $db = `basename \`pwd\``;
+      chop $db;
+      chdir($olddb);
+      $db .= '_'.$ENV{USER};
+    }
+
+    my $conf;
+    $conf = new Config::IniFiles( -file => "conf/cpfdb.ini") if -e 'conf/cpfdb.ini';
+
+    my $default;
+    if ($conf) {
+      $default = $conf->val('default', 'defaultdb');
+
+      if ($default) {
+        if (-e $ENV{HOME}.'/.cpfdb.ini') {
+            $conf = new Config::IniFiles( -file => $ENV{HOME}.'/.cpfdb.ini');
+        } 
+        if ($conf && $conf->val($default, 'dbname')) {
+          $db = $conf->val($default, 'dbname');
+          $dbuser = $conf->val($default, 'dbuser');
+        }
+      }
+    }
+}
+if ($dbname) { print "$db\n"; exit; }
+
+my $user = `whoami`;
+chop $user;
+
+if ( !`psql -l` ) {
+    print
+"\n\nStop!   This user can't talk to Postgres yet.  Please switch \ninto the postgres 
+superuser account (usually postgres) and run:
+
+\$ createuser $user
+
+Grant them permisson to create databases.
+Don't grant them permission to create new users.
+
+Then press <enter> when this done.";
+
+    <STDIN>;
+}
+
+print "-- Dropping $db: ";
+system("dropdb 2>&1 1>/dev/null $db");
+print "\n-- Dropped.\n";
+
+die "-- Database creation failed" if system("createdb -T template0 -E UNICODE $db");
+
+if (!stat("conf/use-only-conf.sql")) {
+	foreach my $file (`ls 2>/dev/null bin/sql/*.sql `) {
+	    print grep (/(ERROR|FATAL)/,`psql 2>&1 $db -f $file`);
+	}
+} else {
+	print "skipped";
+}
+
+foreach my $file (`ls 2>/dev/null conf/*.sql conf/sql/*.sql conf/sql/patches/*.sql`) {
+    print grep (/(ERROR|FATAL)/,`psql 2>&1 $db -f $file`);
+}
+
+print "-- Database $db built.\n\n";
+
+if ( $dbuser) {
+    print "Consider running:\n\tbin/grant-databases $db $dbuser | psql $db\n";
+}
+
+if ( !-e 'conf/config.h' ) {
+    print "I see that you don't have a configuration file (conf/config.h) yet.";
+    print "\nI'll make one for you.\n";
+
+    my $file = `cat includes/config.h`;
+    $file =~ s/DBNAME/$db/m;
+    open( W, ">conf/config.h" );
+    print W $file;
+    close W;
+
+    open (W, ">conf/cpfdb.ini");
+    print W "[default]\n";
+    print W "defaultdb=$db\n\n";
+    close W;
+
+    open (W, ">>~/.cpfdb.ini");
+    print W "[$db]\n";
+    print W "dbname=$db\n";
+    close W;
+
+    print "\nNow, you'll want to type bin/httpdup .\n\n";
+}
+
+print "Oh hey:\n\texport PGDATABASE=$db\n\n" unless $ENV{PGDATABASE};
+
+

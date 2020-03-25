@@ -1,0 +1,35 @@
+require_once 'i18n.h';
+require_once 'form.h';
+
+$form = array(
+	'administrative_title' => 'text,required',
+	'maximum_attendees' => 'integer,required',
+	'tax_scheme' => array('type'=>'menu', 'sql' => 'select tax_scheme_id as key, tax_scheme_name as value from tax_schemes'),
+	'event_start_date' => 'date,required',
+	'event_end_date' => 'date',
+
+	'start_of_registration' => array('type'=>'date', 'required'=>1,'default'=>'tomorrow'),
+	'end_of_registration' => 'date,required');
+
+$form += i18n_form_fields('Event');
+
+form_set($form);
+if (form_valid()) {
+	$event_id = db_newid('events');
+	if ($event_end_date) { 
+		$event_end_date = null;
+	}
+	db_insert_hash('events', array(
+		'event_id' => $event_id,
+		'name' => $administrative_title,
+		'tax_scheme_id' => $tax_scheme,
+		'registration_start_date' => $start_of_registration,
+		'registration_end_date' => $end_of_registration,
+		'event_start_date' => $event_start_date,
+		'event_end_date' => $event_end_date,
+		'max_attendees' => $maximum_attendees
+	));
+	i18n_form_handle('Event', $event_id);
+	redirect(href('edit.html', 'eid', $event_id));
+}
+

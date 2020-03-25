@@ -1,0 +1,18 @@
+<!--
+<title>What's new feeds</title>
+-->
+
+<div class=section>
+Here are our RSS feeds:
+
+<dl>
+<? foreach ($rss as $ignored => $feed) {
+	print '<dt><a href="view-one.html?id='.$feed['whatsnew_id'].'">'.$feed['title'].'</a>';
+	if ($feed['uri']) {
+		print ' -- <a href="'. $feed['uri'].' ">(XML link)</a>';
+	}
+	print '<dd>'.$feed['description'];
+} ?>
+
+</dl>
+</div>

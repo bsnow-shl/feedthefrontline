@@ -1,0 +1,22 @@
+
+if ($_GET['chuck'] == 'one') {
+	db_send('delete from errors where error_id=?', $_GET['id']);
+	redirect('index.html');
+} else if ($_GET['chuck'] == 'message') {
+	$msg = db_value('select message from errors where error_id=?', $_GET['id']);
+	db_send('delete from errors where message=?', $msg);
+	redirect('index.html');
+} else if ($_GET['chuck'] == 'fileline') {
+	$row = db_row('select file,file_line from errors where error_id=?', $_GET['id']);
+	db_send('delete from errors where file_line=? and file=?', $row['file_line'], $row['file']);
+	redirect('index.html');
+} else if ($_GET['chuck'] == 'later') {
+	$tstamp = db_value('select tstamp from errors where error_id=?', $_GET['id']);
+	db_send('delete from errors where tstamp>=?', $tstamp);
+	redirect('index.html');
+} else {
+	$header = db_row('select * from errors where error_id=?', $_GET['id']);
+	$context = $header['context'];
+	unset ($header['context']);
+}
+

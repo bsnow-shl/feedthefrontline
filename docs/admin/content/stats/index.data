@@ -1,0 +1,4 @@
+
+$stats = db_multirow('select i18n_classes.class_id, editable_in_cms, class_name,count(*) from i18n_classes join i18n_fields using (class_id) join i18n using (field_id) group by class_id, class_name, editable_in_cms');
+
+

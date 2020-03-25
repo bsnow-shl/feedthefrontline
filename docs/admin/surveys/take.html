@@ -1,0 +1,14 @@
+<!--
+<title>Take a survey</title>
+-->
+
+<div class="section">
+
+<? if ($message) { echo $message; } else { ?>
+<? form_start("survey");
+		echo $template;
+   form_end("survey");
+	 ?>
+<? } ?>
+</div>
+

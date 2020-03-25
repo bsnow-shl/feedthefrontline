@@ -1,0 +1,10 @@
+
+$include_past = $_SESSION['admin']['ann']['include_past'] ? true : false;
+$category_id = $_SESSION['admin']['ann']['category_id'] ? $_SESSION['admin']['ann']['category_id'] : null;
+if ($category_id) {
+    $filter_category_name = db_value('select short_name from announcement_categories where announcement_category_id=?', $category_id);
+}
+
+$anns = ann_get($include_past,true, $category_id);
+$categories = db_multirow('select announcement_category_id,short_name from announcement_categories');
+

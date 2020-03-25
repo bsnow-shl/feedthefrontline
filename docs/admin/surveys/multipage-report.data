@@ -1,0 +1,30 @@
+
+require_once 'i18n.h';
+
+$sid = $_GET['sid'];
+$mode = $_GET['mode'];
+
+
+$survey = db_row('select * from surveys where survey_id=?', $sid);
+$sn = $survey['short_name'];
+
+$survey_field_query = db_multirow('select class_id, field_name, pretty_name_en, page_id from survey_pages sp join i18n_fields f using (class_id) where survey_id=? order by sp.display_order, f.precedence', $sid);
+foreach ($survey_field_query as $q) {
+    $survey_pages[ $q['page_id'] ] [ $q['field_name'] ] = $q;
+    $page_classes [ $q['page_id'] ] = $q['class_id'];
+}
+
+
+$join_terms = $mode == 'all' ? 'left outer' : '';
+$where_terms = $mode == 'finalized' ?  " and invitation_status='finished' " : '' ;
+
+$survey_response_query = db_multirow("select first_name || ' ' || last_name as name, email, company, invitation_id, invitation_status, page_id, response_id,user_id from users join survey_invitations using (user_id) $join_terms join survey_invitation_responses using (invitation_id) where survey_id=? $where_terms order by company,name", $sid);
+
+$uinfo = array();
+foreach ($survey_response_query as $q) {
+    $survey_responses[ $q['user_id'] ][ $q['page_id'] ] = $q;
+    $survey_responses[ $q['user_id'] ] ['user_info'] = $q;
+}
+
+
+$with_pretty = $_GET['with_questions']==1;

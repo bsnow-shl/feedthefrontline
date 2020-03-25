@@ -1,0 +1,84 @@
+#!/usr/bin/perl -s
+
+use strict;
+BEGIN {
+    my $old = `pwd`;
+    chop $old;
+
+    my $root = `dirname $0`;
+    chomp $root;
+
+    if ( $root !~ m#^/# ) {
+        chdir $root;
+        my $pwd = `pwd`;
+        chomp $pwd;
+        $root = $pwd;
+        $root =~ s/\n//g;
+        $root =~ s/\/$//g;
+    }
+
+    $root =~ s#/[^/]*$##g;
+
+    chdir $root;
+}
+
+my $db = $ARGV[0];
+if (!$db) {
+    $db = `bin/build-databases -dbname`;
+    chop $db;
+}
+
+my $user = `whoami`;
+chop $user;
+
+if ( !`psql -l` ) {
+    print
+"\n\nStop!   This user can't talk to Postgres yet.  Please switch \ninto the postgres 
+superuser account (usually postgres) and run:
+
+\$ createuser $user
+
+Grant them permisson to create databases.
+Don't grant them permission to create new users.
+
+Then press <enter> when this done.";
+
+    <STDIN>;
+}
+
+
+
+next if !$db;
+
+my $dirname = "logs/dbdump-$db";
+    system("rm -rf $dirname");
+    mkdir($dirname);
+    open(DUMPIN, "pg_dump -Ox $db |");
+    open(DUMPOUT, ">$dirname/00_dump.sql");
+
+    my $table;
+    my $state = 'searching';
+
+    while (my $line = <DUMPIN>) {
+        if ($state eq 'searching') {
+            if (($table) = ($line =~ /^COPY (\w+)/)) {
+                $state = 'dumping';
+                my $fn = "$table.sql";
+                open(DUMPTABLE, ">$dirname/$fn");
+                print DUMPTABLE $line;
+                print DUMPOUT "\\i $fn\n";
+            } else {
+                print DUMPOUT $line;
+            }
+        } elsif ($state eq 'dumping') {
+            print DUMPTABLE $line;
+            if ($line =~ /^\\\.$/) {
+                $state = "searching";
+                close DUMPTABLE;
+            } 
+        }
+    }
+
+
+print "Dump is in $dirname\n";
+

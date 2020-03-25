@@ -1,0 +1,20 @@
+require_once 'form.h';
+
+$nid = 0+$_GET['nid'];
+$info = db_row('select * from paypal_notifications where paypal_notification_id=?', $nid);
+$rows = db_multirow('select * from paypal_notification_data where paypal_notification_id=?', $nid);
+
+form_set(array(
+  'reason' => 'text,required'
+));
+if (form_valid()) {
+   $txnid = $info['paypal_transaction_id'];
+   paypal_add_diary_note($txnid, sprintf("%s (%s) deleted paypal notification #%s (paypal identifier %s); reason given: %s",
+        user_name(), user_email(), $nid, $info['paypal_txnid'], $reason));
+   db_send('delete from paypal_notification_data where paypal_notification_id=?', $nid);
+   db_send('delete from paypal_notifications where paypal_notification_id=?', $nid);
+   redirect(href('txn-detail.html', 'txnid', $txnid));
+}
+
+
+

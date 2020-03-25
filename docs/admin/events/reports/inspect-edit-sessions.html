@@ -1,0 +1,22 @@
+<!--
+<title>Edit registration record #<%= $erid %></title>
+-->
+
+<div class="section">
+
+<h3>Session registrations</h3>
+
+<? form_start(); ?>
+<ul>
+<? foreach ($menu_for_session as $sid=>$ignored): ?>
+	<? if ($session_choice[$sid]): ?>
+	<li><%= $session_choice[$sid]['session_start'] %>: <%= $session_choice[$sid]['title'] %> (<a href="<%= href('session-option-drop.html', 'soid', $session_choice[$sid]['session_option_id'], 'erid', $session_choice[$sid]['event_registration_id']) %>">drop</a>)
+	<? else: ?>
+	<li>@@menu<%= $sid %>@@
+	<? endif ?>
+<? endforeach ?>
+</ul>
+<?  form_end(); ?>
+
+
+</div>

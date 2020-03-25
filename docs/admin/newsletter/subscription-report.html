@@ -1,0 +1,19 @@
+<!--
+<title>Subscription report</title>
+-->
+
+<div class="section">
+
+<p>
+Subscribers to <b><%= $newsletter_name %></b>, <b><%= $edition %></b> edition.
+</p>
+
+<table class="padded"><tr><th>Email</th><th>Name</th></tr>
+<? foreach ($report as $row) {
+	printf('<tr><td><a href="%s">%s</td><td>%s</td></tr>', href('sub.html', 'uid', $row['user_id'], 'goback', $_SERVER['REQUEST_URI']), $row['email'], $row['full_name']);
+} ?>
+</table>
+
+</div>
+
+

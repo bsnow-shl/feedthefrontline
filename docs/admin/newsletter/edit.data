@@ -1,0 +1,39 @@
+
+$nmid = $_GET['nmid'];
+$mailing = db_row('select * from newsletter_mailings where newsletter_mailing_id=?', $nmid);
+if (!$mailing) redirect('./');
+
+
+$path = $_SERVER['DOCUMENT_ROOT'].'/'.$mailing['path'].'/index.html';
+if (!is_writable($path)) {
+    if (!file_exists($path)) {
+        $why_not = "$path does not exist";
+    } else {
+        $why_not = "$path is not writeable";
+    }
+}
+
+if (!$why_not) {
+    $body = read_whole_file($path);
+    require_once 'form.h';
+
+    form_set(array(
+        'sender_name' => array('type'=>'text','required'=>1, 'value' => $mailing['sender_name']),
+        'sender_email' => array('type'=>'text','required'=>1, 'value' => $mailing['sender_email']),
+        'subject' => array('type'=>'text','required'=>1, 'value' => $mailing['subject']),
+        'body' => array('type'=>'richtext','required'=>1, 'value' => $body),
+    ));
+    if (form_valid()) {
+        db_update('newsletter_mailings', 'newsletter_mailing_id', $nmid, array(
+            'sender_name' => $sender_name,
+            'sender_email' => $sender_email,
+            'subject' => $subject,
+            'from_line' => sprintf("%s <%s>", $sender_name, $sender_email)
+        ));
+        $fh = fopen($path, 'w');
+        fwrite($fh, $body);
+        fclose($fh);
+        redirect('./');
+    }
+}
+

@@ -1,0 +1,33 @@
+global $weblog_row;
+global $path_info;
+$path_info = split('/', $_SERVER['PATH_INFO']);
+
+$weblog_row = db_row('select * from weblogs,users where uri=? and owner=user_id', array_pop($path_info));
+$weblog_home = '/weblog/'.$weblog_row['uri'].'/';
+
+
+
+require_once 'users.h';
+
+function weblog_require_editor($entry_id=null) {
+	global $weblog_row;
+	$weblog_id = $weblog_row['weblog_id'];
+	if ($entry_id) {
+		if (db_value('select count(*) 
+			from weblog_entries 
+			where author != ? 
+			and weblog_entry_id=?', user_id(), $entry_id)) {
+			die("You can't modify this entry.");
+		}
+	}
+
+	user_require('weblog_editor', $weblog_id);
+}
+
+function weblog_is_editor() {
+	global $weblog_row;
+	$weblog_id = $weblog_row['weblog_id'];
+
+	return user_has_role('weblog_editor', $weblog_id);
+}
+

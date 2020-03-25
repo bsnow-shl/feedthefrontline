@@ -1,0 +1,71 @@
+<!--
+<title><%= _('Thank you for registering') %></title>
+-->
+
+<div class=section>
+<h3><%= sprintf(_('Your registration reference number is %s'), $reg_id) %></h3>
+<p>
+<%= sprintf(_('Please include this number in <b>all</b> correspondence regarding this event.  You may want to print this page, or <a href="%s">download a PDF copy</a>.'), href('/events/register-2.html', 'reg_id', $reg_id, 'confirm', $confirm, 'makepdf', 1)) %>
+</p>
+
+	<h4><%= _('Registration details') %></h4>
+	<dl>
+	<dt><%= _('Event') %>
+	<dd><%= $event['title'] %><br/><%= $fee_name %>
+	<? if ($sessions): ?>
+	<dt><%= _('Sessions') %>
+	<? foreach ($sessions as $s): ?>
+	<dd><%= $s['title'] %>
+	<? endforeach ?>
+	<? endif ?>
+	
+	<dt><%= _('Registrant Name') %>
+	<dd><%= $reg['first_name'] %> <%= $reg['last_name'] %> &mdash; <%= $reg['email'] %>
+	<dd><%= $reg['company'] %>
+	<? if (!$hide_postal): ?>
+	<dt><%= _('Address') %>
+	<dt><%= _('Registrant Address') %>
+	<dd>
+		<%= $reg['address'] %>,
+		<%= $reg['city'] %>
+		<%= $reg['province'] %>
+		<%= $reg['country'] %>,
+		<%= $reg['postal_code'] %>
+	<? endif ?>
+	</dl>
+	
+	<h4><%= _('Registration fees') %></h4>
+	<p>
+	<table class="padded">
+		<tr><td><%= _('Event fee') %>: <%= $fee_name %></td><td style="text-align:right">$<%= sprintf("%.02f", $price) %></td></tr>
+		<? foreach ($taxes as $t): ?>
+			<tr><td><%= _($t['description']) %></td><td align=right>$<%= sprintf("%.02f", $t['amount']) %></td></tr>
+			<? $price += $t['amount']; ?>
+		<? endforeach ?>
+		<tr><th><%= _('Amount due') %></th><th align=right>$<%= sprintf("%.02f", $price) %></th></tr>
+	</table>
+	</p>
+
+
+<? if ($reg['paid']): ?>
+	<p><%= _('You have paid the attendance fee for this event.') %></p>
+<? else: ?>
+	<? if (0 == 0+ $price): ?>
+		<%= _('<b>Note:</b> This attendance is free; it has been marked confirmed and paid. No additional steps are necessary.') %>
+	<? else: ?>
+
+		<? if ($message): ?>
+		<p>
+		<%= $message %>
+		</p>
+		<? endif ?>
+
+		<? if ($clickthrough_req): ?>
+		<p>
+		<%= a_href('/events/register-2.html', 'reg_id', $reg_id, 'confirm', $confirm, 'clickthrough', 1) %>><%= _('Click here to proceed with payment.') %></a>
+		</p>
+		<? endif ?>
+	<? endif ?>
+<? endif ?>
+
+</div>

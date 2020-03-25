@@ -1,0 +1,32 @@
+require_once 'form.h';
+
+$edit_bboard = $_SESSION['edit_bboard'];
+
+form_set('edits', array(
+	'pretty_name'=> 'text,required',
+	'short_name' => array('type'=>'text', 'required'=>1, pretty=>'Short name (for URLs)'),
+	'blurb' => 'bigtext',
+	'restricted_role_name' => array('type'=>'menu', 'sql'=>'select role_name as key, role_name as value from roles order by role_name'),
+    'special_restriction' => 'text',
+	'definition_of_old' => array('type'=>'integer', 'positive' => 1, pretty=> 'Number of posts considered recent'),
+	'rss_link' => array('type'=>'menu', 'sql'=>"select whatsnew_id as key, title as value from whatsnew where short_name != '' order by title", pretty=>'RSS Link'),
+));
+
+$row = db_row('select * from bboards where bboard_id=?', $edit_bboard);
+if (form_submitted('edits')) {
+	if (db_value('select count(*) from bboards where short_name=? and short_name !=?', $short_name, $row['short_name'])) {
+		form_error('short_name', "That short name is already in use and may not be reused.");
+	}
+}
+if (form_valid('edits')) {
+	db_send('update bboards set pretty_name=?,short_name=?,blurb=?,definition_of_old=?,restrict_to_permission=?,restrict_to_special=?,whatsnew_id=? where bboard_id=?',
+		$pretty_name, $short_name, $blurb, $definition_of_old, $restricted_role_name, $special_restriction, $rss_link,
+		$edit_bboard);
+	form_add_note('Your changes have been saved.','edits');
+} else {
+	$_REQUEST = $row;
+	$_REQUEST[restricted_role_name] = $row[restrict_to_permission];
+	$_REQUEST[special_restriction] = $row[restrict_to_special];
+	$_REQUEST[rss_link] = $row[whatsnew_id];
+}
+

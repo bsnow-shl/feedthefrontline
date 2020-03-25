@@ -1,0 +1,15 @@
+require_once 'uploads.h';
+
+
+$id = 0+$_REQUEST['id'];
+if (!$id) {
+	$path = split('/', $_SERVER['PATH_INFO']);
+	$id = 0+$path[1];
+}
+
+$upload = db_value('select upload_id from documents where document_id=?', $id);
+
+if (documents_user_may_view($id)) {
+	upload_replay($upload);
+}
+exit;

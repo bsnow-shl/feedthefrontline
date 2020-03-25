@@ -1,0 +1,23 @@
+<!--
+<title>Upload an image for <%= $sku %></title>
+-->
+
+
+<div class="section">
+<? if ($permissions_problem) { echo '<div class="error">', $permissions_problem,'</div>'; } else { ?>
+
+<? form_start(); form_end(); ?>
+</div>
+
+<h3>Current images</h3>
+
+<h5>small</h5>
+<? shopping_product_image($sku, 'S'); ?>
+
+<h5>medium</h5>
+<?   shopping_product_image($sku, 'M'); ?>
+
+<h5>large</h5>
+<?   shopping_product_image($sku, 'L'); ?>
+
+<? } ?>

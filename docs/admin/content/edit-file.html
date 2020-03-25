@@ -1,0 +1,14 @@
+<!--
+<title>File editing</title>
+-->
+
+<div class="section">
+<p>
+<%= $file_to_edit %>:
+</p>
+<? form_start(); ?>
+@@file_contents@@
+<br/>
+@@save@@
+
+<? form_end(); ?>

@@ -1,0 +1,2 @@
+
+$rss = db_multirow('select whatsnew_id, title, uri,description from whatsnew');

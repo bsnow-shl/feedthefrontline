@@ -1,0 +1,7 @@
+
+$uid = 0+$_GET['uid'];
+$eid = 0+$_GET['eid'];
+
+user_grant_role($uid, 'event_manager', $eid);
+redirect(href('edit.html', 'eid', $eid));
+

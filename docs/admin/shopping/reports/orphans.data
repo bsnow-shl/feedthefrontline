@@ -1,0 +1,4 @@
+
+
+$orphans = db_multirow(' select product_id, sku from  shopping_products where visible_public=1 and product_id not in (Select product_id from shopping_product_category_map ); ');
+

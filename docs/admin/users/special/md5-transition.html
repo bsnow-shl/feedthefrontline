@@ -1,0 +1,8 @@
+<?
+
+$targets = db_multirow("select user_id,email,password from users where password is not null and password_md5 =null");
+
+foreach ($targets as $t) {
+	db_send('update users set password_md5=? where user_id=?', user_hash_for_password($t['password']), $t['user_id']);
+	printf( "Set md5 for user #%s, email %s<br/>", $t['user_id'], $t['email']);
+}

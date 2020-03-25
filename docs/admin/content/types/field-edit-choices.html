@@ -1,0 +1,30 @@
+<!--
+<title>Content field: <%= $f['field_name'] %></title>
+<subtitle>Part of <a href="<%= href('type-edit.html', 'classid', $f['class_id']) %>"><%= $class_name %></a></subtitle>
+-->
+
+<div class=section>
+
+<? if ($type =='menu'): ?>
+<h2>Choices</h2>
+<form method=POST>
+<table><tr><th>Key</th><th>Value</th></tr>
+<? foreach ($options as $k=>$v) {
+echo "<tr><td><input type=\"text\" size=\"25\" name=\"newkey[]\" value=\"", htmlspecialchars($k) , "\" />";
+echo "</td><td><input type=\"text\" size=\"25\" name=\"newvalue[]\" value=\"", htmlspecialchars($v) , "\" /></td></tr>";
+} ?>
+<tr><td><input type="text" size="25" name="newkey[]" value="" /></td><td><input type="text" size="25" name="newvalue[]" value="" /></td></tr>
+<tr><td><input type="text" size="25" name="newkey[]" value="" /></td><td><input type="text" size="25" name="newvalue[]" value="" /></td></tr>
+<tr><td><input type="text" size="25" name="newkey[]" value="" /></td><td><input type="text" size="25" name="newvalue[]" value="" /></td></tr>
+<tr><td><input type="text" size="25" name="newkey[]" value="" /></td><td><input type="text" size="25" name="newvalue[]" value="" /></td></tr>
+<tr><td><input type="text" size="25" name="newkey[]" value="" /></td><td><input type="text" size="25" name="newvalue[]" value="" /></td></tr>
+<tr><td><input type="text" size="25" name="newkey[]" value="" /></td><td><input type="text" size="25" name="newvalue[]" value="" /></td></tr>
+<tr><td><input type="text" size="25" name="newkey[]" value="" /></td><td><input type="text" size="25" name="newvalue[]" value="" /></td></tr>
+</table>
+<input type="submit" value="Add more..." />
+<input type="submit" name="done" value="Done" />
+</form>
+<? endif ?>
+
+</div>
+

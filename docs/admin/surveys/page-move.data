@@ -1,0 +1,34 @@
+
+$subject_table = "survey_pages";
+$container_column = "survey_id";
+$container_id = 0+$_REQUEST["sid"];
+$thing_id = 0+$_REQUEST["pid"];
+$condition = "$container_column=$container_id and page_id=$thing_id";
+        
+db_send("begin");
+db_send('set constraints all deferred');
+
+if ($_REQUEST["move"]=="down") {
+        $current = db_value("select display_order from $subject_table where ".$condition);
+        $next = db_value("select min(display_order) from $subject_table where display_order>? and $container_column=?", $current, $container_id);
+        if ($next) {
+                db_send("update $subject_table set display_order=? where display_order=? and $container_column=?", $current, $next, $container_id);
+                db_send("update $subject_table set display_order=? where ".$condition, $next);
+        }
+}
+
+
+if ($_REQUEST["move"]=="up") {
+        $current = db_value("select display_order from $subject_table where ".$condition);
+        $previous = db_value("select max(display_order) from $subject_table where display_order<? and $container_column=?", $current, $container_id);
+        if ($previous) {
+                db_send("update $subject_table set display_order=? where display_order=? and $container_column=?", $current, $previous, $container_id);
+                db_send("update $subject_table set display_order=? where ".$condition, $previous);
+        }
+}
+
+db_send("commit");
+
+redirect(href("edit.html", "sid", $container_id));
+
+

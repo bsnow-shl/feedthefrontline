@@ -1,0 +1,98 @@
+<!--
+<title>Contract administration</title>
+-->
+
+<? if ($overdue): ?>
+<div class="section">
+<h2>Overdue invoices</h2>
+<ul>
+<? foreach ($overdue as $o): ?>
+<li><a href="<%= href('view-invoice.html', 'invoice', $o['invoice_id']) %>">N<%= $o['invoice_id'] %></a>: 
+
+<%= money_format('%!i', $o['cached_amount']/100.0) %> was due <%= $o['due_date'] %>
+<? endforeach ?>
+</ul>
+</div>
+<? endif ?>
+
+<table class="padded">
+<tr><th>Contract Name</th><th>Party</th>
+<? if ($_GET['showall']): ?>
+ <th>Paid invoices</th>
+<? endif ?>
+<th>Unpaid invoices</th><th>Uninvoiced</th>
+<th>Actions</th></tr>
+<? foreach ($contract_idx as $party_id=>$party_contracts): ?>
+<tr>
+<th align=left colspan="6"><%= $party_idx[$party_id] %></th>
+<td><%= $pt %></td>
+</tr>
+
+<? $subtotal_paid = $subtotal_uninvoiced = $subtotal_unpaid = 0; ?>
+
+<? foreach ($party_contracts as $c): ?>
+<tr>
+<td><a href="<%= href("details.html", "contract", $c['contract_id']) %>"><%= $c['short_name'] %></a></td>
+<td>
+<b><%= $c['p2_company'].'  c/o '.$c['p2_fname'].' '.$c['p2_lname'] %></b> 
+</td>
+<? if ($_GET['showall']): ?>
+<td align=right><? $subtotal_paid += $c['paid']; printf("%.02f", $c['paid']) ?></td>
+<? endif ?>
+<td align=right><? $subtotal_unpaid += $c['unpaid']; printf("%.02f", $c['unpaid']) ?></td>
+<td align=right><? $subtotal_uninvoiced += $c['uninvoiced']; printf("%.02f", $c['uninvoiced']); ?></td>
+<td>(<a href="<%= href("details.html", "contract", $c['contract_id']) %>">edit</a>)</td>
+</tr>
+<? endforeach ?>
+<? if (count($party_contracts)>1): ?>
+<tr>
+<td></td>
+<td></td>
+<? if ($_GET['showall']): ?>
+<td align=right><b><%= sprintf("%.02f", $subtotal_paid) %></b></td>
+<? endif ?>
+<td align=right><b><%= sprintf("%.02f", $subtotal_unpaid) %></b></td>
+<td align=right><b><%= sprintf("%.02f", $subtotal_uninvoiced) %></b></td>
+</tr>
+<? endif ?>
+
+<? endforeach ?>
+</table>
+
+
+<a href="add.html">Add a contract...</a>
+<? if (!$_GET['showall']): ?>
+ | <a href="index.html?showall=1">Show all contracts</a>
+<? endif ?>
+
+<hr/>
+<h4>Search</h4>
+<div class=section>
+<? form_start(); form_end(); ?>
+
+<? if ($search_results): ?>
+<table class=padded>
+<tr><th>Date</th><th>Name</th><th>Amount</th><th>Contract</th><th>Invoice</th></tr>
+<? foreach ($search_results as $ch): ?>
+<tr>
+<td><%= date("Y/m/d", $ch['create_date']) %></td>
+<td><%= $ch['name'] %></td>
+<td align="right"><a href="<%= href("view-item.html", "item", $ch['invoice_item_id']) %>"><?
+	if ($ch['void']) {
+		printf("<strike>%.02f</strike>", $ch['amount']/100.0);
+	} else {
+		printf("%.02f", $ch['amount']/100.0);
+		$running += $ch['amount'];
+	} ?></a></td>
+<td><a href="<%= href("details.html", 'contract', $ch['contract_id']) %>">#<%= $ch['contract_id'] %></a></td>
+<td><%= $ch['invoice_id'] ? '<a href="'.href("view-invoice.html", 'invoice', $ch['invoice_id']).'">appears on invoice #'.$ch['invoice_id'].'</a>'
+		: '' %></td>
+
+</tr>
+<? endforeach ?>
+<tr><td></td><td>running total</td><th align="right"><%= sprintf("%.02f", $running/100.0) %></th></tr>
+</table>
+<? endif ?>
+
+</div>
+

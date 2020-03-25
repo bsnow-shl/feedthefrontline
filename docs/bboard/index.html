@@ -1,0 +1,26 @@
+<!--
+<title>Discussion forums</title>
+-->
+
+<div class="section">
+<h3>Choose a discussion forum</h3>
+
+<? if (config_get('account', 'privacy_freak')): ?>
+<p>Discussions are semi-anonymous: your posts will be signed with your screen name.</p>
+<? endif ?>
+
+<? if (!user_id()): ?>
+<p>
+Some bulletin boards may be invisible until you <a href="<%= user_login_link() %>">log in</a>.
+</p>
+<? endif ?>
+
+<dl>
+<? foreach ($forums as $f): ?>
+<dt><a href="<%= $f['short_name'] %>/?numPosts=<%= $f['num_posts']%>"><%= $f['pretty_name'] %></a></dt>
+<dd><%= $f['blurb'] %></dd>
+<? endforeach ?>
+</dl>
+
+</div>
+

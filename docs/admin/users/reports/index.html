@@ -1,0 +1,28 @@
+<!--
+<title>User reports</title>
+-->
+
+<h3>Choose a report</h3>
+
+Statistics
+
+<ul>
+<li>There are <%= $user_count %> active members.
+</ul>
+
+<h3>Stored reports</h3>
+<ul>
+<? foreach ($reports as $r): ?>
+<li><a href="<%= $r['report_url'] %>"><%= $r['report_name'] %></a> (created by <%= user_name($r['created_by']) %>)</li>
+<? endforeach ?>
+</ul>
+
+Roll your own
+<ul>
+<li><a href="users.html">Member database statistics engine</a>
+</ul>
+
+
+
+
+

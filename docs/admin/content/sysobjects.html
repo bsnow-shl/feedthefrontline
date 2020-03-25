@@ -1,0 +1,24 @@
+<!--
+<title>Content Management System </title>
+-->
+
+<h2><%= $class_name %></h2>
+
+<div class=section>
+
+<h3>Instances</h3>
+<p>
+<? foreach ($objids as $o) {
+	print "<a href=\"sysobject-edit.html?class=$classid&obj=$o\">$o</a> ";
+} ?>
+</p>
+<p>
+<form method=POST>Make #<input type="text" name="newid" /></form>
+</p>
+
+
+<h3>Switch to a new type...</h3>
+<? form_start(); form_end(); ?>
+</div>
+
+

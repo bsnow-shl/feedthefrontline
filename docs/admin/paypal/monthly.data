@@ -1,0 +1,36 @@
+
+$sid = 0+$_GET['sid'];
+
+if ($sid) {
+	$system_name = db_value('select paypal_system_name from paypal_systems where paypal_system_id=?', $sid);
+	$sql_filter = "AND paypal_system_id=?";
+} else {
+	$system_name = 'all invoices';
+}
+
+$tax_columns = db_multirow('select sql_column,tax_name from tax_collection');
+if ($tax_columns) {
+	foreach ($tax_columns as $c) {
+		if ($column_name_map[$c['sql_column']]) { next; }
+		$column_name_map[$c['sql_column']] = $c['tax_name'];
+		$n = $c['sql_column'];
+		$extra_sql .= ", sum ($n) as $n";
+	}
+}
+
+$months = db_multirow("select date_part('epoch', min(notification_timestamp)) as timestamp,sum(amount_received) as amount_received 
+		$extra_sql
+		from paypal_notifications as n,paypal_transactions as t
+		WHERE n.paypal_transaction_id = t.paypal_transaction_id 
+		AND  t.transaction_status='paid'
+			$sql_filter
+		GROUP BY date_trunc('month', notification_timestamp) 
+    ORDER BY date_trunc('month', notification_timestamp) desc
+	", $sid);
+
+$c = sizeof($months);
+
+for ($i=0; $i<$c; $i++) {
+	$months[$i]['period'] = date('F Y', $months[$i]['timestamp']);
+}
+

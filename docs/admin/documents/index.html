@@ -1,0 +1,41 @@
+<!--
+<title>Document repository</title>
+-->
+
+<div class="section">
+<? if ($cats): ?>
+<p>
+The following document categories are published.  Choose one to post a new document or adjust the documents therein.
+</p>
+
+<ul>
+<? foreach ($cats as $c): ?>
+<? $desc = i18n_get('document category', $c['document_category_id']); ?>
+
+<li><a href="<%= href('one.html', 'category_id', $c['document_category_id']) %>"><%= $desc['name'] %></a>: <%= $c['count'] %> documents
+<br/>
+( <a href="<%= href($PHP_SELF, 'cat_id', $c['document_category_id'], 'moveup',1) %>">move up</a> | 
+<a href="<%= href($PHP_SELF, 'cat_id', $c['document_category_id'], 'movedown',1) %>">move down</a> 
+<? if ($c['count']==0) {
+    print '| <a href="delete.html/category/'.$c['document_category_id'].'/">delete</a> ';
+    } ?>
+    )
+<br/>
+<br/>
+
+
+</li>
+
+<? endforeach ?>
+</ul>
+<? else: ?>
+
+<p>
+  No categories are defined in the document repository yet. 
+</p>
+
+<? endif ?>
+
+</div>
+
+

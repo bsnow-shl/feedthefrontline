@@ -1,0 +1,20 @@
+
+$id = $_GET['id'];
+unset($_GET['id']);
+
+$ticket = db_row('select * from tickets where ticket_id=?', $id);
+$bcc = join(',', db_array('select email from ticket_component_cc where ticket_component_id=?', $ticket['ticket_component_id']));
+
+
+if ($_GET['ticket_status']=='closed') {
+    cpf_mail(user_email($assignedto), '[ticket #'.$id.'] closed by '.user_email(), sprintf("URL: %s\nRe: %s\n\n%s", href(config_get('site','home').'/admin/tickets/show.html', 'id', $id), $ticket['short_title'], $ticket['description']), array("cc: ".$bcc));
+    db_update('tickets', 'ticket_id', $id, array('ticket_status' => 'closed'));
+}
+
+if ($_GET['ticket_status']=='open') {
+    cpf_mail(user_email($assignedto), '[ticket #'.$id.'] reopened by '.user_email(), sprintf("URL: %s\nRe: %s\n\n%s", href(config_get('site','home').'/admin/tickets/show.html', 'id', $id), $ticket['short_title'], $ticket['description']), array("cc: ".$bcc));
+    db_update('tickets', 'ticket_id', $id, array('ticket_status' => 'open'));
+}
+
+
+redirect(href('show.html', 'id', $id));

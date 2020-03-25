@@ -1,0 +1,21 @@
+<!--
+<title>Monthly reconciliation report for <%= $system_name %></title>
+-->
+
+<table class=padded>
+<tr>
+<th>Period</th><th>Funds received</th>
+<? foreach ($column_name_map as $c=>$n) {
+	print "<th>$n</th>";
+} ?>
+</tr>
+<? foreach ($months as $m): ?>
+<tr>
+<td><%= a_href('one.html', 'status_filter','paid','sid', $sid, 'period',$m['period']) %>><%= $m['period'] %></a></td>
+<td><%= sprintf('$%0.2f', $m['amount_received']) %></td>
+<? foreach ($column_name_map as $c=>$n) {
+	print "<td>".$m[$c]."</td>";
+} ?>
+</tr>
+<? endforeach ?>
+</table>

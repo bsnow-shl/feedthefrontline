@@ -1,0 +1,18 @@
+<!--
+<title>Browse by keyword</title>
+<subtitle>... within <a href="./"><%= $weblog_row['weblog_title'] %></a>.</subtitle>
+-->
+
+<? foreach ($entries as $keyword=>$entries): ?>
+
+  <h2><%= $keyword %></h2>
+
+  <div class="section">
+   <? foreach ($entries as $ign=>$r): ?>
+   - <a href="article/<%= $r['weblog_entry_id'] %>"><%= $r['entry_title'] %></a><br/>
+  <? endforeach ?>
+ </div>
+<? endforeach ?>
+
+
+

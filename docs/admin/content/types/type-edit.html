@@ -1,0 +1,108 @@
+<!--
+<title>Content type definition: <a href="type-edit.html?classid=<%= $class['class_id'] %>"><%= $class['class_name'] %></a></title>
+-->
+
+<? if ($goback): ?>
+<p>
+&raquo; When you're finished, <a href="<%= href($_SERVER['REQUEST_URI'], 'goback', 1) %>">return to where you were</a>.
+</p>
+<? endif ?>
+
+<!-- fixme this inline style is a cheap hack -->
+<style>
+	tr.alt {
+		background-color: #CCFFFF;
+	}
+</style>
+
+<!-- fixme this js is also a cheap hack -->
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Make a nice striped effect on the table
+        $("#fieldtable tr:even").addClass('alt');
+        cpf_init();
+    });
+</script>
+
+<h2>Fields</h2>
+<div class=section>
+
+<table id="fieldtable" class="padded cpf_draggable">
+<thead>
+<tr class="nodrop">
+<th>#</th>
+<th> Name </th>
+<th>Pretty name </th>
+<th>Type</th>
+<th>Actions</th>
+</tr>
+<tr class="sortinfo" style="display:none">
+	<td>
+		i18n_fields:precedence:field_id:class_id=<%= $class['class_id']%>
+	</td>
+</tr>
+</thead>
+<tbody>
+<? foreach ($fields as $f): ?>
+<tr id="<%= $f['field_id'] %>">
+<td><%= ++$counter %></td>
+<td><%= $f['field_name'] %></td>
+<td><a href="field-edit.html?fieldid=<%= $f['field_id'] %>"><%= $f['pretty_name_en'] %></a></td>
+<td><?
+  $unserialize = unserialize($f['field_type']);
+  if ($unserialize===false) { 
+      echo $t = $f['field_type'];
+  } else {
+      echo $t = $unserialize['type'];
+  } 	
+  echo '</td><td>';
+
+  if ($t=='menu') {
+        printf('<a href="%s">%d choices</a>', href('field-edit-choices.html', 'field_id', $f['field_id']), sizeof($unserialize['menu']) );
+  }
+  if ($t=='file') {
+        printf('<a href="%s">edit file settings</a>', href('field-edit-file.html', 'field_id', $f['field_id'])) ;
+  }
+?></td>
+</tr>
+<? endforeach ?>
+</tbody>
+</table>
+
+</div>
+
+<h3>Add a new field</h3>
+
+<div class=section>
+<? form_start('addfield'); ?>
+<? form_end(); ?>
+</div>
+
+<? if (user_has_role('content_nerd') && !$_SESSION['minimalist']): ?>
+<h2>Details</h2>
+
+<p id="details-warning">
+<b>Warning:</b>
+Editing these details may seriously ruin your day. 
+<a id="detailsreveal" href="#">Click here to reeveal this class's details.</a>
+</p>
+
+<div id="detailsform" class="section hidden">
+
+<? form_start('classdetails'); ?>
+<? form_end(); ?>
+</div>
+
+<? endif ?>
+
+
+<script type="text/javascript"> $(document).ready(function(){
+$('#detailsreveal').click( function(event) {
+	if (confirm("You'll screw it all up! Are you sure?")) {
+		$('#detailsform').fadeIn(1000);
+	}
+});
+
+
+}) </script>
+

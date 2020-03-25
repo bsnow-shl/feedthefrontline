@@ -1,0 +1,60 @@
+<!--
+<title>Administer <cite><%= $category_name %></cite></title>
+<subtitle>One of the categories in the <a href="./">document repository</a>.</subtitle>
+-->
+
+<ul>
+<li>Documents in this category can be commented upon: <%= $cat['allow_comments'] ? 'yes' : 'no' %>
+<li><%= $cat['admin_only'] ? "Only visible in admin area of the site." : '' %>  This category is visible to people with <b><%= $cat['restrict_to_role'] ? $cat['restrict_to_role'] : 'any' %></b> permission.
+<%= $cat['restrict_to_special'] ? "They must, however, pass the ".$cat['restrict_to_special'].' test.' : '' %>
+<li><a href="<%= href('edit-category.html', 'cat_id', $id); %>">edit category settings...</a>
+
+</ul>
+
+<div class="section">
+
+<? if ($subcats): ?>
+<h3>Subcategories</h3>
+<ul>
+<? foreach ($subcats as $doc): ?>
+	<? $desc = i18n_get('document category', $doc['document_category_id']); ?>
+ <li><a href="<%= href('one.html', 'category_id', $doc['document_category_id']) %>"><%= $desc['name'] %></a>
+<? endforeach ?>
+</ul>
+<? endif ?>
+
+<? if ($docs): ?>
+<h3>
+Documents that have been published so far:
+</h3>
+
+<dl>
+<? foreach ($docs as $doc): ?>
+        <? $desc = i18n_get('document', $doc['document_id']); ?>
+
+	<dt><a href="<%= href('/documents/show.php', 'id', $doc['document_id']) %>"><%= $desc['name'] %></a> - <%= floor($doc['attachment_size']/1024) %> kb.  
+	( <a href="<%= href($PHP_SELF, 'doc_id', $doc['document_id'], 'moveup',1, 'time', time()) %>">move up</a> | 
+		<a href="<%= href($PHP_SELF, 'doc_id', $doc['document_id'], 'movedown',1, 'time', time()) %>">move down</a> |
+		<a href="<%= href('detail.html', 'doc_id', $doc['document_id']) %>">edit</a> | 
+		<a href="delete.html/document/<%= $doc['document_id'] %>/">delete</a>
+	)
+	</dt>
+	<dd><%= $desc['description'] %></dd>
+<? endforeach ?>
+</dl>
+
+<? else: ?>
+
+<p>
+ No documents are uploaded to this category (yet).
+ <p/>
+ <? if (user_has_role('document_category_admin')): ?>
+Since this category is empty, you can <a href="delete.html/category/<%= $id %>/">delete it</a>.
+<? endif ?>
+</p>
+
+<? endif ?>
+
+</div>
+
+

@@ -1,0 +1,22 @@
+
+
+$txn = $_GET['txn'];
+
+require_once 'translation.h';
+
+$mappings = translation_get_mappings($txn);
+
+db_send('truncate temp_translations');
+
+foreach ($mappings as $m) {
+    db_insert_hash('temp_translations', array(
+        'source' => $m[0],
+        'dest' => $m[1],
+        'needs_translation' => (strlen($m[1]) ? 0 : 1)
+    ));
+}
+
+$_SESSION['admin']['i18n']['editing_txn'] = $txn;
+
+redirect('edit.html');
+

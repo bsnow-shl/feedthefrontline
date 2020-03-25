@@ -1,0 +1,34 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+
+$form = array(
+	'category' => array('type'=>'menu', 'required'=>1, 'sql' => 'select announcement_category_id as key,short_name as value  from announcement_categories'),
+	'start_date' => 'date,required',
+	'end_date' => 'date',
+	'posting_date' => 'timestamp',
+	'takedown_date' => 'timestamp',
+	'url' => array('type'=>'text', 'pretty'=> 'URL', 'hint'=> 'If the announcement is at an external URL, provide it here.'),
+	'file' => array('type'=>'text', 'hint'=> 'If the announcement is a PDF document, upload it here.'),
+);
+$form += i18n_form_fields('announcement');
+form_set($form);
+
+if (form_valid()) {
+    if (!$start_date) {
+        $start_date = 'today';
+    }
+    if (!$end_date) { $end_date = null; }
+    if (!$posting_date) { $posting_date = 'today'; }
+    if (!$takedown_date) { $takedown_date = null; }
+
+    db_send('begin');
+    $ann_id = db_newid('announcement_id');
+    $display_order = db_newid('display_order');
+    db_send('insert into announcements (announcement_id,display_order, category,url,upload_id,start_date,end_date, posting_date, takedown_date) values (?,?,?,?,?,?,?,?,?)', $ann_id, $display_order, $category, $url, $file_upload_id, $start_date, $end_date, $posting_date, $takedown_date);
+    db_send("update uploads set referring_table='announcements', referring_id=? where upload_id=?", $ann_id, $file_upload_id);
+    i18n_form_handle('announcement', $ann_id);
+    db_send('commit');
+    redirect("index.html");
+}
+

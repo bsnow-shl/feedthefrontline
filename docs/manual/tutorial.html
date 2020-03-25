@@ -1,0 +1,167 @@
+<!--
+<title>Tutorial: your first website</title>
+<subtitle>part of the <a href="./">CPF manual</a>.</subtitle>
+-->
+
+<div class="section">
+
+<p>This section will walk you through setting up your first website
+under the CPF, and in the process give you a tour of the
+Framework's major facilities.</p>
+<div >
+<ol type="1">
+<li >
+<p>The CPF is distributed as a single tarball. Uncompress it by
+typing <kbd >tar xzf cpf-<%=$vers%>.tgz</kbd> . This will
+produce a number of directories under the directory <samp class=
+"COMPUTEROUTPUT">cpf-<%=$vers%></samp>.</p>
+</li>
+<li >
+<p>Expand the demosite site that we have provided by typing
+<kbd >tar xzf cpf-<%=$vers%>/demosite.tgz</kbd>. You now
+have two directories alongside each other: <samp class="LITERAL">cpf-<%=$vers%></samp> and <samp >demosite</samp>.</p>
+</li>
+<li >
+<p>Install CPF into the demonstration site with <kbd class=
+"USERINPUT">cpf-<%=$vers%>/bin/cpf-install demosite</kbd>. This will
+sprinkle the contents of <samp >cpf-<%=$vers%></samp> into
+<samp >demosite</samp>. Enter your new play area by
+typing <kbd >cd demosite</kbd>. You might have a
+look around at this point to see how things look.</p>
+</li>
+<li >
+<p>Build your play area's database by running <kbd class=
+"USERINPUT">bin/build-databases</kbd> from within <samp>demosite</samp>. If this is your
+first time using Postgres, the script will ask you to go create a
+Postgres account for your user.</p>
+</li>
+<li >
+<p>Start your play area by typing <kbd class="USERINPUT">bin/httpdup</kbd>. You should see something like:</p>
+<pre class=screen>
+Okay, it's running on http://floyd:9606/
+You might want to do this:
+
+        export CPF_PORT=9606
+        export CPF_BASE="http://floyd:9606/"
+</pre>
+Ignore the suggestion for now, and paste that URL into your web
+browser. You should see a greeting screen telling you that you have
+successfully set up the publishing system.
+<p>If you don't see a success message, you might see something else
+that explains to you what's going on. Follow the suggestions, and
+keep trying until you get a screen that says "Success!" at the top
+and no error messages below. It's also possible that the Apache
+server didn't start. Look for error messages coming out of
+<kbd >httpdup</kbd>, and take a look at the end of
+<kbd >logs/error_log</kbd>.</p>
+</li>
+</ol>
+</div>
+<p>Congratulations! You've successfully set up your first site with
+the Content Publishing Framework. The introductory web pages will now walk you through
+what you've got to play with.
+
+
+
+
+
+<h3>Structure of a typical CPF site</h3>
+
+
+List the contents of the
+<samp >demosite</samp> directory. You'll see:</p>
+<div ></a>
+<p><b> Structure of a typical CPF site</b></p>
+<table border="1" >
+<col>
+<col>
+<thead>
+<tr>
+<th>Directory</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bin/</td>
+<td>This contains various scripts and programs useful for
+developing sites with the CPF. In bin/sql is the SQL schema for the
+core CPF.</td>
+</tr>
+<tr>
+<td>docs/</td>
+<td>This contains the public web pages for the site. With a basic
+CPF installation, this includes a bulletin board (in <samp class=
+"LITERAL">docs/bboard</samp>), document management (in <samp class=
+"LITERAL">docs/documents/</samp>, and numerous other modules.
+<samp >docs/admin/</samp> holds the administrative web
+pages. Last but not least, there's this manual, in <samp class=
+"LITERAL">docs/manual</samp>.</td>
+</tr>
+<tr>
+<td>includes/</td>
+<td>This directory includes various facilities and services which
+can be included by your websites. All of the CPF's logic lies here,
+from user management, to database connectivity.</td>
+</tr>
+<tr>
+<td>conf/</td>
+<td>Site-specific configuration goes here including your site's
+data model, custom include files, and Apache server
+configuration.</td>
+</tr>
+<tr>
+<td>logs/</td>
+<td>Apache error and access logs will go here, while you're
+developing your site.</td>
+</tr>
+<tr>
+<td>tests/</td>
+<td>This directory includes the automated unit tests of the CPF,
+and is the place where you would write your own.</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<h3 >Making your own sites</h3>
+<p>Of course, eventually you will want to make your own sites. We
+recommend that you clone the demosite site and customize it to suit
+your needs. One good way to do this is by importing it into CVS,
+then checking it back out:</p>
+<div >
+<ol type="1">
+<li >
+<p>Uncompress the <kbd >demosite.tgz</kbd>
+somewhere like /tmp.</p>
+</li>
+<li >
+<p><kbd >cd demosite</kbd></p>
+</li>
+<li >
+<p><kbd >cvs import <samp class=
+"REPLACEABLE"><i>mysite</i></samp> r1 v1</kbd></p>
+</li>
+<li >
+<p><kbd >cd ..</kbd></p>
+</li>
+<li >
+<p><kbd >rm -rf demosite</kbd></p>
+</li>
+<li >
+<p><kbd >cvs checkout <samp class=
+"REPLACEABLE"><i>mysite</i></samp></kbd></p>
+</li>
+</ol>
+</div>
+<p>If you don't have CVS or any other source control system, you
+should seriously consider setting one up. The CPF works best with
+them, and you will find later upgrades to be much easier if you're
+using source control.</p>
+</div>
+</div>
+
+
+
+
+</div>

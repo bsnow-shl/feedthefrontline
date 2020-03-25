@@ -1,0 +1,32 @@
+<!--
+<title>Doing the math</title>
+-->
+
+<? if ($overdue): ?>
+
+<? form_start(); ?>
+    <p>
+    <b>Due date:</b> <%= $due_date %>, <%= $due_days_ago %> days ago.
+    </p>
+
+    <p>Interest rate: @@rate@@ per 30 days</p>
+
+    <p>Total owing: <%= $owing %></p>
+
+    <p>@@go@@</p>
+<? form_end() ?>
+
+
+<h3>Then:</h3>
+<? form_start('charge') ?>
+<p>
+Charge them    @@owing@@
+</p><p>
+Description of line item: @@description@@ (req'd)
+</p>
+<? form_end() ?>
+<? else: ?>
+
+Um, dude. It's not overdue.
+
+<? endif ?>

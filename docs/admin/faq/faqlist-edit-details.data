@@ -1,0 +1,14 @@
+require_once 'i18n.h';
+require_once 'form.h';
+
+
+$faq_id = 0+$_GET['faq_id'];
+form_set(
+	i18n_form_fields('FAQ', $faq_id)
+);
+
+if (form_valid()) {
+	i18n_form_handle('FAQ', $faq_id);
+	redirect(href('faqlist-edit.html', 'faq_id', $faq_id));
+}
+

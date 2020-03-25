@@ -1,0 +1,9 @@
+require_once 'users.h';
+user_require('role_admin');
+
+db_send('begin');
+db_send('delete from admin_areas where role_id=?', $_GET['id']);
+db_send('delete from roles where role_id=?', $_GET['id']);
+db_send('commit');
+redirect('roles.html');
+

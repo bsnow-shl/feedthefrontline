@@ -1,0 +1,9 @@
+<? global $uri; global $forum; ?><div class=links>
+<a href="<%= href('/bboard/post.html', 'bboard_id', $forum[bboard_id])%>">Start a new topic</a> 
+<? global $post;if ($post != 'older'): ?>
+<a href="<%= $uri %>older">See older topics</a> 
+<? else: ?>
+<a href="<%= $uri %>">See only recent topics</a>
+<? endif ?>
+<a href="/bboard/">Other forums</a>
+</div>

@@ -1,0 +1,33 @@
+<!--
+<title><%= _("Upcoming events") %></title>
+-->
+
+<h3><%= _("Events") %></h3>
+
+<div class=section>
+<dl>
+<? foreach ($events as $e): ?>
+<dt>
+<%= a_href('details.html', 'event_id', $e['event_id']) %>><?
+	$info = i18n_get('Event', $e['event_id']);
+	print $info['title'];
+?></a>
+<dd><%= _("Event date(s):") %> <%= $e['event_start_date'] %> <%= ( $e['event_end_date'] ? _(' to '). $e['event_end_date'] : '')  %>
+<dd>
+<? $reason = event_refuses_registrations($e['event_id']);
+	if (!$reason) {
+		echo _('Registration is open.');
+	} else {
+		echo '<span class=error>'.$reason.'</span>';
+	}
+?>
+<? if ($e['publishing_status'] == 'unpublished'): ?>
+	<dd><em><%= _("This event is visible only to event administrators.") %></em>
+<? endif ?>
+
+<? endforeach ?>
+</dl>
+
+
+</div>
+

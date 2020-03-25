@@ -1,0 +1,32 @@
+<!--
+<title>Open tickets (for me) by functional area</title>
+
+-->
+
+<div class="section">
+
+<? if (sizeof($bycomponent)==0) {
+	echo "No open tickets.";
+} ?>
+	
+
+<? foreach ($bycomponent as $c=>$tickets): ?>
+<h3><%= $c %></h3>
+
+<table class="padded">
+<tr><th>#</th><th>date</th><th>submitter</th><th>message</th></tr>
+<? foreach ($tickets as $t): ?>
+<tr>
+<td><a href="show.html?id=<%= $t['ticket_id'] %>"><%= $t['ticket_id'] %></a></td>
+<td><%= date("F j, Y", $t['date_added']) %>
+<td><%= $t['submitter_name'] %></td>
+<td><%= substr($t['description'], 0, 80) %></td>
+</tr>
+<? endforeach ?>
+</table>
+<? endforeach ?>
+
+</div>
+
+
+

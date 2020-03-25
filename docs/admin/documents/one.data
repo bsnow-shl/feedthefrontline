@@ -1,0 +1,47 @@
+require_once 'i18n.h';
+
+$id = $_REQUEST['category_id'];
+if (!$id) {
+	$id = $_SESSION['document_category_id'];
+}
+$_SESSION['document_category_id'] = $id;
+if (!$id) {
+	redirect("./");
+}
+
+$doc_id = $_REQUEST['doc_id'];
+
+
+
+$cat = db_row('select * from document_categories where document_category_id=?', $id);
+$category_desc = i18n_get('document category', $id);
+$category_name = $category_desc['name'];
+
+
+if ($_REQUEST['moveup']) {
+	db_send('begin');
+	$current = db_value('select order_in_category from documents where document_id=?', $doc_id);
+	$previous = db_value('select max(order_in_category) from documents where order_in_category<? and document_category_id=?', $current, $id);
+	if (null !== $previous) {
+		db_send('update documents set order_in_category=? where order_in_category=? and document_category_id=?', $current, $previous,$id);
+		db_send('update documents set order_in_category=? where document_id=?', $previous, $doc_id);
+	}
+	db_send('commit');
+}
+
+
+if ($_REQUEST['movedown']) {
+	db_send('begin');
+	$current = db_value('select order_in_category from documents where document_id=?', $doc_id);
+	$next = db_value('select min(order_in_category) from documents where order_in_category>? and document_category_id=?', $current, $id);
+	if (null !== $next) {
+		db_send('update documents set order_in_category=? where order_in_category=? and document_category_id=?', $current, $next,$id);
+		db_send('update documents set order_in_category=? where document_id=?', $next, $doc_id);
+	}
+	
+	db_send('commit');
+}
+
+$docs = db_multirow('select document_id,size as attachment_size from documents left outer join uploads using (upload_id) where document_category_id=? order by order_in_category ', $id); 
+$subcats = db_multirow('select document_category_id from document_categories where parent_category_id=?', $id);
+

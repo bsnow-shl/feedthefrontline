@@ -1,0 +1,48 @@
+<!--
+<title>Everything but the kitchen sink<%= $title_extra %></title>
+-->
+
+<div class="section">
+<p>The kitchen sink contains <b><%= $num_products %></b> products.</p>
+
+<? ob_start(); ?>
+
+<p>
+Show: 
+  <a href="<%= href('kitchen-sink.html', 'realm', $realm, 'page', 'all') %>">all</a>  or page 
+  <? for ($i=1; $i<=$max_pageno; $i++) {
+	  printf('%s<a href="%s">%d</a>%s ', 
+	  	$i==$_GET['page'] ? '<b>' : '',
+		href('kitchen-sink.html', 'realm', $realm, 'page', $i), $i,
+		$i==$_GET['page'] ? '</b>' : '');
+  } ?>
+</p>
+<? $footer = ob_get_contents(); ob_end_flush(); ?>
+
+<? if ($realms):?>
+<p>Show products in realm: 
+<? foreach ($realms as $r) {
+	printf('<a href="%s">%s</a> | ', href('kitchen-sink.html', 'realm', $r['realm_id']), $r['pretty_name']);
+} ?> <a href="kitchen-sink.html">all</a>. 
+Currently showing <em><%= $current_realm %></em>.
+</p>
+<? endif ?>
+
+<table class="padded" >
+<tr><th>Item</th><th>SKU</th><th>Price</th><th>Title</th><th>Categories</th></tr>
+<? foreach ($products as $p): ?>
+<tr>
+<td ><a name="<%= $p['product_id'] %>" href="<%= href('/admin/shopping/products/edit.html', 'pid', $p['product_id'], 'goback', $_SERVER['REQUEST_URI'].'#'.$p['product_id']) %>"><img src="/products/images/<%= $p['sku'] %>-S.jpg" /></a><br/>
+<td ><a href="<%= href('/admin/shopping/products/edit.html', 'pid', $p['product_id'], 'goback', $_SERVER['REQUEST_URI'].'#'.$p['product_id']) %>"><%= $p['sku'] %></a> </td>
+<td ><? printf("%.02f", $p['price']/100.0); ?></td>
+<td ><%= $p['title'] %></td>
+<td ><%= join(', ', $p['categories']) %></td>
+</tr>
+
+<? endforeach ?>
+</table>
+
+<%= $footer %>
+
+</div>
+

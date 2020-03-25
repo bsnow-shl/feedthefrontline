@@ -1,0 +1,40 @@
+<!--
+<title>Pending translation: <%= $txn_type_row['from_language'].'-'.$txn_type_row['to_language'] %></title>
+-->
+
+
+<div class="section">
+
+<? if ($common): ?>
+<h3>Common content</h3>
+
+<p>These translations will be applied to all instances of that content.</p>
+
+<? form_start('common') ?>
+<table><tr><th>Count</th><th>From</th><th>To</th><th>OK</th></tr>
+<? foreach ($common as $c): ?>
+<tr>
+<td><%= $c['count'] %></td>
+<td><%= htmlspecialchars($c['content']) %></td>
+<td>@@in<%= md5($c['content']) %>@@</td>
+<td>@@ok<%= md5($c['content']) %>@@</td>
+</tr>
+<? endforeach ?>
+</table>
+<? form_end(); ?>
+
+<? endif ?>
+
+
+<? if ($todo): ?>
+<table><tr><th>Content</th><th>Action</th></tr>
+<? foreach ($todo as $r): ?>
+<tr>
+<td><%= strip_tags(substr($r['content'], 0, 100)) %></td>
+</tr>
+<? endforeach ?>
+</table>
+<? endif ?>
+
+
+</div>

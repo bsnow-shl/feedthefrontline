@@ -1,0 +1,12 @@
+require_once 'i18n.h';
+require_once 'paypal.h';
+
+$regs = db_multirow("select tax_scheme_id,e.event_id,price,er.first_name ||' ' || er.last_name as name,telephone,er.event_registration_id,event_start_date from events as e join event_pricing as ep using (event_id) join event_registrations as er using (event_pricing_id) join event_payment_methods using (payment_method_id) where needs_approval = 0 and confirmed=1 and paid=0 and nag_if_unpaid=1 order by event_start_date desc");
+for ($i=0; $i<sizeof($regs); $i++) {
+	$taxes = taxes_calculate($regs[$i]['price'], $regs[$i]['tax_scheme_id']);
+	$ttax = 0;
+	foreach ($taxes as $t) {
+		$ttax += $t['amount'];
+	}
+	$regs[$i]['tax_total'] = $ttax;
+}

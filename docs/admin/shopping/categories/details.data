@@ -1,0 +1,19 @@
+$cid = 0+$_GET['cid'];
+
+require_once 'form.h';
+require_once 'i18n.h';
+
+$r = db_row('select * from shopping_categories where category_id=?', $cid);
+if (!$r) { redirect("index.html"); }
+form_set(array(
+	'short_name'=> array('type'=>'text', 'required' => 1, 'default' => $r['short_name']),
+	)+i18n_form_fields('Product category', $cid)
+);
+if (form_valid()) {
+	db_send('update shopping_categories set short_name=? where category_id=?',
+			 $short_name, $cid);
+	i18n_form_handle('Product category', $cid);
+}
+
+$cat_name = db_value('select short_name from shopping_categories where category_id=?', $cid);
+

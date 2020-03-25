@@ -1,0 +1,30 @@
+$content_id = 0+$_GET['content_id'];
+$class = db_value('select class_id from i18n_content where content_id=?', $content_id);
+
+$archive_cid = db_value('select content_id from i18n_content where short_name=?', 'archive');
+if (!$archive_cid) {
+	db_insert_hash('i18n_content', array(
+		'content_id' => ($archive_cid = db_newid('i18n_content')),
+		'class_id' => $class,
+		'short_name' => 'archive'
+	));
+}
+
+if (db_value('select count(*) from i18n_content_hierarchy where content_id=?', $content_id)) {
+	db_send('update i18n_content_hierarchy
+	
+} else {
+}
+
+print $archive_cid;
+
+
+db_send('delete from i18n_content_hierarchy where parent_content_id=? or content_id=?', $content_id, $content_id);
+db_send('delete from i18n_content_map where content_id=?', $content_id);
+db_send('delete from i18n_content where content_id=?', $content_id);
+i18n_delete('Content item', $content_id);
+if ($_GET['pcontent_id']) {
+	redirect(href('edit-submenu.html', 'content_id', $pcontent_id));
+}
+redirect('index.html');
+

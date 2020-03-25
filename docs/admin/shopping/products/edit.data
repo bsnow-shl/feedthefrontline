@@ -1,0 +1,124 @@
+$pid = 0+$_GET['pid'];
+if (!$pid) {
+    $pid = db_value('select product_id from shopping_products where sku=?', $_GET['sku']);
+}
+if (!$pid) {exit; }
+
+
+require_once 'form.h';
+require_once 'i18n.h';
+
+$product_i18n_id = db_value('select shopping_product_types.class_id from shopping_product_types join shopping_products using (product_type_id) where product_id=?', $pid);
+
+$realms = array();
+if (config_get('shopping', 'realms')) {
+	$realm_query = db_multirow('select sr.realm_id, short_name, pretty_name, product_id from shopping_realms as sr left outer join shopping_realm_product_map as srpm on (sr.realm_id = srpm.realm_id) and product_id =?', $pid);
+	foreach ($realm_query as $row) {
+		$realms['realm_'.$row['short_name']] = array('type'=>'flag','pretty'=>'<cite>'.$row['pretty_name'].'</cite>&nbsp;catalog', 'value' => $row['product_id'] ? 1 : 0);
+	}
+}
+
+if (!db_value('select count(1) from shopping_products where product_id=?', $pid)) { exit; }
+
+$category_picker = config_get('shopping','admin_category_picker');
+$category_menu = $selections = array();
+if ($category_picker) foreach ($category_picker as $name => $cid) {
+	$checkboxes = shopping_get_tree_checkboxes($cid);
+	$checkbox_pickers[$name] = $checkboxes;	
+	$category_menu += $checkboxes;
+}
+
+$categories = db_array('select category_id from shopping_product_category_map where product_id=?', $pid);
+foreach ($categories as $c) {
+	$selections[$c] = 1;
+}
+
+form_set('default', array(
+	'sku'=> 'urifragment,required',
+	'supplier_id' => array('type'=>'menu', 'required' =>1, 'sql' => 'select supplier_id as key, short_name as value from shopping_suppliers where visible=1'),
+	'supplier_sku'=> 'text',
+	'price'=>'dollars,required',
+	'cost'=>'dollars,required',
+	'visibility' => array('type'=>'menu', 'required'=>1, 'default'=>'11','menu'=>array(
+				'00' => 'invisible',
+				'01' => 'admin only',
+				'11' => 'visible'
+		)),
+	)+$realms + i18n_form_fields('Product', $pid) +
+	 i18n_form_fields($product_i18n_id, $pid) + $category_menu
+, $selections);
+
+if (form_was_submitted()) {
+	# no slashes in SKU's
+	if (strpos($sku, '/')!== FALSE) {
+		form_error('sku','No slashes allowed.');
+	}
+}
+if (form_valid()) {
+	$current_sku = db_value('select sku from shopping_products where product_id=?', $pid);
+	if ($current_sku != $sku) {
+		foreach (array('S','M', 'L') as $size) {
+			$old_file = "${_SERVER[DOCUMENT_ROOT]}/products/images/$current_sku-$size.jpg";
+			if (file_exists($old_file)) {
+				rename( "${_SERVER[DOCUMENT_ROOT]}/products/images/$current_sku-$size.jpg",
+					"${_SERVER[DOCUMENT_ROOT]}/products/images/$sku-$size.jpg");
+			}
+		}
+
+	}
+	db_update('shopping_products', 'product_id', $pid, array(
+			'supplier_id' => $supplier_id,
+			'price' => $price*100,
+			'cost' => $cost*100,
+			'visible_public' => substr($visibility,0,1),
+			'visible_admin' => substr($visibility,1,1),
+			'sku' => $sku,
+			'supplier_sku' => $supplier_sku));
+	i18n_form_handle('Product', $pid);
+	i18n_form_handle($product_i18n_id, $pid);
+	
+	foreach ($category_menu as $k => $ignored) {
+		if ($$k) {
+			if (!$selections[$k]) {
+				# we have to add it
+				db_insert_hash('shopping_product_category_map', array(
+					'category_id' => $k,
+					'product_id' => $pid,
+					'display_order' => -db_newid('display_order')
+				));
+			}
+		} else {
+			if ($selections[$k]) {
+				# it was on but now it's not; delete it
+				db_send('delete from shopping_product_category_map where category_id=? and product_id=?', $k, $pid);
+			} 
+		}
+	}
+
+	if ($realm_query) {
+		db_send('delete from shopping_realm_product_map where product_id=?', $pid);
+		foreach ($realm_query as $row) {
+			$k = 'realm_'.$row['short_name'];
+			if ($$k) {
+			$realms['realm_'.$row['short_name']] = array('type'=>'flag','pretty'=>'<cite>'.$row['pretty_name'].'</cite>&nbsp;catalog', 'value' => $row['product_id'] ? 1 : 0);
+				db_insert_hash('shopping_realm_product_map', array(
+					'realm_id' => $row['realm_id'],
+					'product_id' => $pid
+				));
+			}
+		}
+	}
+
+	redirect($_GET['goback'] ? $_GET['goback'] : 'index.html');
+}
+
+$r = db_row('select * from shopping_products where product_id=?', $pid);
+$r['price']/=100.0;
+$r['cost']/=100.0;
+$r['visibility'] = $r['visible_public'].$r['visible_admin'];
+$_REQUEST = $r;
+
+$sku = db_value('select sku from shopping_products where product_id=?', $pid);
+
+$member_categories = db_multirow('select category_id, short_name from shopping_product_category_map join shopping_categories using (category_id)  where product_id=?', $pid);
+

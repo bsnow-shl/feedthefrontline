@@ -1,0 +1,21 @@
+require_once 'form.h';
+
+$photo = 0+$_GET['photo'];
+
+
+$prow = db_row('select * from photos where photo_id=?', $photo);
+$arow = db_row('select * from photo_albums where album_id=?', $prow['album_id']);
+
+form_set(array(
+	'new_folder' => array('type' =>'menu',
+			'sql' => 'select album_id as key, album_uri as value from photo_albums order by album_uri',
+			'required' => 1,
+			'default' => $prow['album_id'])
+));
+if (form_valid()) {
+	$new_arow = db_row('select * from photo_albums where album_id=?', $new_folder);
+
+	$old_spot = $_SERVER['DOCUMENT_ROOT'].$prow['large_uri'];
+	$new_spot = $_SERVER['DOCUMENT_ROOT'].$new_arow['album_uri'];
+	print "from $old_spot to $new_spot";
+}

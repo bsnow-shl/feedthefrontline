@@ -1,0 +1,13 @@
+<!--
+<title>Database admin</title>
+<subtitle>Part of the <a href="../">admin</a> area.</subtitle>
+-->
+
+Here is a list of tables in the database <b><%= db_get('dbname') %></b>. Click on one to see what's in it.
+
+<ul>
+<? foreach ($tables AS $t): ?>
+<li><a href="table.html?table=<?= $t ?>"><?= $t ?></a> -- <%= 0+$counts[$t] %> rows
+<? endforeach ?>
+</ul>
+                                                 

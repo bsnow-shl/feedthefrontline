@@ -1,0 +1,57 @@
+
+require_once 'form.h';
+
+$field_id = 0+$_GET['field_id'];
+
+$f = db_row('select * from i18n_fields where field_id=?', $field_id);
+$class_name = db_value('select class_name from i18n_classes where class_id=?', $f['class_id']);
+
+$type = $f['field_type'];
+if (substr($type,0,2)=='a:') { $des = unserialize($type); $type=$des['type']; }
+
+if ($type =='menu') {
+	$options= array();
+	if ($_POST['newvalue']) {
+		for ($i=0; $i<count($_POST['newvalue']); $i++) {
+			$k = $_POST['newkey'][$i];
+			$v = $_POST['newvalue'][$i];
+			if ($k == '' || $v=='') { continue; }
+			$put[$k] = $v;
+		}
+		$options = $put;
+		db_send('update i18n_fields set field_type=? where field_id=?', serialize(array('type'=>'menu','menu'=>$put)), $field_id);
+		if ($_POST['done']) {
+			if ($where = $_SESSION['admin_edit_field_choices_goback']) {
+			    unset($_SESSION['admin_edit_field_choices_goback']);
+				redirect($where);
+			} else {
+				redirect(href('type-edit.html', 'classid', $f['class_id']));
+			}
+		}
+	} else {
+		if ($des['menu']) {
+			$options = $des['menu'];
+		}
+	}
+} else {
+  redirect('index.html');
+}
+
+if ($f['field_type']=='menu') {
+	$options = array();
+}
+
+foreach ($options as $k => $v) {
+    $k = strtolower($k);
+    $k2 = '';
+    for ($i=0; $i<strlen($k); $i++) {
+        $c = $k[$i];
+        
+        if (ctype_alnum($c)) $k2 .= $c;
+        if ($c==' ') $k2 .= '_';
+        if ($c=='_') $k2 .= '_';
+    }
+    $options2[$k2]=$v;
+}
+$options = $options2;
+

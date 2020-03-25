@@ -1,0 +1,13 @@
+<!--
+<title><%= $e['subject'] %></title>
+<subtitle><a href="index.html">Email Sandbox</subtitle>
+<subject><%= htmlspecialchars($e['subject'])  %></subject>
+<to><%= $e['to_addr'] %></to>
+<date><%= $e['tstamp'] %></date>
+-->
+
+<div class=section style="font-size: large">
+
+<%= nl2br($e['message']) %>
+
+</div>

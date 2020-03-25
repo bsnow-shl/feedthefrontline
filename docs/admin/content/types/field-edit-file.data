@@ -1,0 +1,122 @@
+
+require_once 'form.h';
+
+$self = $_SERVER['REQUEST_URI'];
+
+$file_raw = db_value('select field_type from i18n_fields where field_id=?', $_REQUEST['field_id']);
+if ( ($file = unserialize($file_raw))===false) {
+    $file = array('type'=>$file_raw);
+}
+if (!is_array($file['file_require_mime'])) {
+    $file['file_require_mime'] = array();
+}
+
+
+
+$form = array(
+    'mimereq'=>'text',
+    'file_require_mime_pretty' => array('type'=>'text', 'default'=>$file['file_require_mime_pretty'])
+);
+
+switch ($_GET['mimeset']) {
+    case 'html':
+        if (!in_array('text/html', $file['file_require_mime'])) $file['file_require_mime'][] = 'text/html';
+        $needs_update++;
+        break;
+
+    case 'pdf':
+        if (!in_array('application/pdf', $file['file_require_mime'])) $file['file_require_mime'][] = 'application/pdf';
+        $needs_update++;
+        break;
+
+    case 'image':
+        if (!in_array('image/png', $file['file_require_mime'])) $file['file_require_mime'][] = 'image/png';
+        if (!in_array('image/gif', $file['file_require_mime'])) $file['file_require_mime'][] = 'image/gif';
+        if (!in_array('image/jpeg', $file['file_require_mime'])) $file['file_require_mime'][] = 'image/jpeg';
+        $needs_update++;
+
+        $form['aspmin'] = 'float';
+        $form['aspmax'] = 'float';
+        $form['resymin'] = 'integer';
+        $form['resymax'] = 'integer';
+        $form['resxmin'] = 'integer';
+        $form['resxmax'] = 'integer';
+        $form['rescale'] = 'text';
+        $form['reformat'] = array('type'=>'menu', 'menu'=>array('png'=>'png'));
+        $form['alpha'] = array('type'=>'menu', 'menu'=>array('allopaque'=>'All Opaque', 'sometransparent' => 'Some transparency'));
+
+        list ($aspmin,$aspmax) = preg_split('/,/', $file['file_image_aspect']);
+        preg_match('/(\d*),(\d*)x(\d*),(\d*)/',$file['file_resolution'], $resmatches);
+        
+        $defaults = array(
+            'aspmin' => $aspmin,
+            'aspmax' => $aspmax,
+            'resxmin' => $resmatches[1],
+            'resxmax' => $resmatches[2],
+            'resymin' => $resmatches[3],
+            'resymax' => $resmatches[4],
+            'rescale' => $file['file_final_resolution'],
+            'reformat' => $file['file_final_format'],
+            'alpha' => $file['file_image_alpha']
+        );
+
+        break;
+        
+    case 'video':
+        if (!in_array('video/x-ms-video', $file['file_require_mime'])) $file['file_require_mime'][] = 'video/x-ms-video';
+        if (!in_array('video/mpeg', $file['file_require_mime'])) $file['file_require_mime'][] = 'video/mpeg';
+        if (!in_array('video/quicktime', $file['file_require_mime'])) $file['file_require_mime'][] = 'video/quicktime';
+        $needs_update++;
+    
+        $form['videoaspectmin'] = 'float';
+        $form['videoaspectmax'] = 'float';
+
+        list ($vmin,$vmax) = preg_split('/,/', $file['file_video_aspect']);
+        $defaults = array(
+            'aspmin' => $aspmin,
+            'aspmax' => $aspmax,
+        );
+
+        break;
+}
+
+form_set('default', $form, $defaults);
+
+if (form_valid()) {
+    $needs_update++;
+    $file['file_require_mime_pretty'] = $file_require_mime_pretty;
+
+    if ($mimereq) {
+        $file['file_require_mime'][] = $mimereq;
+    }
+    if ($aspmin || $aspmax) {
+        list ($num, $denom) = preg_split('/:/', $aspmin);
+        if ($num && $denom) $aspmin = $num/$denom;
+
+        list ($num, $denom) = preg_split('/:/', $aspmax);
+        if ($num && $denom) $aspmax = $num/$denom;
+
+        $file['file_image_aspect'] = "$aspmin,$aspmax";
+    }
+    if ($resxmin || $resxmax || $resymin || $resymax) {
+        $file['file_resolution'] = "$resxmin,$resxmax".'x'."$resymin,$resymax";
+    }
+    if ($reformat)    
+        $file['file_final_format'] = $reformat;
+    
+    if ($rescale) 
+        $file['file_final_resolution'] = $rescale;
+
+    if ($alpha) 
+        $file['file_image_alpha'] = $alpha;
+
+    if ($videoaspectmin || $videoaspectmax) {
+        $file['file_video_aspect'] = "$videoaspectmin,$videoaspectmax";
+    }
+}
+
+if ($needs_update) {
+    db_send('update i18n_fields set field_type=? where field_id=?', serialize($file), $_REQUEST['field_id']);
+    $note++;
+}
+

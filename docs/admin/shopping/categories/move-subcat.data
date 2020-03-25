@@ -1,0 +1,35 @@
+$cid = 0+$_REQUEST['cid'];
+$cid2 = 0+$_REQUEST['cid2'];
+$condition = "category_id=? and parent_category_id=?";
+$condition_parameters = array($cid2, $cid);
+
+$container_condition = "parent_category_id=?";
+$container_condition_parameters = array($cid);
+        
+	
+db_send('begin');
+
+if ($_REQUEST['movedown']) {
+        $current = db_value("select display_order from shopping_category_category_map where $condition", $condition_parameters );
+        $next = db_value("select min(display_order) from shopping_category_category_map where display_order>? and $container_condition", array_merge(array($current), $container_condition_parameters));
+        if ($next) {
+                db_send("update shopping_category_category_map set display_order=? where display_order=? and $container_condition", array_merge(array($current,$next), $container_condition_parameters));
+                db_send("update shopping_category_category_map set display_order=? where $condition", array_merge(array($next), $condition_parameters));
+        }
+}
+
+
+if ($_REQUEST['moveup']) {
+        $current = db_value('select display_order from shopping_category_category_map where '.$condition, $condition_parameters);
+        $previous = db_value("select max(display_order) from shopping_category_category_map where display_order<? and $container_condition", array_merge(array($current), $container_condition_parameters));
+        if ($previous) {
+                db_send("update shopping_category_category_map set display_order=? where display_order=? and $container_condition", array_merge(array($current, $previous), $container_condition_parameters));
+                db_send("update shopping_category_category_map set display_order=? where $condition", array_merge(array($previous), $condition_parameters));
+        }
+}
+
+db_send('commit');
+
+redirect(href("edit.html", 'cid', $cid));
+
+

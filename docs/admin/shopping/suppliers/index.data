@@ -1,0 +1,10 @@
+require_once 'form.h';
+
+
+if (!$_GET['withhidden']) {
+	$extra_sql = "where visible=1";
+}
+
+
+$suppliers = db_multirow('select * from shopping_suppliers '. $extra_sql. ' order by short_name');
+

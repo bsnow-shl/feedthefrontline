@@ -1,0 +1,38 @@
+<!--
+<title>Import a product spreadsheet</title>
+-->
+
+<div class="section">
+<? if (form_valid()): ?>
+
+	<? if ($failure_message): ?>
+		<div class="error">
+		<%= $failure_message %>
+		</div>
+	<? else: ?>
+	<p>Import successful. Notes during import:
+		<ol>
+		<? foreach ($notes as $n) { printf("<li>%s</li>", $n); } ?>
+		</ol>
+		</p>
+	<? endif ?> 	
+	
+<? else: ?>
+<h3>Instructions</h3>
+<ol class=paragraphs>
+<li><a href="spreadsheet-export.html">Download a spreadsheet</a> with the information you want to adjust.
+<li>Open the .csv you downloaded in Excel or the free <a href="http://www.openoffice.org/">OpenOffice Spreadsheet</a>.
+<li>In that spreadsheet, you can create new products or update existing
+product information.  You cannot delete a product from the spreadsheet; to do
+so, just click the <em>Delete this product</em> command on the product information screen.
+<li>Export your finished spreadshet back to CSV, and upload through this form:
+<li><B>Important:</b> When exporting your spreadsheet, ensure you are using the <b>UTF-8 (Unicode)</b>
+encoding for foreign-language accents, and not ISO-8859-1 (or "Latin 1").</li>
+</ol>
+
+<? form_start();
+   form_end();
+?>
+<? endif ?>
+
+</div>

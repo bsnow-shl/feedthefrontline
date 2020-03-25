@@ -1,0 +1,11 @@
+$categories = array();
+
+$query = db_multirow('select category_id,short_name,parent_category_id, count(product_id) as count from shopping_categories left outer join shopping_category_category_map using (category_id) left outer join shopping_product_category_map using (category_id) group by parent_category_id,short_name,category_id, shopping_category_category_map.display_order order by shopping_category_category_map.display_order');
+foreach ($query as $r) {
+	$categories[$r['category_id']]['short_name'] = $r['short_name'];
+	$categories[$r['category_id']]['count'] = $r['count'];
+	$categories[$r['category_id']]['parent_category'] = $r['parent_category_id'];
+	$categories[$r['parent_category_id']]['subcategories'][] = $r['category_id'];
+  
+}
+

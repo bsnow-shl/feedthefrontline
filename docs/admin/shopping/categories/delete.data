@@ -1,0 +1,5 @@
+db_send('delete from shopping_category_category_map where parent_category_id=? or category_id=?', 0+$_GET['cid'], 0+$_GET['cid']);
+db_send('delete from shopping_product_category_map where category_id=?', 0+$_GET['cid']);
+db_send('delete from shopping_categories where category_id=?', 0+$_GET['cid']);
+redirect('index.html');
+

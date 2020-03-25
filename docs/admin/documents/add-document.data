@@ -1,0 +1,51 @@
+require_once 'i18n.h';
+
+$id = $_REQUEST['category_id'];
+if (!$id) {
+	$id = $_SESSION['document_category_id'];
+}
+$_SESSION['document_category_id'] = $id;
+if (!$id) {
+	redirect("./");
+}
+
+
+$category_desc = i18n_get('document category', $id);
+$category_name = $category_desc['name'];
+
+require_once 'form.h';
+$form = i18n_form_fields('document');
+$form += array(
+	'file'=>'file,required'
+);
+form_set($form);
+form_add_note('Maximum file upload: '.min(0+ini_get('upload_max_filesize'), 0+ini_get('post_max_size')).' megabytes');
+
+
+if (form_valid()) {
+	db_send('begin');
+	$document_id = db_newid('documents');
+	$place = 1+db_value('select max(order_in_category) from documents where document_category_id=?', $id);
+
+	db_insert_or_update('documents', 'document_id', $document_id, 
+		array(order_in_category => $place,
+			document_category_id => $id,
+			upload_id => $_FILES['file']['upload_id'],
+		)
+	);
+	i18n_form_handle('document', $document_id);
+
+	// set the image dimensions if it's an image
+	if (substr($_FILES['file']['type'], 0, 5)=='image') {
+		$struct = getimagesize($_SERVER['DOCUMENT_ROOT'].'/'.$_FILES['file']['tmp_name']);
+		if ($struct[0] && $struct[1]) {
+			db_send('update documents set image_width=? , image_height=? where document_id=?',
+				$struct[0], $struct[1], $document_id);
+		}
+	}
+	db_send('commit');
+	redirect(href('one.html','id', $id));
+}
+
+
+

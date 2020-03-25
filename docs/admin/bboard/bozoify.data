@@ -1,0 +1,11 @@
+$user = db_row('select * from users where user_id=?', $_REQUEST[user]);
+
+if ($_REQUEST['confirm'] == 'Yes') {
+	db_send("insert into user_role_map(user_id,role_id) values (?, (select role_id from roles where role_name='bboard_bozo'))",
+			$_REQUEST[user]);
+} 
+
+if ($_REQUEST['confirm']) {
+	redirect($_REQUEST[goback]);
+}
+

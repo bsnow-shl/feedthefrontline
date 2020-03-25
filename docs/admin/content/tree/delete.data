@@ -1,0 +1,20 @@
+$content_id = 0+$_GET['content_id'];
+
+$locked_row = db_row('select locked from i18n_content where content_id=?', $content_id);
+if ($locked_row['locked']) exit("No way, man. It's locked.");
+
+$class = db_value('select class_id from i18n_content where content_id=?', $content_id);
+$objs = db_array('select object_id from i18n_content_map where content_id=?', $content_id);
+foreach ($objs as $object_id) {
+    i18n_delete($class, $object_id);
+}
+
+db_send('delete from i18n_content_hierarchy where parent_content_id=? or content_id=?', $content_id, $content_id);
+db_send('delete from i18n_content_map where content_id=?', $content_id);
+db_send('delete from i18n_content where content_id=?', $content_id);
+i18n_delete('Content item', $content_id);
+if ($_GET['pcontent_id']) {
+	redirect(href('edit-submenu.html', 'content_id', $pcontent_id));
+}
+redirect('index.html');
+

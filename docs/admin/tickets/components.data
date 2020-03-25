@@ -1,0 +1,30 @@
+
+require_once 'form.h';
+require_once 'i18n.h';
+require_once 'users.h';
+
+$tickets_users = users_with_role('tickets_admin');
+
+$query = 'select user_id as key, email as value from users where user_id in ('.join(',', $tickets_users).')';
+
+form_set(array(
+    'short_name' => 'urifragment,required',
+    'responsible' => array('type'=>'menu','required'=>1, 'sql' => $query),
+    ) + i18n_form_fields('Ticket component')
+);
+if (form_was_submitted()) {
+    if (db_value('select count(*) from ticket_components where component=?', $short_name)) {
+        form_error('short_name', 'Already taken.');
+    }
+}
+if (form_valid()) {
+    db_send('begin');
+    $cid = db_newid('ticket_components');
+    db_send('insert into ticket_components(ticket_component_id, responsible,component) values (?,?,?)', $cid, $responsible, $short_name);
+    i18n_form_handle('Ticket component', $cid);
+    db_send('commit');
+}
+
+$components = db_multirow('select ticket_components.*,users.email as responsible from ticket_components join users on (responsible=user_id)');
+i18n_get_batch($components, 'Ticket component', 'ticket_component_id');
+

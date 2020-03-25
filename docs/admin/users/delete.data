@@ -1,0 +1,64 @@
+$user = 0+$_GET['user'];
+$name = db_value("select first_name || ' ' || last_name from users where user_id=?", $user);
+
+
+require_once 'dbadmin.h';
+
+$table_list = dbadmin_list_tables();
+
+
+$magic_commands = array(
+    'update i18n_content_map set created_by=null where created_by=?', 
+    'delete from shopping_shopcart_entry_options where shopcart_entry_id in (select shopcart_entry_id from user_addresses join shopping_shopcart_entries using (address_id) where user_id=?)',
+
+	'delete from shopping_shopcart_entries where address_id in (select address_id from user_addresses where user_id=?)',
+	'delete from event_registration_diary where event_registration_id in (select event_registration_id from event_registrations where user_id=?)',
+	'delete from newsletter_clickthroughs where newsletter_queue_id in (select newsletter_queue.newsletter_queue_id from newsletter_queue join newsletter_subscriptions using (newsletter_subscription_id) where user_id=?)',
+	'delete from newsletter_queue where newsletter_subscription_id in (select newsletter_subscription_id from newsletter_subscriptions where user_id=?)',
+	'delete from shopping_shopcart_entries where shopcart_id in (select shopcart_id from shopping_shopcarts where user_id=?)',
+	'delete from shopping_shopcart_diary where shopcart_id in (select shopcart_id from shopping_shopcarts where user_id=?)',
+);
+if ($func = config_get('user', 'delete_sql_callback')) {
+    $magic_commands += $func();
+}
+$tables = array(
+	'user_role_map' => 'user_id',
+	'bboard_messages' => 'author',
+	'user_addresses' => 'user_id', 
+	'shopping_shopcarts' => 'user_id', 
+	'shopping_shopcart_diary' => 'user_id', 
+	'user_diary' => 'user_id',
+	'comments' => 'user_id',
+	'newsletter_subscriptions' => 'user_id',
+	'user_addresses' => 'user_id',
+	'users' => 'user_id',
+	'event_registrations' => 'user_id',
+	'user_addresses' => 'user_id',
+	'newsletter_subscriptions'=>'user_id',
+);
+
+
+if ($_GET['yes']) {
+	$message = "Working...";
+
+	foreach ($magic_commands as $sql) {
+		$result = @db_send($sql, $user);
+		$err = db_errormessage();
+		if ($err) {
+			$message .= "$err during $sql\n";
+			$stop++;
+		}
+	}
+	foreach ($tables as $table => $pkey) {
+		if (!in_array($table, $table_list)) { continue; }
+		$result = @db_send("delete from $table where $pkey=?", $user);
+		$err = db_errormessage();
+		if ($err) {
+			$message .= "$err during $sql\n";
+			$err_count++;
+		}
+	}
+	if (!$err_count) {
+		$message .= "Done!\n";
+	}
+}

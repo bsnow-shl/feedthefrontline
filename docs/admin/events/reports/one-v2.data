@@ -1,0 +1,15 @@
+require_once 'i18n.h';
+require_once 'paypal.h';
+
+$info = i18n_get('Event', $eid);
+$pretty_name = $info['title'];
+
+$tax_scheme_id = db_value('select tax_scheme_id from events where event_id=?', $eid);
+if ($tax_scheme_id) {
+	$tax_info = db_row('select * from tax_schemes where tax_scheme_id=?', $tax_scheme_id) + i18n_get('Tax scheme', $tax_scheme_id);
+}
+
+
+$details = db_multirow('select 
+  er.first_name, er.last_name ,paid,ep.name as price_name, price
+	from  event_pricing as ep  join event_registrations as er using(event_pricing_id) join event_payment_methods as pm using (payment_method_id) where confirmed=1 and event_id=? order by event_registration_id ', $eid);

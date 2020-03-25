@@ -1,0 +1,27 @@
+<!--
+<title>Batch price update</title>
+-->
+
+<div class="section">
+
+<p>Every product whose supplier data feed has resulted in a change of input cost will show up here.
+</p>
+
+<? form_start(); ?>
+<table class=padded><tr><th>SKU</th><th>Supplier</th><th>Cost</th><th>Current price</th><th>My guess</th><th>+-</th><th>Set price to...</th></tr>
+<? foreach ($products as $p): ?>
+<tr>
+<td><a href="<%= href('/admin/shopping/products/edit.html', 'pid', $p['product_id']) %>"><%= $p['sku'] %></a></td>
+<td><%= $p['short_name'] %></td>
+<td align=right><%= sprintf("%.2f", $p['cost']/100.0) %></td>
+<td align=right><%= sprintf('%.2f', $p['price']/100.0) %></td>
+<td align=right><%= sprintf('%.2f', $price_list[$p['product_id']]) %></td>
+<td align=right><%= sprintf('%.2f', $p['price']/100.0 - $price_list[$p['product_id']]) %></td>
+<td>@@price_<%= $p['product_id'] %>@@</td>
+</tr>
+<? endforeach ?>
+</table>
+<? form_end(); ?>
+
+
+</div>

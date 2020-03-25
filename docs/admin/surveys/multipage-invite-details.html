@@ -1,0 +1,44 @@
+<!--
+<title>Details for survey invitation #<%= $iid %></title>
+-->
+
+<? form_start('status'); ?>
+<dl>
+  <dt>Survey
+  <dd><a href="<%= href('edit.html', 'sid', $details['survey_id']) %>"><%= $details['survey_name'] %></a>
+
+  <dt>Invited User
+  <dd><A href="<%= href('/admin/users/edit.html', 'edit_user', $details['user_id']) %>"><%= user_name($details['user_id']) %></a> (<%= user_email($details['user_id']) %>)
+
+  <dt>Invitation expiry
+  <dd><%= $details['valid_until'] %>
+
+  <dt>Invitation status
+  <dd><%= $details['invitation_status'] %> | change to @@status@@ @@go@@ 
+
+  <dt>Invited by
+  <dd><A href="<%= href('/admin/users/edit.html', 'edit_user', $details['created_by']) %>"><%= user_name($details['created_by']) %></a> (<%= user_email($details['created_by']) %>)
+
+</dl>
+
+<? form_end(); ?>
+
+<h2>Survey pages</h2>
+<table class="padded">
+  <tr><th>Page #</th><th>Response</th><th>Actions</th></tr>
+  <? foreach ($pages as $p): ?>
+  <tr>
+    <td><%= ++$counter %></td>
+    <td><%= $p['create_tstamp'] ? humanize_timestamp($p['create_tstamp']) : 'no reply yet' %></td>
+    <td><%= $p['create_tstamp'] ? sprintf('<a href="%s">View response to this page</a>', href('invitation-response-page-view.html', 'pid', $counter, 'rid', $p['response_id']) ) : '' %></td>
+  <? endforeach ?>
+</table>
+
+
+<h2>Diary</h2>
+<ul>
+  <li><%= humanize_timestamp($details['created_on']) %>: Invitation created</li>
+  <? foreach ($diary as $d): ?>
+    <li><%= humanize_timestamp($d['create_tstamp']) %>: <%= $d['note'] %></li>
+  <? endforeach ?>
+</ul>

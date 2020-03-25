@@ -1,0 +1,52 @@
+<!--
+<title>Edit a survey question</cite></title>
+-->
+
+<div class="section">
+<p>Enter the possible answers for this multiple-option question in the <a href="edit.html?sid=<%= $survey['survey_id'] %>"><%= $survey['short_name'] %></a> survey.</p>
+
+<p><b><%= $question_text %></b></p>
+<form method=POST>
+<table>
+
+<tr>
+<? foreach ($languages as $l=>$pretty): ?>
+<th><%= $pretty %></th>
+<? endforeach ?>
+</tr>
+
+<tr>
+<?  if ($survey['survey_type']=='multiple-choice-exam'): ?>
+<? endif ?>
+<? foreach ($languages as $l=>$pretty): ?>
+    <td>
+    <? 
+        $counter=0;
+        $options[$l] [] = '';
+        $options[$l] [] = '';
+        $options[$l] [] = '';
+        $options[$l] [] = '';
+        $options[$l] [] = '';
+        if ($options[$l]) foreach ($options[$l] as $o) {
+            if ($l=='en' && $survey['survey_type']=='multiple-choice-exam') {
+                printf ('<input type=radio %s name="answer" value="%d">', $options['right_answer']==$counter ? 'checked' : '', $counter++);
+            }
+            echo "<input type=\"text\" size=\"25\" name=\"newoption[$l][]\" value=\"", htmlspecialchars($o) , "\" /><br/>";
+        } 
+    ?>
+    </td>
+<? endforeach ?>
+
+</tr></td>
+<? if ($survey['survey_type']=='multiple-choice-exam'): ?>
+<tr><td>^^ correct answer</td></tr>
+<? endif ?>
+</table>
+
+<input type="submit" value="Add more..." />
+<input type="submit" name="done" value="Done" />
+</form>
+
+
+
+</div>

@@ -1,0 +1,80 @@
+require_once 'shopping.h';
+
+$types = db_multirow('select * from shopping_product_types');
+
+if ($type = $_GET['type']) {
+	$products = db_multirow('select * from shopping_products where visible_admin != 0 and product_type_id=? ', $type);
+	$languages = db_array('select language_key from i18n_languages where active != 0');
+	$classid = db_value('select class_id from shopping_product_types where product_type_id=?', $type);
+	$short_name = db_value('select short_name from shopping_product_types where product_type_id=?', $type);
+	$fields = db_multirow('
+			       select field_name, pretty_name_en from i18n_fields where class_id=?
+				UNION ALL 
+				select field_name, pretty_name_en from i18n_fields join i18n_classes using (class_id) where class_name=? 
+			       ', $classid, 'Product');
+		
+	$fh = tmpfile();
+	fputcsv($fh, array('begin', 'product_type_id', $type, 'style', 'vertical'));
+
+	$prods = array();
+	
+	$out = array();
+	foreach (array('sku'=>'SKU','price'=>'MSRP','cost'=>'Cost','supplier_sku'=>'Supplier SKU') as $k=>$pretty) {
+		$out[] = $k;
+	}
+	foreach ($languages as $lang) {
+		foreach ($fields as $field) {
+			$out[] = "${field['field_name']} $lang";
+		}
+	}
+	fputcsv($fh, $out);
+
+	foreach ($products as $p) {
+		$pid = $p['product_id'];
+		$out = array();
+
+		foreach (array('sku'=>'SKU','price'=>'MSRP','cost'=>'Cost','supplier_sku'=>'Supplier SKU') as $k=>$pretty) {
+			if ($k=='price' || $k=='cost') {
+				$out[] = sprintf('%.02f', $p[$k]/100);
+			} else {
+				$out[] = &$p[$k];
+			}
+		}
+
+		foreach ($languages as $lang) {
+			$info = shopping_get_product($null, $pid, $lang);
+			foreach ($fields as $field) {
+				$out[] = str_replace("\n","", str_replace("\r", "", $info[ $field['field_name'] ]));
+			}
+		}
+		fputcsv ($fh, $out);
+	}
+
+
+	fputs($fh, "meta\n");
+	fputcsv($fh, array('created_by', user_name(), user_email()));
+	fputcsv($fh, array('created_on', date("Y-m-d")));
+	fputs($fh, "end\n");
+
+	$fn = config_get('site','short_name').'-catalog-'.$short_name.'.csv';
+
+	// emit headers for the download
+	header('Content-type: text/csv');
+	header('Pragma: private');
+	header('Cache-control: private');
+	header('Content-Disposition: attachment; filename="'.$fn.'"');
+
+	$filename = $_SERVER['DOCUMENT_ROOT'].$upload['local_filename'];
+	$stat = stat($filename);
+	header("Last-Modified: ".gmstrftime ("%a, %d %b %Y %T %Z", time()) );
+	header('Expires: '.gmstrftime ("%a, %d %b %Y %T %Z", time()- 3600*24));
+
+	readfile ($filename);
+	rewind($fh);
+	while (!feof($fh)) {
+		print fread($fh, 65536);
+	}
+	exit();
+
+}
+

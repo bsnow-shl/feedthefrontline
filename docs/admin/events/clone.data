@@ -1,0 +1,117 @@
+$orig_eid = 0+$_GET['eid'];
+if (!$orig_eid) {
+	redirect('index.html');
+}
+
+require_once 'i18n.h';
+require_once 'form.h';
+
+$orig_event = db_row('select * from events where event_id=?', $orig_eid);
+$orig_event += i18n_get('Event', $orig_eid);
+$tax_model = db_value('select tax_scheme_name from tax_schemes where tax_scheme_id=?', $orig_event['tax_scheme_id']);
+
+$form = array(
+	'new_administrative_title' => 'text,required',
+);
+
+
+form_set($form);
+if (form_valid()) {
+
+	// Start the transaction
+	db_send('begin');
+
+	// Create a new cloned event in the events table
+	$new_event_id = db_newid('events');
+	db_insert_hash('events', array(
+		'event_id' 													=> $new_event_id,
+		'name' 															=> $new_administrative_title,
+		'registration_start_date' 					=> $orig_event['registration_start_date'],
+		'registration_end_date' 						=> $orig_event['registration_end_date'],
+		'event_start_date' 									=> $orig_event['event_start_date'],
+		'event_end_date' 										=> $orig_event['event_end_date'],
+		'max_attendees' 										=> $orig_event['max_attendees'],
+		'tax_scheme_id' 										=> $orig_event['tax_scheme_id'],
+		'currency_code'					  					=> $orig_event['currency_code'],
+		'publishing_status'									=> 'unpublished',
+		'allow_waitinglist'									=> $orig_event['allow_waitinglist'],
+		'custom_registration_form_header'		=> $orig_event['custom_registration_form_header'],
+		'custom_registration_form_function'	=> $orig_event['custom_registration_form_function'],
+		'manual_approval'										=> $orig_event['manual_approval'],
+		'disable_postal_fields'							=> $orig_event['disable_postal_fields'],
+		'reply_to'													=> $orig_event['reply_to']
+	));
+
+
+	// Clone the event pricings in the event_pricings table
+	db_send("insert into event_pricing (event_pricing_id,
+																			event_id,
+																			name,
+																			price,
+																			pricing_availability_header,
+																			pricing_availability_callback,
+                                                                            external_sku,
+																			show_to_public)
+									select nextval('event_pricing_id'),
+																?,
+																name,
+																price,
+																pricing_availability_header,
+																pricing_availability_callback,
+                                                                external_sku,
+																show_to_public
+																from event_pricing where event_id=? and (pricing_availability_callback is null or pricing_availability_callback!='event_false') ",
+									$new_event_id, $orig_eid );
+
+	// We only want to try to do this i18n cloning if the original event actually has some fields to be cloned
+	$old_i18n_class = "Event $orig_eid fields";
+	$orig_class_id = db_value('select i18n_class_id from i18n_classes where class_name=?', $old_i18n_class);
+	if(!empty($orig_class_id)) {
+
+	  // Clone the rows in the i18n_classes table
+		$new_i18n_class = "Event $new_event_id fields";
+		db_send('insert into i18n_classes ( class_id, class_name, editable_in_cms)
+			select ?, ? , editable_in_cms from i18n_classes where class_name=?', db_newid('i18n_classes'), $new_i18n_class, $old_i18n_class);
+
+		// Finally, clone the rows in the i18n_fields table
+		$new_class_id = db_value('select i18n_class_id from i18n_classes where class_name=?', $new_i18n_class);
+		db_send('insert into i18n_fields (class_id,
+																			precedence,field_name,
+																			pretty_name,
+																			field_type,
+																			pretty_name_fr,
+																			pretty_name_en)
+										select ?,
+													 precedence,
+													 field_name,
+													 pretty_name,
+													 field_type,
+													 pretty_name_fr,
+													 pretty_name_en
+													 from i18n_fields where class_id=?',
+										$new_class_id, $orig_i18n_class_id);
+	}
+
+	// Now really finally, lets clone the titles and descriptions...for some reason they're not included
+	// in the i18n fields for the events, maybe Stephen can shed some light on this.  There is also
+	// a reason that I have the clause of in (21,23).  Those are the title and description
+	// field ids, if I -don't- use that clause it tries to insert a bunch of i18n rows from other things
+	// with the same "object_id".  I believe this is probably a bug.  The title and descriptions for
+	// events should probably have their own field_id which would stop all of this...
+	db_send('insert into i18n (field_id,
+														 object_id,
+														 language_key,
+														 content)
+									select field_id,
+												 ?,
+												 language_key,
+												 content
+												 from i18n where object_id=? and content!=\'\' and field_id in (21,23)',
+									$new_event_id, $orig_eid);
+
+	//Finish the transaction
+	db_send('commit');
+
+	redirect(href('edit.html', 'eid', $new_event_id));
+}
+

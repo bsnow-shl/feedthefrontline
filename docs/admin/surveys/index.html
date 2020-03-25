@@ -1,0 +1,30 @@
+<!--
+<title>Survey administration</title>
+-->
+
+<div class="section">
+
+<? if ($surv): ?>
+<? foreach ($surv as $status => $surveys): ?>
+<h3><%= ucfirst($status) %> surveys</h3>
+
+<ol>
+<? foreach ($surveys as $s): ?>
+<li><%= $s['short_name'] %> &mdash; <a href="<%= href('edit.html', 'sid', $s['survey_id']) %>">edit</a> | 
+<? if ($s['survey_status']!='retired'): ?>
+ <a href="<%= href('take.html', 'sid', $s['survey_id']) %>">take it</a> |
+ <a href="<%= href('results.html', 'sid', $s['survey_id']) %>">view summary results</a>  |
+ <a href="<%= href('results2.html', 'sid', $s['survey_id']) %>">view detailed results</a>
+<? endif ?>
+<? endforeach ?>
+</ol>
+
+<? endforeach ?>
+
+<? else: ?>
+
+  No surveys are set up.
+
+<? endif ?>
+</div>
+

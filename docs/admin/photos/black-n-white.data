@@ -1,0 +1,14 @@
+require_once 'photos.h';
+
+$photo = $_GET['photo'];
+$direction = $_GET['direction'];
+
+$directory = $_SERVER['DOCUMENT_ROOT'];
+$names = db_row('select album_id, large_uri,medium_uri,small_uri from photos where photo_id=?', $photo);
+
+system("mogrify -quality 100 -colorspace GRAY $directory.".$names['large_uri']);
+system("mogrify -quality 100 -colorspace GRAY $directory.".$names['medium_uri']);
+system("mogrify -quality 100 -colorspace GRAY $directory.".$names['small_uri']);
+
+redirect(href('one.html', 'reload', $photo, 'id', $names['album_id']).'#'.$photo);
+

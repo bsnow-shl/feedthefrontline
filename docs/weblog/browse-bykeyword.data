@@ -1,0 +1,24 @@
+$keywords = db_multirow("
+	select distinct(keyword)
+		from weblog_entry_keywords,weblog_entries,weblogs
+		WHERE weblog_entries.weblog_id = weblogs.weblog_id
+		 AND weblog_entry_keywords.weblog_entry_id = weblog_entries.weblog_entry_id
+		AND weblogs.weblog_id = ?
+	", $weblog_row['weblog_id']
+	);
+
+$candidates = db_multirow("
+	select date_part('year', posting_date) as year, 
+		to_char(posting_date, 'Month YYYY') as month, 
+		to_char(posting_date, 'Month DD, YYYY')  as day, 
+		entry_title,uri , keyword,  weblog_entries.weblog_entry_id
+	from weblog_entries ,weblog_entry_keywords
+	where weblog_id=?
+	  AND weblog_entries.weblog_entry_id = weblog_entry_keywords.weblog_entry_id
+	order by posting_date desc", $weblog_row['weblog_id']);
+
+foreach ($candidates as $r) {
+	$entries[$r[keyword]][] = $r;
+}
+
+

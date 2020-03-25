@@ -1,0 +1,191 @@
+// <?
+
+require_once 'i18n.h';
+require_once 'paypal.h';
+require_once 'events.h';
+require_once 'users.h';
+require_once 'events.h';
+
+
+$reg_id = 0+$_GET['reg_id'];
+$confirm = &$_GET['confirm'];
+if (!$reg_id || !$confirm) { trigger_error("wtf"); redirect('/events/index.html'); }
+
+# get the registration row
+$reg = db_row("select *,date_part('epoch', create_datetime) as create_datetime from event_registrations where event_registration_id=?", $reg_id);
+if (!$reg) { redirect("/events/index.html"); }
+
+if (  ($confirm>0 && floor($confirm) != floor($reg['create_datetime']))) {
+	trigger_error("confirm $confirm vs. ".$reg['create_datetime'].' Mismatch between visitor user ID and event registration ID. This will be reported.', E_USER_ERROR);
+	exit();
+}
+
+
+
+# and stuff that hangs off of it
+
+$event_row = db_row('select events.* from events join event_pricing using (event_id) where event_pricing_id=?', $reg['event_pricing_id']);
+$event_id = $event_row['event_id'];
+$event = i18n_get('Event', $event_id);
+$date = $event_row['event_start_date'];
+$hide_postal = $event_row['disable_postal_fields'];
+
+	
+
+$price = db_value('select price from event_pricing where event_pricing_id=?', $reg['event_pricing_id']);
+if (0+$price == '0' ) {
+	db_send('update event_registrations set paid=1,confirmed=1 where event_registration_id=?', $reg_id);
+}
+
+$taxes = taxes_calculate($price, $event_row['tax_scheme_id']);
+
+
+
+$method = db_row('select * from event_payment_methods where payment_method_id=?', $reg['payment_method_id']);
+
+if ($method['style']=='silent' || $_GET['clickthrough']) {
+	$header = $method['header'];
+	if ($header) { eval ("require_once(\"$header\");"); }
+
+	$function = $method['function'];
+	if ($function) { $notify_message = call_user_func($function, $reg_id, $price,  $taxes); }
+}
+
+if ($method['style']=='clickthrough' && !$_GET['clickthrough']) {
+	$clickthrough_req = 1;
+}
+
+
+if (!$reg['email_sent']) {
+	$sitehome = config_get('site','home');
+	$bcc = config_get('events','email_cc');
+	$event_managers = users_with_role('event_manager', $event_id);
+	if ($event_managers) {
+		$sql = join(',', $event_managers);
+		$event_managers_email = db_array("select email from users where user_id in ($sql)");
+		$bcc .= ','.join(',', $event_managers_email);
+	}
+
+    cpf_mail($reg['email'], _("Event registration confirmation"), sprintf(_("Thank you for registering for:\n\t%s\n\twhich begins on %s.\n\nYour confirmation number is %s.\n\nYou can view event details at %sevents/details/%s/.\n\nYour confirmation information, with payment information\n(if applicable) is at %sevents/confirm/%s/%s/."), $event['title'], $date, $reg_id, $sitehome, $event_id, $sitehome, $reg_id, $confirm), array("Bcc: $bcc"));
+
+	db_send('update event_registrations set email_sent=1 where event_registration_id=?', $reg_id);
+}
+
+$method_info = i18n_get('Event payment method', $reg['payment_method_id']);
+$message = $method_info['confirmation'];
+if ($method['short_name'] == 'phone' && $event['Custom phone-in message']) {
+   $message =  $event['Custom phone-in message'];
+}
+
+$fee_name = i18n_get('Event pricing', $reg['event_pricing_id']);
+$fee_name = $date.' - '. $fee_name['description'];
+
+$sessions = db_multirow('select session_start, session_option_id from event_session_registrations join event_session_options using (session_option_id) join event_sessions using (event_session_id) where event_registration_id=?', $reg_id);
+i18n_get_batch($sessions, 'Event session option', 'session_option_id');
+
+if ($_GET['makepdf']) {
+	$tempdir = tempnam('/tmp', 'event-pdf');
+	unlink($tempdir);
+	mkdir($tempdir);
+	$tempfile = $tempdir.'/in.tex';
+	$fh = fopen($tempfile, 'w');	
+	
+	$tot_tax = 0;
+	foreach ($taxes as $t) {
+			$tot_tax += $t['amount'];
+	}
+	$fees = sprintf("\\\$%.02f (%s) + \\\$%.02f (%s) = \\\$%.02f", $price, _('price'), $tot_tax, _('taxes'), $price+$tot_tax);
+
+	$latex = sprintf('
+\documentclass{article}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+\begin{document}
+
+
+\section*{%s}
+
+%s
+
+\paragraph{%s} %s %s
+\paragraph{%s} %s
+\paragraph{%s} %sevents/details/%s
+\subsection*{%s} %s \newline %s \newline %s \newline %s \newline %s \newline %s
+
+\subsection*{%s}
+\paragraph{%s} %s
+\paragraph{%s} %s %s
+\paragraph{%s} %s
+\paragraph{%s} %s, %s, %s, %s, %s
+\paragraph{%s} %s
+\paragraph{%s} %s
+\paragraph{%s} %s
+
+\paragraph{%s} %s \newline
+
+
+%s
+
+\end{document}
+', 
+_('Event registration confirmation'),
+$event['pdf_message'],
+_('Event name'),
+$event['title'],
+$event['caption'] ? '--- '.$event['caption'] : '',
+_('Event date'),
+$fee_name,
+_('Event Info'),
+config_get('site','home'),
+$event_id,
+_('Sessions'),
+$sessions[0]['title'],
+$sessions[1]['title'],
+$sessions[2]['title'],
+$sessions[3]['title'],
+$sessions[4]['title'],
+$sessions[5]['title'],
+
+_('Details'),
+_('Confirmation number'),
+$reg['event_registration_id'],
+_('Registrant'),
+$reg['first_name'],
+$reg['last_name'],
+_('Company'),
+$reg['company'],
+_('Address'),
+$reg['address'],
+$reg['city'],
+$reg['province'],
+$reg['country'],
+$reg['postal_code'],
+_('Phone'),
+$reg['telephone'],
+_('E-mail'),
+$reg['email'],
+_('Payment status'),
+$reg['paid'] ? _('Paid') : _('Not yet paid'),
+_('Event fees'),
+$fees,
+_('We look forward to seeing you.')
+);
+	$latex = str_replace('&','\&', $latex);
+	fwrite($fh,  $latex);
+	fclose($fh);
+	chdir($tempdir);
+	system('latex >/dev/null in.tex');
+	system('dvipdf 2>&1 >/dev/null in.dvi');
+	header('Content-type: application/pdf');
+	header('Content-Disposition: attachment; filename="confirm-'.$reg_id.'.pdf"');
+	header("Last-Modified: ".gmstrftime ("%a, %d %b %Y %T %Z", time()));
+	header('Expires: '.gmstrftime ("%a, %d %b %Y %T %Z", time() + 3600*24));
+
+	readfile('in.pdf');
+	system('mv in.pdf /tmp/');
+	chdir ('/tmp/');
+	system("rm -rf $tempdir");
+	system("rm /tmp/in.pdf");
+	exit();
+}
+// ?>

@@ -1,0 +1,60 @@
+require_once 'form.h';
+require_once 'users.h';
+
+# security bug fixme
+if (!$_SERVER['DEVEL']) { $_GET['email'] = ''; }
+
+form_set(
+	array(  'email_address'=>array('type'=>'email', 'required'=>1, 'default' => $_GET['email']),
+		'blue'=>array('type'=>'password','required'=>'1', 'pretty'=>'Password')
+	)
+);
+
+if ($_REQUEST[goback]) {
+	$_SESSION[goback] = $_REQUEST[goback];
+}
+
+if (form_valid() || $_REQUEST[force]==1) {
+	require_once 'users.h';
+
+	$email_address = strtolower($_REQUEST[email_address]);
+	$blue = $_REQUEST[blue];
+
+	$privacy_freak = config_get('account', 'privacy_freak');
+
+	# establish that user exists
+	if ($privacy_freak || db_value('select count(*) from users where email=?', $email_address)) {
+		# great, now does the password match?
+    if (user_login($email_address, $blue)) {
+			db_send('update users set last_visit=CURRENT_TIMESTAMP where user_id=?', user_id());
+			$goback = $_SESSION[goback];
+			if (!$goback) { $goback = "/"; }
+			redirect($goback);
+		} else {
+			# no: whine
+			if ($privacy_freak) $extra=" (or the account doesn't exist)."; else $extra='.';
+
+			form_error('blue', "The password you gave is wrong$extra Need a <a href=\"".href('resend.html', 'email', $email_address).'">password reminder</a>?');
+		}
+	} else {
+		form_error('email_address', 'Nobody here with that email address.  Maybe you need to <a href="'.href(user_register_link(), 'email_address', $email_address).'">register</a>?');
+	}
+}
+
+switch ($_GET['reason']) {
+	case 'required': 
+		$reason = _('You must log in to access that area.');
+		break;
+
+	case 'not-enough-admin':
+		$reason = sprintf(_('Your account, %s, does not have access to that page. Try <a href="%s">starting here</a>.'), user_email(), '/admin/');
+		break;
+
+	case 'not-enough':
+		$reason = sprintf(_('Your account, %s, does not have access to that page. Try <a href="%s">starting here</a>.'), user_email(), '/');
+		break;
+
+	default:
+		$reason = strip_tags($_GET['reason']);
+}
+

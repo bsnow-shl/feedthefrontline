@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+<title>The form description language</title>
+<meta name="GENERATOR" content=
+"Modular DocBook HTML Stylesheet Version 1.79">
+<link rel="HOME" title="Content Publishing Framework Manual" href=
+"index.html">
+<link rel="UP" title="Form handling" href="forms.html">
+<link rel="PREVIOUS" title="Form handling" href="forms.html">
+<link rel="NEXT" title="Controlling the appearance of your forms"
+href="x624.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2005-03-11T18:12:01">
+</head>
+<body class="SECTION" bgcolor="#FFFFFF" text="#000000" link=
+"#0000FF" vlink="#840084" alink="#0000FF">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="3" align="center">Content Publishing Framework
+Manual</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="bottom"><a href="forms.html"
+accesskey="P">Prev</a></td>
+<td width="80%" align="center" valign="bottom">Chapter 5. Form
+handling</td>
+<td width="10%" align="right" valign="bottom"><a href="x624.html"
+accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="SECTION">
+<h1 class="SECTION"><a name="AEN609" id="AEN609">5.2. The form
+description language</a></h1>
+<p>Forms in the CPF are represented as an ordered list of form
+elements. Each form element has at least a <span class=
+"emphasis"><i class="EMPHASIS">name</i></span> (used to fetch its
+information later), and a <span class="emphasis"><i class=
+"EMPHASIS">type</i></span> (used to describe its appearance and
+validation rules). In addition, each element can have extra
+information to help control the element's appearance or behaviour,
+usually dependent on the type.</p>
+<p>This ordered list of elements is represented as a PHP array:</p>
+<pre class="SCREEN">
+$form = array(
+        'first_name' =&gt; array ( 'type' =&gt; 'text' ),
+        'age'        =&gt; array ( 'type' =&gt; 'integer' ),
+        'city'       =&gt; array ( 'type' =&gt; 'text' ),
+        'email'      =&gt; array ( 'type' =&gt; 'email' )
+);
+</pre>
+<p>Extra attributes can be indicated by extending the array. For
+instance, we'll make the city field default to something, and
+require the email address be present and the age be positive:</p>
+<pre class="SCREEN">
+$form = array(
+        'first_name' =&gt; array ( 'type' =&gt; 'text' ),
+        'age'        =&gt; array ( 'type' =&gt; 'integer', 
+                                'positive' =&gt; 1),
+        'city'       =&gt; array ( 'type' =&gt; 'text',
+                                'default' =&gt; 'Toronto' ),
+        'email'      =&gt; array ( 'type' =&gt; 'email', 
+                                'required' =&gt; 1 )
+);
+</pre>
+<p>This form descriptor can be shrunk, without changing its
+meaning. If you just have a type, provide a string with that type
+name. If you have a type field along with some constraint (like age
+or required) set to 1, tack it on with a comma. Like so:</p>
+<pre class="SCREEN">
+$form = array(
+        'first_name' =&gt; 'text',
+        'age'        =&gt; 'integer,positive', 
+        'city'       =&gt; array ( 'type' =&gt; 'text',
+                                'default' =&gt; 'Toronto' ),
+        'email'      =&gt; 'text,required'
+);
+</pre>
+<p>Forms can be automatically rendered by the CPF (see <a href=
+"forms-end.html">Section 5.6</a>). In this case, the element name
+is used to automatically make up a field label, using a simple
+algorithm for capitalization and introducing spaces. In the above
+example, the automatically-generated field labels will be "First
+name", "Age", "City", and "Email". These automatic names can be
+overridden with the <tt class="LITERAL">pretty</tt> attribute (see
+below).</p>
+<p>A reference to the form description language is provided in
+QUACK.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="forms.html"
+accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html"
+accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="x624.html"
+accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">Form handling</td>
+<td width="34%" align="center" valign="top"><a href="forms.html"
+accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">Controlling the
+appearance of your forms</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

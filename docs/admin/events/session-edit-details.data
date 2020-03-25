@@ -1,0 +1,10 @@
+//<?
+require_once 'form.h';
+form_set('default', array(
+		'session_start' => array('type'=>'timestamp','required'=>1, 'size'=>20),
+		'duration' => array('type'=>'integer', 'required'=>1, 'min' => 1, 'hint'=>'minutes')),
+	 db_row('select session_start,duration from event_sessions where event_session_id = ?', $_GET['sid']));
+if (form_valid()) {
+	db_send('update event_sessions set session_start=?, duration=? where event_session_id=?', $session_start, $duration, $_GET['sid']);
+	redirect(href('session-edit.html','sid',$_GET['sid']));
+}

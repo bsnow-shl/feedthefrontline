@@ -1,0 +1,19 @@
+
+
+$notify_id = 0+$_GET['notify_id'];
+
+$data = db_multirow('select * from paypal_notification_data where paypal_notification_id=?', $notify_id);
+
+foreach ($data as $row) {
+	$req .= "$row[key]=$row[value]&";
+}
+$req = substr($req,0,-1);
+
+$url = config_get('site','home').'admin/special/paypal-notify.php';
+$ch = curl_init();
+
+curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $req);
+curl_exec($ch);
+curl_close($ch);

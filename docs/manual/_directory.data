@@ -1,0 +1,33 @@
+global $template_stylesheets;
+global $vers;
+$vers = "4.0";
+$template_stylesheets['all'][] = "/manual/style.css";
+$template_stylesheets['print'][] = "/manual/style-print.css";
+
+
+global $page_flow;
+$page_flow = array(
+	'index.html'=>'Table of Contents',
+	'intro.html'=>'Introduction',
+	'tutorial.html'=>'Tutorial',
+	'templating.html'=>'Templating introduction',
+	'templating.details.html'=>'Templating details',
+	'db.html' => 'Database layer introduction',
+	'db.h.html'=>'Database function reference',
+	'form.html' => 'Forms introduction',
+	'form.details.html' => 'Forms details',
+	'form.h.html' => 'Forms function reference'
+);
+
+
+global $next,$prev;
+$self = basename(CPF_SELF);
+
+$keys = array_keys($page_flow);
+$keys_r = array_flip($keys);
+
+if (isset($keys_r[$self])) {
+	$next = $keys[ $keys_r[$self] + 1 ];
+	$prev = $keys[ $keys_r[$self] - 1 ];
+}
+

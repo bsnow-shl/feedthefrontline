@@ -1,0 +1,6 @@
+<?
+
+	db_send('update bboard_messages set approved=? where bboard_message_id=?', $_REQUEST['approve'], $_REQUEST['post']);
+	redirect($_REQUEST[goback]);
+
+?>

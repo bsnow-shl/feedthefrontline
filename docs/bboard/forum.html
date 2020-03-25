@@ -1,0 +1,132 @@
+
+<? if ($post < 1): ?>
+<!--
+<title><%= $forum[pretty_name] %></title>
+-->
+
+<div class="section">
+<p><%= $forum['blurb'] %></p>
+
+<? if ($post == 'older'): ?>
+<h3>All posts</h3>
+<? else: ?>
+<h3>Recent posts</h3>
+<? endif ?>
+
+<? if ($is_forum_admin && $approval_col) : ?>
+  ( view 
+  <a href="<%= href($_SERVER[REQUEST_URI], 'approval', 'all') %>">all</a>
+  <a href="<%= href($_SERVER[REQUEST_URI], 'approval', 'unapproved') %>">unapproved</a>
+  <a href="<%= href($_SERVER[REQUEST_URI], 'approval', 'approved') %>">approved</a> )
+<? endif ?>
+
+<ul>
+<? foreach ($topics as $t): ?>
+<li>
+<a href="<%= $uri.$t[bboard_message_id].'?msgCount='.$t[msgcount] %>"><%= $t[headline] %></a> <i>&mdash; <%= (config_get('account', 'privacy_freak') ? $t['screen_name'] : ($t['first_name'].' '.$t['last_name'])) %></i>.  (<%= $t[msgcount] .( $count++ ? '' : ' replies') %>)
+
+<? if ($is_forum_admin): ?>
+ (<a href="<%= href('/admin/bboard/trash.html', 'post', $t[bboard_message_id], 'goback', $_SERVER[REQUEST_URI]) %>">trash</a>)
+ <? if (bboard_config($short)=="approval") : ?>
+   <? if ($t['approved'] === 't') : ?>
+     (<a href="<%= href('/admin/bboard/approve.html', 'approve', 'f', 'post', $t[bboard_message_id], 'goback', $_SERVER[REQUEST_URI]) %>">unapprove</a>)
+   <? else : ?>
+     (<a href="<%= href('/admin/bboard/approve.html', 'approve', 't', 'post', $t[bboard_message_id], 'goback', $_SERVER[REQUEST_URI]) %>">approve</a>)
+   <? endif ?>
+ <? endif ?>
+<? endif ?>
+</li>
+<? endforeach ?>
+</ul>
+
+Other actions:<br/>
+&raquo; <a href="<%= href('/bboard/post.html', 'bboard_id', $forum[bboard_id])%>">Start a new topic</a> <br/>
+&raquo; <a href="<%= href('/bboard/subscribe.html', 'bboard_id', $forum[bboard_id])%>">Subscribe via e-mail</a>
+<? if ($rss_url): ?>
+or  <a href="<%= $rss_url %>">RSS</a>
+<? endif ?>
+<br/>
+<? if ($post != 'older'): ?>
+&raquo; <a href="<%= $uri %>older">See older topics</a> <br/>
+<? else: ?>
+&raquo; <a href="<%= $uri %>">See only recent topics</a> <br/>
+<? endif ?>
+
+&raquo; <a href="/bboard/">Other forums</a>
+
+<p>
+</div>
+
+<? else: ?>
+<!--
+<title><%= $topic[0][headline] %></title>
+<subtitle>A topic in <a href="<%= $uri %>/"><%= $forum[pretty_name] %></a></subtitle>
+-->
+<? if ($is_forum_admin && $approval_col) : ?>
+  ( view 
+  <a href="<%= href($_SERVER[REQUEST_URI], 'approval', 'all') %>">all</a>
+  <a href="<%= href($_SERVER[REQUEST_URI], 'approval', 'unapproved') %>">unapproved</a>
+  <a href="<%= href($_SERVER[REQUEST_URI], 'approval', 'approved') %>">approved</a> )
+<? endif ?>
+
+
+<div class="section">
+<? if (!$topic): ?>
+	<p>No such topic.
+	Perhaps it has been deleted or archived?
+	</p><p>
+	Visit the <a href="<%= $uri %>">bulletin board</a> index.
+	</p>
+<? else: ?>
+
+
+<h3><%= $topic[0][headline] %></h3>
+	<? foreach ($topic as $t): ?>
+	<? if ($t['attachment_size']) {
+		$att = thumbnail_for($t['bboard_message_id']);
+	} ?>
+
+	<div class="bboardsection">
+	<? if ($att) {
+	   	photo($att);
+	} ?>
+	<%= $t[body] %>
+
+	<? if ($t['attachment_size']) { ?>
+		<p/>Attachment: <a href="<%= href('/bboard/show-attachment.php', 'msgid', $t[bboard_message_id]) %>"><%= $t['attachment_name'] %></a>, <%= ceil($t['attachment_size']/1024) %>K document.
+	<? } ?>
+
+	<div align=right><i>
+	<? if (config_get('account','privacy_freak')): ?>
+		<%= $t[screen_name] %><br/>
+	<? else: ?>
+	<%= $t[first_name].' '.$t[last_name] %><br/>
+	<? endif ?>
+	<%= date('l, F j Y', $t['post_date_unix']) %> <br/>
+	<? if ($is_forum_admin): ?>
+	 (<a href="<%= href('/admin/bboard/trash.html', 'post', $t[bboard_message_id], 'goback', $_SERVER[REQUEST_URI]) %>">trash</a>
+	 | <a href="<%= href('/admin/bboard/bozoify.html', 'user', $t[author], 'goback', $_SERVER[REQUEST_URI]) %>">bozo</a>)
+      <? if (bboard_config($short)=="approval") : ?>
+        <? if ($t['approved'] === 't') : ?>
+          (<a href="<%= href('/admin/bboard/approve.html', 'approve', 'f', 'post', $t[bboard_message_id], 'goback', $_SERVER[REQUEST_URI]) %>">unapprove</a>)
+        <? else : ?>
+          (<a href="<%= href('/admin/bboard/approve.html', 'approve', 't', 'post', $t[bboard_message_id], 'goback', $_SERVER[REQUEST_URI]) %>">approve</a>)
+        <? endif ?>
+      <? endif ?>
+	<? endif ?>
+
+	</i></div>
+	</div>
+	<? endforeach ?>
+
+	&raquo; <a href="<%= href('/bboard/reply.html', 'bboard_id', $forum[bboard_id], 'post', $topic[0][bboard_message_id]) %>">Reply to this topic</a>
+	<p/>
+	&raquo; <a href="<%= $uri %>">See recent topics</a>
+<? endif ?>
+</div>
+
+
+<? endif ?>
+
+
+

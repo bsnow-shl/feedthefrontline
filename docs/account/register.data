@@ -1,0 +1,160 @@
+require_once 'form.h';
+require_once 'users.h';
+
+if (config_get('account','no_registration') && ! user_has_role('user_admin')) {
+	exit("Registration is disabled.");
+}
+
+
+function post_reg_redirect($email_address,$password) {
+        if ($_REQUEST['goback']) {
+          $goback = $_REQUEST['goback'];
+        } else if ($_SESSION['goback']) {
+          $goback = $_SESSION['goback'];
+        } else {
+          $goback = '/';
+        }
+		if ($_GET['noautologin']==1) {
+			redirect($goback);
+		} else {
+			redirect(href('login.html', 'email_address', $email_address, 'force', '1', 'blue', $password,'goback',$goback));
+		}
+}
+
+$form = array(
+	'first_name'=>'text,required',
+	'last_name'=>'text',
+	'email_address'=>'email,required',
+);
+if (!config_get('account','verify_new_email')) {
+	$form['password']='password,required';
+}
+
+$callback = config_get('users', 'user_register_callback'); 
+if ($callback) {
+    list ($template, $extra_user_details)  = call_user_func($callback);
+    $form += $extra_user_details;
+}
+
+
+form_set($form);
+
+if (form_valid()) {
+
+    $dbuser_exists = db_row("select count(email)-count(not_verified) as registered, "
+                            ."count(not_verified) as invited from users where email=?",$email_address);
+
+    /*
+     * Validity check: existence
+     */
+	if ($dbuser_exists['registered']>0) {
+		form_error('email_address',"That email address is already registered.  "
+                   .'You can <a href="'.href('login.html','email',$email_address).'">log in over here</a>.');
+
+    } else if (config_get('account','invite_only') && $dbuser_exists['invited']==0) {
+      redirect("invite.html?content=noinvite&email=$email_address");
+
+
+    /*
+     * Email-verification options
+     */
+
+    } else if (config_get('account','verify_new_email')) {
+
+      //  send out the verification email, 
+      //  the 'not_verified' code will be posted to verifyemail.html
+      //  and we can register an update, login, and continue
+
+      $reg_code = "";  //8 uppercase chars:
+      for ($i=0; $i<8; $i++) $reg_code .= chr(rand(65,90));
+
+      if ($_REQUEST['goback']) {
+        $goback="goback=".$_REQUEST['goback']."&";
+      } else {
+        $goback="";
+      }
+
+      $maillink = config_get('site','home')."account/verifyemail.html?content=verify&email=$email_address&code=$reg_code&${goback}last=end";
+      $shortlink = config_get('site','home')."account/verifyemail.html";  //goback is lost on this one
+
+      if (config_get('account','invite_only')) {
+        //the user (email) is alrady created. We'll just update with new info
+        //  invited_by stays intact
+        db_send("update users set first_name=?,last_name=?,not_verified=? where email=?",
+                $first_name,$last_name,$reg_code,$email_address);
+      } else {
+        db_send("insert into users (email,first_name,last_name,not_verified,company,phone,address) values (?,?,?,?,?,?,?)",
+              $email_address,$first_name,$last_name,$reg_code, $organization, $phone, $address);
+      }
+
+      if (!cpf_mail($email_address, "Register for TrueGenius.com", 
+                         "Dear Genius:\n"
+                         ."\n"
+                         ."You have requested to register the email address &lt;$email_address&gt;\n"
+                         ."with TrueGenius.com.  This message verifies your address.  You can continue your\n"
+                         ."registration by clicking <a href='$maillink'>here</a> or posting the code $reg_code\n"
+                         ."on this page: <a href='$maillink'>$shortlink</a>.\n"
+                         ."\n"
+                         ."Thanks for registering.  Have fun!!\n"
+                         ."    The TrueGenius.com Web Team\n\n")) {
+        //Ooooh, mail failed.  what now?
+        error_log("Failed to send registration mail to $email_address with code $reg_code .  User not notified!");
+      }
+      redirect("verifyemail.html?content=referemail&email=$email_address");
+
+
+
+    /*
+     * Actual Registration
+     */
+
+	} else {
+
+      $invited_by = null;
+      if (config_get('account','invite_only')) {
+        $invited_by = db_value("select invited_by from users where email=?",$email_address);
+        //delete the invite
+        db_send("delete from users where email=?",$email_address);
+        //new entry will have the registration date as 'member_since'
+      }
+
+      db_send('insert into users(email, password_md5, first_name, last_name) values (?,?,?,?)',
+              $email_address,
+              user_hash_for_password($password),
+              $first_name,
+              $last_name);
+
+      if ($extra_user_details) {
+        $update = array();
+        foreach ($extra_user_details as $key=>$ignored) {
+            $update[$key] = $$key;
+        }
+        db_update('users', 'email', $email_address, $update);
+      } 
+
+      if (config_get('account','invite_only')) {
+        //transfer extra data to the new entry
+        db_send("update users set invited_by=? where email=?",$invited_by,$email_address);
+      }
+      
+      post_reg_redirect($email_address,$password);
+
+	}
+
+
+}
+	
+require_once 'i18n.h';
+$content = i18n_get_current_content("Registration Page");
+$page_title = "Get an account on this site.";
+if ($content['Page title']) {
+	$page_title = $content['Page title'];
+}
+
+$page_subtitle = "We will treat your information with care.";
+if ($content['Page subtitle']) {
+	$page_subtitle = $content['Page subtitle'];
+}
+
+$content = $content['Before registration form'];
+

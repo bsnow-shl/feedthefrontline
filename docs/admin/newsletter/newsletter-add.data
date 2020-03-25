@@ -1,0 +1,19 @@
+// <?
+
+require_once 'form.h';
+
+
+form_set(array(
+	'newsletter_name' => array('type' => 'text', 'required' => 1, 'pretty' => 'Mailing List Name')
+));
+if (form_valid()) {
+	$newsletter_id = db_newid('newsletters');
+	db_send('insert into newsletters(newsletter_id, name) values (?,?)',
+		$newsletter_id, $newsletter_name);
+	db_send('insert into newsletter_subscriptions (user_id,newsletter_id,parameter)
+			values (?,?,?)', user_id(), $newsletter_id, 'test');
+
+	redirect('index.html');
+}
+
+// ?>

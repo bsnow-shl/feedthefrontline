@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+<title>db_value</title>
+<meta name="GENERATOR" content=
+"Modular DocBook HTML Stylesheet Version 1.79">
+<link rel="HOME" title="Content Publishing Framework Manual" href=
+"index.html">
+<link rel="UP" title="Function reference" href="x407.html">
+<link rel="PREVIOUS" title="Function reference" href="x407.html">
+<link rel="NEXT" title=" db_row " href="db-dbrow.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2005-03-11T18:12:01">
+</head>
+<body class="REFENTRY" bgcolor="#FFFFFF" text="#000000" link=
+"#0000FF" vlink="#840084" alink="#0000FF">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="3" align="center">Content Publishing Framework
+Manual</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="bottom"><a href="x407.html"
+accesskey="P">Prev</a></td>
+<td width="80%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="bottom"><a href=
+"db-dbrow.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="DB-DBVALUE" id="DB-DBVALUE"></a>db_value</h1>
+<div class="REFNAMEDIV"><a name="AEN410" id="AEN410"></a>
+<h2>Name</h2>
+db_value &nbsp;--&nbsp; Retrieves a single value from the
+database.</div>
+<div class="REFSYNOPSISDIV"><a name="AEN413" id="AEN413"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">
+        $scalar = db_value(sql, [ parameter ...] );
+        
+</pre></div>
+<div class="REFSECT1"><a name="AEN415" id="AEN415"></a>
+<h2>Description</h2>
+<p>This function retrieves a one-column, one-row result from the
+database. <tt class="REPLACEABLE"><i>sql</i></tt> must be a valid
+SELECT statement with a single-valued result. <tt class=
+"REPLACEABLE"><i>parameters</i></tt> is 0 or more parameters
+corresponding to placeholders in the SQL.</p>
+<p>The function returns boolean false if the query fails, returns
+nothing, or returns 2 or more rows.</p>
+<pre class="SCREEN">
+$c = db_value('select count(*) from users');
+if ($c === false) {
+    /* query failed */
+} else {
+    print "There are $r users";
+}
+</pre></div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="x407.html"
+accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html"
+accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="db-dbrow.html"
+accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">Function reference</td>
+<td width="34%" align="center" valign="top"><a href="x407.html"
+accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">db_row</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+
+require_once 'i18n.h';
+require_once 'form.h';
+
+$classid = $_GET['type'];
+if ($_POST['newid']) {
+	redirect(href('sysobject-edit.html', 'obj', $_POST['newid'], 'class', $classid));
+}
+
+form_set(array(
+	'class' => array('type'=>'menu', 'sql'=> 'select class_id as key, class_name as value from i18n_classes ', 'default' => $classid)
+));
+if (form_valid()) {
+	$classid = $class;
+}
+
+$objids = db_array('select distinct(object_id) from i18n join i18n_fields using (field_id) where class_id = ?', $classid);
+$class_name = db_value('select class_name from i18n_classes where class_id=?', $classid);
+

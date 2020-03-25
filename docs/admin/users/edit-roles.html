@@ -1,0 +1,32 @@
+<!--
+<title><? echo $user_row[first_name].' '.$user_row[last_name] ?></title>
+-->
+
+<h3>Roles</h3>
+<div class="section">
+
+<p>
+The following roles have been granted.
+</p>
+
+
+
+<table class="padded"><tr><th>Role name</th><th>Constraints (if any)</th><th>Description</th></tr>
+
+<? foreach ($roles as $r) {
+	$id = $r['user_role_map_id'];
+	$name = $r['role_name'];
+	$desc = $r['description'];
+	$p = $r['parameter'];
+	echo "<tr><td>$name</td><td>$p</td><td>$desc</td><td> (<a href=\"".href('role-revoke.html', 'urmid', $id).'">revoke</a>)</td></tr>';
+} ?>
+</table>
+
+<h4>
+Grant a new role
+</h4>
+
+<? form_start('newrole'); form_end(); ?>
+</div>
+
+

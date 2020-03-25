@@ -1,0 +1,26 @@
+//<?
+require_once 'form.h';
+
+$eid = 0+$_GET['eid'];
+$e = db_row ('select name ,event_start_date from events where event_id=?', $eid);
+$title = $e['name'];
+
+form_set(array(
+	'session_date' => array('type'=>'date', 'required' => 1, 'hint' => 'yyyy-mm-dd', 'default' => $e['event_start_date']),
+	'session_time' => array('type'=>'time','required'=>1, 'hint' => 'HH:MM'),
+	'duration' => array('type'=>'integer', 'positive' => 1, 'required' => 1, 'default' => '60', 'size' => 3, 'hint' => 'minutes'),
+));
+if (form_valid()) {
+	db_send('begin');
+	$sid = db_newid('event_sessions');
+
+	db_insert_hash('event_sessions', array(
+		'event_session_id' => $sid,
+		'event_id' => $eid,
+		'session_start' => date("Y-m-d H:i", strtotime("$session_date $session_time")),
+		'duration' => $duration
+	));
+	db_send('commit');
+	redirect(href('session-edit.html', 'sid', $sid));
+}
+

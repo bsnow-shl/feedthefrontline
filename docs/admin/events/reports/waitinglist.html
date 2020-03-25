@@ -1,0 +1,24 @@
+<!--
+<title>Waitng list for <cite><%= $event_name %></cite></title>
+-->
+
+<div class="section">
+<table class=padded>
+<tr><th>#</th><th>Joined list</th><th>Name</th><th>Email</th><th>Phone</th><th>Company</th><th>Notes</th><th>Language</th><th>Action</th></tr>
+
+<? foreach ($standbys as $s): ?>
+<tr>
+<td><%= $s['standby_registration_id'] %></td>
+<td><%= date("Y-m-d H:i", $s['create_tstamp'])%></td>
+<td><%= $s['name'] %></td>
+<td><%= $s['email'] %></td>
+<td><%= $s['phone'] %></td>
+<td><%= $s['company'] %></td>
+<td><%= $s['language_id'] %></td>
+<td><%= $s['notes'] %></td>
+<td><a href="<%= href('waitinglist-drop', 'eid', $eid, 'srid', $s['standby_registration_id']) %>">drop</a></td>
+</tr>
+<? endforeach ?>
+</table>
+
+<div>

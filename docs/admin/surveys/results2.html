@@ -1,0 +1,32 @@
+<!--
+<title>Survey results: <%= $sur['short_name'] %></title>
+-->
+
+<div class="section">
+
+<table class=padded><tr valign="top">
+<!--
+<th>Respondent</th>
+<th>IP address</th>
+-->
+<th>Date</th>
+
+<? foreach ($questions as $id => $q) {
+	echo "<th>{$q['question']}</th>";
+} ?>
+</tr>
+
+<?  foreach ($answers as $a) {
+                echo '<tr valign="top">';
+		echo "<!-- <td>{$a['respondent']}</td> -->";
+		echo "<!-- <td>{$a['ip']}</td> -->";
+		echo "<td>{$a['date']}</td>";
+		foreach ($questions as $id=>$q) {
+			echo "<td>{$a['answers'][$id]}</td>";
+		}
+		echo '</tr>';
+} ?>
+
+</table>
+
+</div>

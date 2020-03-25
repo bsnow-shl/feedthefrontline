@@ -1,0 +1,38 @@
+<!--
+<title>Draft versions of <cite><%= $info['title'] %></cite></title>
+-->
+
+<div class="section">
+<p>There are <%= sizeof($drafts) %> draft revisions of that content item.  
+<? if ($current_objid): ?>
+  You can
+  <a href="<%= href('edit-item.html', 'content_id', $content_id, 'object_id', $current_objid) %>">edit</a>
+  or <a href="<%= href('/content/'.$short_name) %>">preview</a>
+   the current live version.
+<? endif ?>
+</p>
+
+<? if ($drafts): ?>
+
+<table class="padded">
+<tr><th>Item #</th><th>Created</th><th>Author</th><th>Actions</th></tr>
+<? foreach ($drafts as $d): ?>
+<tr>
+<td><%= $d['object_id'] %></td>
+<td><%= date("M d H:i:s", $d['create_datetime']) %></td>
+<td><%= user_name($d['created_by']) %></td>
+<td>
+<a href="<%= href('change-draft-status.html', 'content_id', $content_id, 'object_id', $d['object_id'], 'action', 'drop') %>">drop</a> | 
+<a href="<%= href('edit-item.html', 'content_id', $content_id, 'object_id', $d['object_id'], 'action', 'edit') %>">edit</a> | 
+<a href="<%= href('change-draft-status.html', 'content_id', $content_id, 'object_id', $d['object_id'], 'action', 'preview') %>">preview</a> | 
+<a href="<%= href('change-draft-status.html', 'content_id', $content_id, 'object_id', $d['object_id'], 'action', 'post') %>">post</a>  
+</td>
+</tr>
+
+
+<? endforeach ?>
+</table>
+
+<? endif ?>
+
+</div>

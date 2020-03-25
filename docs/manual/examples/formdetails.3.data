@@ -1,0 +1,18 @@
+
+require 'form.h';
+
+$form = array(
+        'name'       => 'text,required',
+        'age'        => 'integer',
+        'biography'  => 'bigtext',
+		'favourite_colour' => array(
+		                 'type'=>'menu',
+						 'menu'=>array('r'=>'Red','b'=>'Blue')
+		 ) 
+);
+
+form_set($form);
+
+if (form_valid()) {
+	form_add_note("The form passed validation.");
+}

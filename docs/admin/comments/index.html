@@ -1,0 +1,8 @@
+<!--
+<title>Comments facilities admin</title>
+-->
+
+<div class="section">
+There's <%= db_value('select count(*) from comments') %> <a href="comments.html">comments</a> in
+ <%= db_value('select count(*) from comment_systems') %> <a href="systems.html">commenting systems</a>.
+</div>

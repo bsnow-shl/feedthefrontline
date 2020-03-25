@@ -1,0 +1,26 @@
+require_once 'i18n.h';
+
+# get all sessions
+$event_name = db_value('select name from events where event_id=?', $_GET['eid']);
+
+
+$sessions_query = db_multirow("select event_sessions.event_session_id, event_sessions.session_start, event_sessions.duration, 
+					event_session_options.session_option_id, event_session_options.capacity,  
+					event_registrations.first_name || ' '  || event_registrations.last_name as name ,event_registrations.telephone, event_registrations.email, event_registrations.event_registration_id, event_registrations.company, confirmed, paid
+				from event_sessions join event_session_options using (event_session_id) left outer join event_session_registrations using (session_option_id) join event_registrations using (event_registration_id)
+				where event_sessions.event_id=? and confirmed=1 
+				order by session_start, session_option_id", $_GET['eid']);
+
+i18n_get_batch($sessions_query, 'Event session option', 'session_option_id');
+
+$sessions = array();
+foreach ($sessions_query as $q) {
+	$sessions[ $q['event_session_id' ]] ['info'] = $q;
+	$sessions[ $q['event_session_id' ]] ['options'] [ $q['session_option_id']] ['info'] = $q;
+	if ($q['confirmed']) {
+		$sessions[ $q['event_session_id' ]] ['options'] [ $q['session_option_id']] ['attendees'][] = $q;
+	} else {
+		$sessions[ $q['event_session_id' ]] ['options'] [ $q['session_option_id']] ['attendees'] = array();
+	}
+}
+

@@ -1,0 +1,17 @@
+<!--
+<title>Post to <%= $pretty_name %></title>
+-->
+	<div class="section">
+	<h3>Start a new topic</h3>
+	
+	<? form_start('post'); ?>
+	<table>
+		<tr><th align=left>Subject</th></tr><tr><td>@@subject@@</td></tr>
+		<tr><th align=left>Message</th></tr><tr><td>@@message@@<br/><small>Allowed HTML: A, IMG, B, EM, I, U, BLOCKQUOTE, P, BR.</small></td></tr>
+		<? if (user_has_role('bboard_attachments')): ?>
+		<tr><th align=left>Attachment</th></tr><tr><td>@@attachment@@</td></tr>
+		<? endif ?>
+		<tr><td align=right >@@submit@@</td></tr>
+	</table>
+	<? form_end(); ?>
+	</div>

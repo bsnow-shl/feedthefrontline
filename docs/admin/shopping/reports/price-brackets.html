@@ -1,0 +1,24 @@
+<!--
+<title>Price bracketing</title>
+-->
+
+<div class="section">
+
+<p><%= $num_found %> products found in various categories.</p>
+
+
+<table class="padded"><tr><th>Bracket</th><th>Count</th></tr>
+
+<? foreach ($brackets as $name=>$count): ?>
+<tr><td><%= $name %></td><td><%= str_repeat("&#9674;", $count) %></td></tr>
+<? endforeach ?>
+</table>
+
+<h3>20-dollar price brackets:</h3>
+<table class="padded"><tr><th>Bracket</th><th>Count</th></tr>
+
+<? foreach ($bucks as $name=>$count): ?>
+<tr><td><%= $name %></td><td><%= str_repeat("&#9674;", $count) %></td></tr>
+<? endforeach ?>
+</table>
+</div>

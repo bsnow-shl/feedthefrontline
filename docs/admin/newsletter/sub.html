@@ -1,0 +1,54 @@
+<!--
+<title>Manage subscriptions</title>
+-->
+
+<div class="section">
+<? if ($messages) { 
+	echo "<h4>Results</h4>
+	<p>Summary: $accepted accepted, $rejected lines that don't look like email addresses.</p>
+	<ul><li>".join("<li>", $messages).'</ul>'; 
+} else { ?>
+<? if ($user_row): ?>
+<p>
+You are managing subscriptions for: <b><%= $user_row['email'] %></b>
+</p>
+<? else: ?>
+
+<p>
+You can create a batch of new subscriptions with this page. Choose the subscription parameters, then 
+provide your additions according to <a href="sub-spec.html">our specifications</a>.
+</p>
+<? endif ?>
+
+<? form_start();  ?>
+
+
+<table class=padded>
+<tr>
+<td></td>
+<? foreach ($editions as $key => $ename) {
+	echo "<th>$ename</th>";
+} ?>
+</tr>
+<? foreach ($newsletters as $n): ?>
+<tr><th><%= $n['name'] %></th>
+<? foreach ($editions as $ekey => $ename) {
+	echo "<td align=center>@@sub[${n['newsletter_id']}][$ekey]@@</td>";
+} ?>
+</tr>
+
+<? endforeach ?>
+
+<? if (!$user_row): ?>
+<tr><td>&nbsp;</td></tr>
+<tr><th>User batch</th><td colspan=10><tt>email, first, last, company</tt> -- see our <a href="sub-spec.html">spec</a><br/>@@batch@@</td></tr>
+<? endif ?>
+
+
+</table>
+<? form_end(); ?>
+
+<? } ?>
+
+</div>
+

@@ -1,0 +1,51 @@
+// <?
+
+require_once 'dbadmin.h';
+require_once 'form.h';
+
+if (!$edit_user) {
+    redirect('/admin/users/');
+}
+
+
+user_require('role_admin');
+
+form_set('newrole', array(
+	'new_role' => array ('type'=> 'menu', 
+				'sql' => "select role_id as key, role_name||'-'||description as value from roles where visible=1 and role_id not in (select role_id from user_role_map where user_id=? and parameter is null) order by role_name",
+				'sqlp1' => $edit_user,
+				'required' => 1
+				)
+));
+
+if (form_valid('newrole')) {
+    $parameter = db_value('select role_parameters from roles where role_id=?', $new_role);
+    if ($parameter == 'no') {
+        user_grant_role($edit_user, $new_role);
+        form_add_note('The new role has been granted.');
+    } else {
+        redirect(href('role-add.html', 'role_id', $new_role));
+    }
+}
+
+$user_row = db_row('select * from user_reporting_view where user_id=?', $edit_user);
+
+
+$roles = db_multirow('select *
+                from user_role_map,roles left outer join classes on (role_parameter_class_id = class_id) 
+                where roles.role_id = user_role_map.role_id 
+                    and user_id=?', $edit_user);
+
+for ($i=0; $i<sizeof($roles); $i++) {
+    $row = &$roles[$i];
+    if ($row[parameter]) {
+        $table = $row[table_name];
+        $pkey = $row[table_pkey_column];
+        $pretty = $row[table_pretty_column];
+        $row['parameter'] =  $row[class_name].': '.db_value("select $pretty from $table where $pkey=?", $row[parameter]);
+    }
+}
+
+
+
+// ?>

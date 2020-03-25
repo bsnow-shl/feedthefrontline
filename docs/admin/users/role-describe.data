@@ -1,0 +1,15 @@
+require_once 'form.h';
+require_once 'users.h';
+user_require('role_admin');
+
+$rid = 0+$_GET['id'];
+$row = db_row('select role_name,description from roles where role_id=?', $rid);
+
+form_set('default', array(
+	'description' => 'text,required'
+), $row);
+
+if (form_valid()) {
+	db_send('update roles set description=? where role_id=?', $description, $rid);
+	redirect('roles.html');
+}

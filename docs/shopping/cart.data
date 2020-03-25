@@ -1,0 +1,42 @@
+
+require_once 'shopping.h';
+require_once 'paypal.h';
+
+if (shopping_shopcart_id()) {
+	list ($details_in, $summary)  = shopping_get_shopcart_contents();
+	if ($summary['status'] != 'new') { redirect(href('order-status.html', 'id', $summary['strong_shopcart_id'])); }
+	$taxes = taxes_calculate( $summary['total']/100 , config_get('shopping', 'tax_scheme_id'));
+}
+foreach ($details_in as $d) {
+    if ($details[ $d['product_id'] ] ) { 
+        $details[ $d['product_id'] ]['quantity'] ++;
+        $details[ $d['product_id']]['shopcart_entry_ids'][] = $d['shopcart_entry_id'];
+    } else {
+        $details[ $d['product_id'] ] = $d;
+        $details[ $d['product_id'] ]['quantity'] = 1;
+        $details[ $d['product_id']]['shopcart_entry_ids'][] = $d['shopcart_entry_id'];
+    }
+}
+
+if ($_POST['qtyform']) {
+    foreach ($_POST['qty'] as $pid => $qty) {
+        $diff = $qty - $details[ $pid ]['quantity'];
+        if ($diff>0) {
+            # add some
+            while ($diff--) {
+                shopping_add_product_to_shopcart($pid);
+            }
+        } else {
+            while ($diff++) {
+                $sceid = array_pop($details[$pid]['shopcart_entry_ids']);
+                if ($sceid) {
+                    shopping_drop_shopcart_entry($sceid);
+                }
+            }
+        }
+    }
+    redirect('cart.html');
+}
+if (!$details) { $details = array(); }
+
+

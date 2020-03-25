@@ -1,0 +1,23 @@
+<!--
+<Title>error details</title>
+-->
+
+<p>
+Delete 
+<a href="<%= $_SERVER['REQUEST_URI'] %>&chuck=one">this error</a>,
+or errors <a href="<%= $_SERVER['REQUEST_URI'] %>&chuck=fileline">at the same place</a>, 
+<a href="<%= $_SERVER['REQUEST_URI'] %>&chuck=message">with the same error message</a>, or 
+<a href="<%= $_SERVER['REQUEST_URI'] %>&chuck=later">that happened since</a>.
+</p>
+
+<? print_a($header) ?>
+<pre>
+<%= $context %>
+</pre>
+
+<p>
+Delete 
+<a href="<%= $_SERVER['REQUEST_URI'] %>&chuck=one">this error</a> or
+<a href="<%= $_SERVER['REQUEST_URI'] %>&chuck=similar">all similar errors</a>.
+
+</p>

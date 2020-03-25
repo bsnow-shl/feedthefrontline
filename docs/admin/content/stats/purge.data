@@ -1,0 +1,16 @@
+
+# obtain a list of object id's in this class
+# obtain a list of object id's that are currently published in this class
+# substract B from A
+# delete those
+
+
+
+$class_id = $_GET['class_id'];
+
+db_send('delete from i18n 
+	 where field_id in (select field_id from i18n_fields where class_id=?) 
+	 and object_id not in (select object_id from i18n_content_map join i18n_content using (content_id) where class_id=? and (takedown_datetime > CURRENT_TIMESTAMP or takedown_datetime is null))', $class_id, $class_id);
+
+redirect('index.html');
+

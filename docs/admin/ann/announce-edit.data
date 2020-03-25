@@ -1,0 +1,71 @@
+require_once 'form.h';
+require_once 'uploads.h';
+
+$ann_id = $_GET['id'];
+
+$form = array(
+	'category' => array('type'=>'menu', 'required'=>1, 'menu' => config_get('announcements', 'categories')),
+	'start_date' => 'date,required',
+	'end_date' => 'date',
+	'posting_date' => 'timestamp,required',
+	'takedown_date' => 'timestamp',
+	'url' => array('type'=>'text', 'pretty'=> 'URL', 'hint'=> 'If the announcement is at an external URL, provide it here.'),
+	'file' => array('type'=>'text', 'hint'=> 'If the announcement is a PDF document, upload it here.'),
+);
+$form += i18n_form_fields('announcement',$ann_id);
+form_set($form);
+
+if (!form_submitted()) {
+    $_REQUEST =  db_row('select * from announcements where announcement_id=?', $ann_id);
+}
+
+if (form_valid()) {
+    if (!$start_date) {
+        $start_date = 'today';
+    }
+    if (!$end_date) { $end_date = null; }
+    if (!$posting_date) { $posting_date = null; }
+    if (!$takedown_date) { $takedown_date = null; }
+
+    if (!$force_all_branches) {
+    	$force_all_branches = 0;
+    }
+
+    if (!$_REQUEST['branch_id']) {
+        $_REQUEST['branch_id']=null;
+    }
+    if (!$_REQUEST['branch_id_2']) {
+        $_REQUEST['branch_id_2']=null;
+    }
+	if (!$sort_order_override) {
+		$sort_order_override = null;
+	}
+
+    db_send('begin');
+    db_send('update announcements set 
+					category=?,
+    	    url=?,
+            start_date=?,
+            end_date=?,
+	    posting_date=?,
+	    takedown_date=?
+       where announcement_id=?',
+        $category, $url, $start_date, $end_date,$posting_date, $takedown_date, $ann_id);
+
+        if ($file_upload_id) {
+            $old_upload = db_value('select upload_id from announcements where announcement_id=?', $ann_id);
+            if ($old_upload) {
+                upload_delete($old_upload);
+            }
+            db_send('update  announcements set upload_id=? where announcement_id=?', $file_upload_id, $ann_id);
+            db_send("update uploads set referring_table='announcements', referring_id=? where upload_id=?", $ann_id, $file_upload_id);
+
+        }
+        i18n_form_handle('announcement', $ann_id);
+    db_send('commit');
+
+    redirect("index.html");
+}
+
+
+

@@ -1,0 +1,44 @@
+<!--
+<title>Log in or register</title>
+-->
+<script type="text/javascript">
+window.onload = formFocus;
+function formFocus() {
+  var e = document.getElementById('default_email_address');
+  if (e) {
+    e.focus();
+  }
+}
+</script>
+
+<div class="pagebody"> <div class="container"> <div class="row"><div class="span12">
+<p>
+Enter your e-mail address and password to get in, or <a href="forgot.html">request a password reminder</a>.
+
+</p>
+
+<?
+if ($reason) { 
+	echo '<p>';
+	echo $reason;
+	echo '</p>';
+}
+?>
+
+<? form_start() ?>
+
+
+<? form_end() ?>
+
+<? if (!config_get('account','no_registration')) : ?>
+	<p/>
+	<? if (!config_get('account','invite_only')) : ?>
+		If you haven't been here before, you need to <a href="<%= user_register_link() %>">register first</a>, or <a href="/about/">learn more</a> about our organization.
+	<? else: ?>
+		<a href="/about/">Learn more</a> about our organization.
+	<? endif ?>
+
+<? endif ?>
+
+
+</div></div></div>

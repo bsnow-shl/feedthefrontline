@@ -1,0 +1,22 @@
+<!--
+<title>Uninvoiced charges to <cite><%= $c['short_name'] %></cite></title>
+-->
+
+
+<table class=padded>
+<tr><th>Date</th><th>Name</th><th>Amount</th></tr>
+<? foreach ($charges as $ch): ?>
+<tr>
+<td><%= date("Y/m/d", $ch['create_date']) %></td>
+<td><%= $ch['name'] %></td>
+<td align="right"><a href="<%= href("view-item.html", "item", $ch['invoice_item_id']) %>"><?
+	if ($ch['void']) {
+		printf("<strike>%.02f</strike>", $ch['amount']/100.0);
+	} else {
+		printf("%.02f", $ch['amount']/100.0);
+		$running += $ch['amount'];
+	} ?></a></td>
+</tr>
+<? endforeach ?>
+<tr><td></td><td>running total</td><th align="right"><%= sprintf("%.02f", $running/100.0) %></th></tr>
+</table>

@@ -1,0 +1,17 @@
+
+require_once 'form.h';
+
+form_set(array(
+    'report_description' => array('type'=>'text','required'=>1,'hint'=>'Example: active members broken down by province')
+));
+if (form_valid()) {
+    db_insert_hash('user_reports', array(
+        'report_id'=> db_newid('user_reports'),
+        'report_name' => $report_description,
+        'report_url' => $_GET['url'],
+        'created_by' => user_id(),
+    ));
+    redirect('index.html');
+}
+
+

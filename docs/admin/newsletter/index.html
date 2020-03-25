@@ -1,0 +1,51 @@
+<!--
+<title>Mailing List index</title>
+-->
+
+<div class="section">
+<h2>Mailing Lists</h2>
+<dl>
+<? if ($newsletters) foreach ($newsletters as $n): ?>
+<dt><%= $n['name'] %> &mdash; <a onclick="return confirm('Delete this mailing list and all its mailings?')" href="<%= href('purge-list.html', 'newsletter_id', $n['newsletter_id']) %>">purge</a>
+<? foreach ($n['counts'] as $type => $count): ?>
+<dd><a href="<%= href('subscription-report.html', 'newsletter_id', $n['newsletter_id'], 'sub', $type) %>"><%= $type .'</a>: '. $count %>
+<? endforeach ?>
+<? endforeach ?>
+</dl>
+<p>
+&raquo; <a href="newsletter-add.html">Add a mailing list...</a>
+</p>
+</div>
+
+<div class="section">
+<h2>Newsletter Mailings</h2>
+<? if ($mailings): ?>
+<table class="padded">
+<tr><th>Newsletter name</th><th># of recipients</th></tr>
+
+<? foreach ($mailings as $n): ?>
+<tr>
+<td><%= $n['description'] %></td>
+<td><%= $n['num_queued'] %><?
+	if ($n['num_sent'] != $n['num_queued']) {
+			echo " ({$n['num_sent']} sent)";
+  } ?></td>
+	<td><a href="<%= href("detail.html", "nmid", $n['newsletter_mailing_id']) %>">View report</a>
+ | <a href="<%= href("send.html", "clonefrom", $n['newsletter_mailing_id']) %>">send another</a>
+ | <a href="<%= href("edit.html", "nmid", $n['newsletter_mailing_id']) %>">edit</a>
+ | <a onclick="return confirm('Delete this mailing?')" href="<%= href("purge.html", "mailing_id", $n['newsletter_mailing_id']) %>">purge</a>
+	</td>
+</tr>
+<? endforeach ?>
+</table>
+<? else: ?>
+None.
+<? endif ?>
+
+<? if (user_has_role('newsletter_sender')): ?>
+<p>
+&raquo; <a href="send.html">Create a newsletter &amp; send to mailing list...</a>
+</p>
+<? endif ?>
+</div>
+

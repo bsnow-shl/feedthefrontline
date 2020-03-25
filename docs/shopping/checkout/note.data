@@ -1,0 +1,6 @@
+
+require_once 'shopping.h';
+
+$message = $_SESSION['shopcart']['failure'];
+shopping_add_diary('Showed error message to user: '.$message);
+

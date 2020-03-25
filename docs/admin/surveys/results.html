@@ -1,0 +1,22 @@
+<!--
+<title>Survey results: <%= $sur['short_name'] %></title>
+-->
+
+<div class="section">
+
+<? if ($results) foreach ($results as $id => $r): ?>
+<h3><%= $r['question'] %></h3>
+<p>
+<table border=0 class=padded>
+<tr><th>Response</th><th>n</th><th>%</th></tr>
+<? foreach ($r['histogram'] as $h=>$n) {
+	$width = 200 * $n / $r['total_responses'];	
+	echo "<tr><td>$h</td><td bgcolor=\"c2cda3\">$n <img src=\"/admin/special/result.png\" width=$width height=12 alt='' /></td><td>".sprintf('%.1f', 100.0 * $n / $r['total_responses'])."%</td></tr>";
+} ?>
+</table>
+</p>
+
+
+<? endforeach ?>
+
+</div>

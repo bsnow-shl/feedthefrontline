@@ -1,0 +1,5 @@
+$ptoid = 0+$_GET['ptoid'];
+db_send('delete from shopping_product_type_option_choices where type_option_id=?', $ptoid);
+db_send('delete from shopping_product_type_options where type_option_id=?', $ptoid);
+redirect(href('edit.html', 'ptid', $_GET['ptid']));
+

@@ -1,0 +1,35 @@
+<!--
+<title><%= $post['entry_title'] %></title>
+<subtitle>one post <A href="../">to <%= $weblog_row['weblog_title'] %></a></subtitle>
+-->
+
+<?
+   $post['posting_date'] = strftime('%A, %B %d %Y', $post['posting_date']);
+?>
+
+<div class="weblogposting section">
+<h3><%= $post['entry_title'] %></h3>
+
+<p>
+<%= $post[body] %>
+</p>
+
+<p/>
+
+<i>&mdash; <%= $post['first_name'].' '.$post['last_name'] %></i>
+<Br/>
+<i>&mdash; <%= $post['posting_date'] %></i>
+<br/>
+<?
+  if ($kw[0]) {
+	print '<i>&mdash; keywords: ';
+	foreach ($kw as $k) {
+		print "<a href=\"../".href('', 'keyword', $k)."\">$k</a> ";
+	}
+	print '</i>';
+  }
+%>
+
+
+</div>
+

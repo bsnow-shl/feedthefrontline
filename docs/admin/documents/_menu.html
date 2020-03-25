@@ -1,0 +1,8 @@
+<div class="links">
+ <b><a href="/admin/documents/">Document repository</a></b>
+ <a href="/documents/">Documents (public site)</a>
+ <? if (user_has_role('document_category_admin')): ?>
+ <a href="/admin/documents/upload-check.html">Uploads consistency check</a>
+ <? endif ?>
+</div>
+

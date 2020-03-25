@@ -1,0 +1,4 @@
+
+global $_Template;
+$_Template->template_disable();
+

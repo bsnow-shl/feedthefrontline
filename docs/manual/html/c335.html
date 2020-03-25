@@ -1,0 +1,225 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+<title>Database Connectivity</title>
+<meta name="GENERATOR" content=
+"Modular DocBook HTML Stylesheet Version 1.79">
+<link rel="HOME" title="Content Publishing Framework Manual" href=
+"index.html">
+<link rel="PREVIOUS" title="template_disable" href=
+"template-disable.html">
+<link rel="NEXT" title="Understanding placeholders" href=
+"db-placeholders.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2005-03-11T18:12:01">
+</head>
+<body class="CHAPTER" bgcolor="#FFFFFF" text="#000000" link=
+"#0000FF" vlink="#840084" alink="#0000FF">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="3" align="center">Content Publishing Framework
+Manual</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="bottom"><a href=
+"template-disable.html" accesskey="P">Prev</a></td>
+<td width="80%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="bottom"><a href=
+"db-placeholders.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="CHAPTER">
+<h1><a name="AEN335" id="AEN335"></a>Chapter 4. Database
+Connectivity</h1>
+<div class="TOC">
+<dl>
+<dt><b>Table of Contents</b></dt>
+<dt>4.1. <a href="c335.html#AEN370">Some database layer
+examples</a></dt>
+<dt>4.2. <a href="db-placeholders.html">Understanding
+placeholders</a></dt>
+<dt>4.3. <a href="x407.html">Function reference</a></dt>
+<dd>
+<dl>
+<dt><a href="db-dbvalue.html">db_value</a>&nbsp;--&nbsp; Retrieves
+a single value from the database.</dt>
+<dt><a href="db-dbrow.html">db_row</a>&nbsp;--&nbsp; Retrieves a
+single row from the database.</dt>
+<dt><a href="db-dbarray.html">db_array</a>&nbsp;--&nbsp; Retrieves
+a list of values from the database.</dt>
+<dt><a href="db-dbmultirow.html">db_multirow</a>&nbsp;--&nbsp;
+Retrieves multiple rows from the database.</dt>
+<dt><a href=
+"db-dbhashmultirow.html">db_hash_multirow</a>&nbsp;--&nbsp; Returns
+a multiple-row result set keyed by one column.</dt>
+<dt><a href="db-dbsend.html">db_send</a>&nbsp;--&nbsp; Sends a
+generic SQL query to the database.</dt>
+<dt><a href="db-dbtuples.html">db_tuples</a>&nbsp;--&nbsp; Returns
+the number of rows affected by the given result.</dt>
+<dt><a href=
+"db-dberrormessage.html">db_errormessage</a>&nbsp;--&nbsp; Returns
+the last error string from the database or a given result.</dt>
+<dt><a href="db-dbupdate.html">db_update</a>&nbsp;--&nbsp; Updates
+a single row in one table of the database.</dt>
+<dt><a href="db-dbinserthash.html">db_insert_hash</a>&nbsp;--&nbsp;
+Inserts a new row into a table.</dt>
+<dt><a href=
+"db-dbinsertorupdate.html">db_insert_or_update</a>&nbsp;--&nbsp;
+Inserts a row into the database if it it's not there already.</dt>
+<dt><a href="db-dbnewid.html">db_newid</a>&nbsp;--&nbsp; Obtains a
+new number out of a sequence.</dt>
+</dl>
+</dd>
+</dl>
+</div>
+<p>If we can learn anything from the last few decades of dealing
+with relational databases, it's that SQL is an incredibly leaky
+abstraction. In spite of the presence of standards written by very
+smart people, it is not widely known what is, and what is not,
+"standard" SQL. Worse, widespread support for SQL97 is only
+appearing in 2003, with SQL99 still some ways off. MySQL is still
+working on adding sub-selects, and everybody thinks it's the best
+thing since sliced bread.</p>
+<p>Most database vendors don't bother to tell you which parts of
+the standards they support, because if you accidentally start using
+a feature only they support, you're locked in to their system, and
+the cost of switching has just gone up dramatically.</p>
+<p>In the face of all this, writing a database abstraction layer
+seems a ludicrous concept. Why pretend you're using some SQL
+database system, you know not which, when you have to write SQL
+statements that, sooner or later, will couple your code to that
+engine?</p>
+<p>It doesn't take much experience with the web and databases to
+realize that queries fall into five categories:</p>
+<ol compact="compact" type="1">
+<li>
+<p>give me a value</p>
+</li>
+<li>
+<p>give me a row</p>
+</li>
+<li>
+<p>give me a list of values</p>
+</li>
+<li>
+<p>give me a list of rows</p>
+</li>
+<li>
+<p>everything else</p>
+</li>
+</ol>
+<p>Therefore, the CPF explicitly supports each of these five
+possibilities with five function calls, each returning</p>
+<ol compact="compact" type="1">
+<li>
+<p>a scalar (<code class="FUNCTION">db_value</code>)</p>
+</li>
+<li>
+<p>a hash (<code class="FUNCTION">db_row</code>)</p>
+</li>
+<li>
+<p>an array of scalars (<code class="FUNCTION">db_array</code>)</p>
+</li>
+<li>
+<p>an array of hashes (<code class=
+"FUNCTION">db_multirow</code>)</p>
+</li>
+<li>
+<p>a PostgreSQL result object (<code class=
+"FUNCTION">db_send</code>)</p>
+</li>
+</ol>
+<p>The CPF does not prohibit using PEAR or any of the other dozen
+or so database abstraction layers, should you wish to use them.</p>
+<div class="SECTION">
+<h1 class="SECTION"><a name="AEN370" id="AEN370">4.1. Some database
+layer examples</a></h1>
+<p>Here is an example that uses the hundreds of thousands of lines
+of code in your database and web servers to add two numbers
+together:</p>
+<pre class="SCREEN">
+   $answer = db_value('select 5+7');
+   print $answer;
+</pre>
+<p>The first thing to notice is that there is no connection
+management infrastructure to deal with: all you do is ask for an
+answer, and in the background the CPF will take care of finding
+your database, connecting to it, sending the query, fetching the
+query, iterating over the query rows, and dealing with any
+exceptions that may crop up during any of these steps.</p>
+<p>The above code is an example of the first kind of database call
+we identified in the previous section: <span class=
+"emphasis"><i class="EMPHASIS">fetch one value</i></span>, done via
+the <tt class="LITERAL">db_value</tt> function. Here are some more
+examples that deal in a single value:</p>
+<pre class="SCREEN">
+   print db_value('select email_address from users where user_id=?', 52);
+   print db_value('select count(*) from users');
+   print db_value("select avg(income) from population where married='y'");
+</pre>
+<p>Note that they all return exactly one row with exactly one
+column. The name of the row isn't important. The first example
+makes use of a modern database-ism called <i class=
+"FIRSTTERM">placeholders</i>. More on that in <a href=
+"db-placeholders.html">Section 4.2</a>. For now, though, it's
+enough to know that the question mark in the query is replaced with
+the user ID given, and that this is an insanely useful feature.</p>
+<p>The second type of call is one where you want fetch an entire
+row's worth of data, whether from one table, by joining several
+tables together, or anything else you can imagine that will return
+a single row of information. This is done with the <tt class=
+"LITERAL">db_row</tt> call.</p>
+<pre class="SCREEN">
+  $row = db_row("select name,address,phone_number from users 
+                 where user_id=?", 52);
+  print "User 52's name is ".$row['name'];
+</pre>
+<p>In this case, the CPF fetches an entire row, and turns it into a
+hash, keyed by the name of the column. More examples:</p>
+<pre class="SCREEN">
+  db_row('SELECT users.last_name, demographics.number_of_children
+             FROM users,demographics
+            WHERE users.user_id = demographics.user_id 
+              AND users.user_id = ?', 52);
+  db_row('SELECT MAX(age) as maxage, MAX(income) as maxincome 
+            FROM demographics'); 
+</pre>
+<p>In the first example, the rows will be returned as a hash with
+two keys: "last_name" and "number_of_children", which are notably
+<span class="emphasis"><i class="EMPHASIS">not</i></span>
+"users.last_name" and "demographics.number_of_children". The table
+names aren't included in the returned row.</p>
+<p>In the second example, the aggregate column names are explicitly
+given a name, with SQL's AS phrase. This is a good habit to get
+into, so that you can be certain what the hash key for that
+information will be.</p>
+</div>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href=
+"template-disable.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html"
+accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href=
+"db-placeholders.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">template_disable</td>
+<td width="34%" align="center" valign="top">&nbsp;</td>
+<td width="33%" align="right" valign="top">Understanding
+placeholders</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!--
+<title>Attendance report: <%= $pretty_name %></title>
+-->
+
+<div class=section>
+
+<%= $sum[1][1]+$sum[1][0] %> people are coming:
+<%= $sum[1][1]+$sum[1][0] - $sum[1][0] %> have paid.<br/> 
+ <%= $sum[1][0] ? $sum[1][0]." unpaid registrations." : '' %>
+<%= $sum[0][1] ? '<b>Yikes</b>: '.$sum[0][1]." people paid, but haven't confirmed or have backed out" : '' %>
+<p/>
+
+<? if (sizeof($histo)>1): ?>
+Histogram of confirmed (whether paid up or not) registrations:
+<ul>
+<?  foreach ($histo as $k=>$v) {
+	echo '<li><b>'.$k.'</b>: '.$v.' registrations';
+} ?>
+</ul>
+<? endif ?>
+
+<? if ($sum[0][1] || $approval_list): ?>
+<b>These people require manual review: </b>
+<? render_list(0,1,$approval_list) ?>
+<? endif ?>
+
+<? render_list(1,1) ?>
+<? render_list(1,0) ?>
+
+ 

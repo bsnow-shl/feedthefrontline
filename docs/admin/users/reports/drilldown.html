@@ -1,0 +1,42 @@
+<!--
+<title>Membership report</title>
+-->
+
+<h2>Matching members</h2>
+
+<? if (sizeof($_GET)): ?>
+Criteria:
+<? print_a($_GET); ?>
+<? endif ?>
+
+<p/>
+
+    <table border=1><tr><th>
+  <?
+    print join('</th><th>', array_keys($result[0]));
+    print '</th></tr>';
+    foreach ($result as $r) {
+        print '<tr>';
+        foreach ($r as $k=>$i) {
+            print '<td>';
+            if (is_null($i)) { 
+                $i = '<i>n/a</i>';
+            }
+
+            if ($k=='user_id') {
+                printf('<a href="/admin/users/edit.html?edit_user=%s">%s</a>', $i, $i);
+            } else {
+                print $i;
+            }
+            print '</td>';
+        }
+    } 
+    ?>
+    </tr></table>
+    
+
+<? if ($newsletters): ?>
+<p>
+&raquo; <a href="maillist.html?<%= $_SERVER['QUERY_STRING'] %>">Load these users into a newsletter distribution list.</a>
+</p>
+<? endif ?>

@@ -1,0 +1,13 @@
+
+# show all the things that aren't posted yet:
+# 1. posted in the future
+# 2. posting = null
+
+$content_id = 0+$_GET['content_id'];
+$info = i18n_get('Content item', $content_id);
+$short_name = db_value('select short_name from i18n_content where content_id=?', $content_id);
+$current_objid = i18n_get_current_content_objid($content_id);
+
+$drafts = db_multirow("select object_id, created_by, date_part('epoch', create_datetime) as create_datetime  from i18n_content_map where content_id=? 
+			and (posting_datetime is null or posting_datetime > CURRENT_TIMESTAMP)", $content_id);
+

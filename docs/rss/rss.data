@@ -1,0 +1,12 @@
+template_disable();
+
+require_once 'whatsnew.h';
+
+$what = whatsnew_get(1);
+
+$rss = whatsnew_rss($what);
+
+header("Content-type: application/rss+xml");
+print $rss;
+exit;
+

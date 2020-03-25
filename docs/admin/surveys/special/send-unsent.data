@@ -1,0 +1,16 @@
+
+require_once 'survey.h';
+
+$unsent = db_array("select invitation_id from survey_invitations where invitation_status in (?) ", 'unsent');
+
+foreach ($unsent as $iid) {
+      survey_send_invite($iid);
+
+      db_send('update survey_invitations set invitation_status=? where invitation_id=?', 'sent', $iid);
+
+      db_insert_hash('survey_invitation_diary', array(
+              'invitation_id'=>$iid,
+              'note' => 'Invitation sent'
+      ));
+}
+

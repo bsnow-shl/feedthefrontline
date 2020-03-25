@@ -1,0 +1,19 @@
+<!--
+<title>Holders of role <%= $role_name %></title>
+-->
+
+<div class="section">
+
+There are <%= sizeof($who) %> users with that permission:
+
+<table><tr><th>Name</th><th>Email</th><th></th></tr>
+<? foreach ($who as $u): ?>
+<Tr>
+<td><a href="edit.html?edit_user=<%= $u['user_id'] %>"><%= $u['name'] %></a></td><td><%= $u['email'] %></td>
+<td><%= $u['parameter'] %></td>
+</tr>
+<? endforeach ?>
+</table>
+
+</div>
+

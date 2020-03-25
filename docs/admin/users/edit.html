@@ -1,0 +1,42 @@
+<!--
+<title><? echo $user_row[first_name].' '.$user_row[last_name] ?></title>
+-->
+
+<Div class="grid_13">
+<h3>Details</h3>
+
+<div class="section">
+<? form_start('edits', ' autocomplete="off" '); ?>
+    <? if ($_SESSION['admin']['user_edit_response']): ?>
+            <div class="formnote"><%= $_SESSION['admin']['user_edit_response'] %></div>
+            <? unset($_SESSION['admin']['user_edit_response']); ?>
+    <? endif ?>
+    <%= $form_extra; %>
+<? form_end('edits'); ?>
+</div>
+
+<? if (sizeof($diary)): ?>
+<h3>Diary</h3>
+<div class=section>
+<ul>
+<? foreach ($diary as $d): ?>
+<li><%= humanize_timestamp($d['tstamp']) %> &mdash; <%= $d['note'] %>
+<? endforeach ?>
+</ul></div>
+<? endif ?>
+
+
+<? if (sizeof($addresses)): ?>
+<h3>Address book</h3>
+<div class=section>
+<ul>
+<? foreach ($addresses as $a): ?>
+<li>
+<? if (!$a['visible']) { echo '<strike>'; } ?>
+<a href="<%= href("address-show.html", 'uid', $edit_user, 'class', $a['nickname']) %>"><%= $a['nickname'] %> &mdash; <%= $a['street'] %></a>
+<? if (!$a['visible']) { echo '</strike>'; } ?>
+<? endforeach ?>
+</ul></div>
+<? endif ?>
+
+</div>

@@ -1,0 +1,159 @@
+<!--
+<title>Forms (in detail)</title>
+<subtitle>part of the <a href="./">CPF manual</a>.</subtitle>
+-->
+
+<div class="section">
+Forms in the CPF are represented as an ordered list of form elements.
+Each form element has at least a name (used to fetch its information
+later), and a type (used to describe its appearance and validation
+rules). In addition, each element can have extra information to
+help control the element's appearance or behaviour, usually dependent
+on the type.
+
+<p/>
+
+This ordered list of elements is represented as a PHP array:
+
+<pre class=screen>
+require 'form.h';
+
+$form = array(
+	'first_name' => array ( 'type' => 'text' ),
+	'age'        => array ( 'type' => 'integer' ),
+	'city'       => array ( 'type' => 'text' ),
+	'email'      => array ( 'type' => 'email' )
+);
+form_set($form);
+</pre>
+
+
+Extra attributes can be indicated by extending the array. For
+instance, we'll make the city field default to something, and require
+the email address be present and the age be positive:
+
+<pre class=screen>
+require 'form.h';
+
+$form = array(
+	'first_name' => array ( 'type' => 'text' ),
+	'age'        => array ( 'type' => 'integer', 
+				'positive' => 1),
+	'city'       => array ( 'type' => 'text',
+				'default' => 'Toronto' ),
+	'email'      => array ( 'type' => 'email', 
+				'required' => 1 )
+);
+form_set($form);
+</pre>
+
+<p>Go ahead, <a href="examples/formdetails.2a.html">play with that form now</a>.
+<p/>
+
+This form descriptor can be shrunk, without changing its meaning.
+If you just have a type, provide a string with that type name. If
+you have a type field along with some constraint (like age or
+required) set to 1, tack it on with a comma. Like so:
+
+<pre class=screen>
+/* functionally identical to the form descriptor immediately above */
+require 'form.h';
+
+$form = array(
+        'first_name' => 'text',
+	'age'        => 'integer,positive', 
+	'city'       => array ( 'type' => 'text',
+				'default' => 'Toronto' ),
+	'email'      => 'text,required'
+);
+form_set($form);
+</pre>
+
+Forms can be automatically rendered by the CPF.
+In this case, the element name is used to automatically make up a
+field label, using a simple algorithm for capitalization and
+introducing spaces. In the above example, the automatically-generated
+field labels will be "First name", "Age", "City", and "Email". These
+automatic names can be overridden with the pretty attribute (see
+below).
+
+<p/>
+A full description of the form language is in <a href="form.h.html#set">the documentation for form_set()</a>.
+
+
+<h3>Controlling the appearance of your forms</h3>
+
+When rendering a form, the CPF does a straightforward arrangement
+in a table, in the order that the form elements were declared. If
+this isn't enough for you, you can control the form layout yourself
+directly in the page.
+
+<p/>
+In our earlier example,
+the form was rendered with
+
+<pre class=screen>
+&lt;? form_start();
+   form_end(); ?>
+</pre>
+
+
+<p/>
+
+Imagine form_start() as a replacement for HTML's &lt;form>, and form_end as replacement for &lt;/form>. To lay out the form yourself, just use your own markup between the two:
+
+<pre class=screen>
+/* file.data */
+require 'form.h';
+$form = array(
+        'name'       => 'text,required',
+        'age'        => 'integer',
+        'biography'  => 'bigtext',
+);
+form_set($form);
+
+
+/* file.html */
+&lt;? form_start(); ?>
+Enter your name: &#64;@name&#64;@
+
+&lt;p/>Enter your age: &#64;@age&#64;@.
+
+&lt;p/>Enter your biography:&lt;br/>
+&#64;@biography&#64;@.
+
+&lt;p/>Then click here: &#64;@submit&#64;@
+&lt;? form_end(); ?>
+</pre>
+
+
+<p/>
+
+<a href="examples/formdetails.2.html">As you can see</a>, the form engine takes your form variable names between pairs of @@ signs, and substitutes the HTML entities that correspond to your form widget declarations.
+
+<p/>
+
+Now, what happens if you add a new form widget, but no corresponding layout for it?
+
+<pre class=screen>
+form_set(array(...
+        favourite_colour => array(
+                'type'=>'text',
+                'menu'=>array('r'=>'Red','b'=>'Blue')
+	)	
+);
+</pre>
+
+
+
+The answer is <a href="examples/formdetails.3.html">this: the new form element is rendered anyway</a>.  
+<p/>
+
+The form engine recognized the new favourite_colour widget wasn't drawn, 
+and so tacked it on to the end of the form. 
+It's hideous, but
+maybe that's a good way to get you to properly lay it out. It
+forces you to keep your form definitions and page layout
+in sync.
+
+</div>

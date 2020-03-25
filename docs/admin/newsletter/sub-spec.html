@@ -1,0 +1,52 @@
+<!--
+<title>Batch subscription specifications</title>
+-->
+
+<div class="section">
+<p>
+You can subscribe a number of people to mailing lists by providing a batch in a comma-separated file format (CSV). Our format is:
+<pre>
+   email, first name, last name, company
+</pre>
+</p>
+
+<h3>Step-by-step</h3>
+<p>
+First, arrange a spreadsheet that looks like this.
+</p><p>
+<img src="sub-spec-1.png" />
+</p>
+<p>
+<em>Note</em> that the only strictly required item is <kbd>email</kbd>.   All other columns are optional.
+</p>
+<p>
+Then, export the worksheet with the addresses you want to upload into a comma-separated file (.CSV). This is
+often done with the Save As command in typical spreadsheet applications.
+</p><p>
+<img src="sub-spec-2.png" />
+</p>
+
+<p>Start Notepad (Windows) or TextEdit (Mac OSx).  Load the .CSV file.
+</p><p>
+<img src="sub-spec-3.png" />
+</p>
+
+<p>Select the entire file and copy it into your temporary buffer (ctrl-A, ctrl-C).
+On the <a href="sub.html">subscription form</a>, paste it in (ctrl-V).
+</p>
+
+<h5>Obscure situations</h5>
+
+<p>
+When you have information with a comma (like a company called <b>Frobozzco, International</b>) most spreadsheets
+will quote the information: <tt>"Frobozzco, International"</tt>. This is what we expect.
+</p>
+
+<p>If for some reason you have a quotation mark that belongs in the content, most spreadsheets will
+double quote the quote and still quote for any commas: <b>"Hello, Kitty," he said</b> becomes <tt>"""Hello, Kitty,"" he said"</tt>.
+This is what we expect.
+
+</p>
+
+
+</div>

@@ -1,0 +1,30 @@
+<!--
+<title>Newsletter Mailing reports</title>
+-->
+
+<div class="section">
+
+<table class="padded">
+<tr><th>Newsletter name</th><th># of recipients</th><th># sent</th><th># bounced</th><th># opened</th><th># clicked through</th><th>Open count</th><th>Clickthrough count</th></tr>
+
+<? foreach ($newsletters as $n): ?>
+<tr>
+<td><%= $n['description'] %></td>
+<td><%= $n['num_queued'] %></td>
+<td><%= $n['num_sent'] %></td>
+<td><%= $n['num_bounced'] %></td>
+<td><%= $n['num_opened'] %></td>
+<td><%= $n['num_clickthrough'] %></td>
+<td><%= $n['sum_opened'] %></td>
+<td><%= $n['sum_clickthrough'] %></td>
+</tr>
+<? endforeach ?>
+</table>
+
+<? if (user_has_role('newsletter_sender')): ?>
+<p>
+&raquo; <a href="send.html">Create a newsletter &amp; send to mailing list...</a>
+</p>
+<? endif ?>
+</div>
+

@@ -1,0 +1,19 @@
+<!--
+<title>Clone an event</title>
+-->
+
+<h3>Event to clone</h3>
+<div class=section>
+
+<b>Title of event:</b> <%= $orig_event['title'] %><br/>
+<b>Date(s) of event:</b> <%= $orig_event['event_start_date'] . (
+		$orig_event['event_end_date'] ?
+			' to '.$orig_event['event_end_date'] :
+			'' ) %><br/>
+
+<b>Registration period:</b> <%= $orig_event['registration_start_date'] .  ' to '.$orig_event['registration_end_date']  %><br/>
+<b>Registration status:</b> <%= event_refuses_registrations($eid) ? event_refuses_registrations($eid) : 'open' %><br/>
+<b>Taxation model:</b> <%= $tax_model %><br/>
+<b>Publishing status:</b> <%= $orig_event['publishing_status'] %><br/>
+
+<? form_start(); form_end(); ?>

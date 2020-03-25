@@ -1,0 +1,22 @@
+<?php
+
+# php code to test certain things about the database
+
+# we once had a bug where 
+#  db_send('foo (?,?)', '', null) 
+# got translated into  foo('','') incorrectly, so test that
+
+db_send('create table testtable(a text, b text);');
+db_send('insert into testtable values (?,?)', '', null);
+$row = db_row('select * from testtable');
+
+if ($row['a']!== '' || $row['b'] !== null) {
+	exit("database null/blank test failed");
+}
+db_send("drop table testtable");
+
+
+
+print "All's swell";
+
+?>

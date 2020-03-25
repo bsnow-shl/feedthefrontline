@@ -1,0 +1,21 @@
+require_once 'form.h';
+$form = array(
+	'type_name' => 'text,required'
+) + i18n_form_fields('Product type');
+
+form_set($form);
+if (form_valid()) {
+	db_send('begin');
+
+	$class_id = db_newid('i18n_classes');
+	db_send('insert into i18n_classes(class_id, class_name) values (?,?)', $class_id, $type_name);
+	
+	$pt_id = db_newid('shopping_product_types');
+	db_send('insert into shopping_product_types (product_type_id, class_id, short_name) values (?,?,?)', $pt_id, $class_id, $type_name);
+
+	i18n_form_handle('Product type', $pt_id);
+	db_send('commit');
+
+	redirect(href('edit.html', 'ptid', $pt_id));
+
+}

@@ -1,0 +1,58 @@
+<!--
+<title>User list</title>
+-->
+
+<p>There are <%= $num_users %> users registered.</p>
+
+<? if ($preamble_callback) { $preamble_callback(); } ?>
+
+
+<div class="section">
+<? if ($searchy): ?>
+<h3>Search for users</h3>
+Enter some search criteria, then click "submit" to find matching users.
+
+<? if (!config_get('users', 'admin_userindex_showall')): ?>
+Leave all fields blank to get a list of all users.
+<? endif ?>
+
+<? form_start(); form_end(); ?>
+
+<? if (!is_null($num_matching)): ?>
+<h3><%= $num_matching %> matching users
+    <? if ($num_matching != sizeof ($search_result)): ?>
+        -- showing first <%= sizeof($search_result) %>
+    <? endif ?>
+</h3>
+
+<table class="padded">
+
+<thead>
+    <tr><th>#</th><th>Name</th><th>Email</th><th>Organization</th></tr>
+
+</thead><tbody>
+<? while (list ($ignored, $r) = each($search_result)): ?>
+<tr>
+  <td><a href="edit.html?edit_user=<%= $r['user_id'] %>"><%= $r['user_id'] %></a></td>
+  <td><a href="edit.html?edit_user=<%= $r['user_id'] %>"><%= $r['first_name'] %> <%= $r['last_name'] %></a></td>
+  <td><%= $r['email'] %></td>
+  <td><%= $r['company'] %></td>
+</tr>
+<? endwhile ?>
+</table>
+<? endif ?>
+
+
+
+<? else: ?>
+
+<h3>Edit users by name</h3>
+<? form_start('byname'); form_end() ?>
+
+<h3>Edit users by email address</h3>
+<? form_start('byemail'); form_end() ?>
+
+<?endif?>
+
+</div>
+

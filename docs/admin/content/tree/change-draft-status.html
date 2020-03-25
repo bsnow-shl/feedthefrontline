@@ -1,0 +1,17 @@
+<!--
+<title>Manage drafts</title>
+-->
+
+<div class="section">
+<? if ($post_needs_confirm): ?>
+	<h2>Notice</h2>
+	<p>When you post an item, old draft items will be dropped.</p>
+
+	<div style="font-size: 200%;">
+	<a href="<%= href($_SERVER['REQUEST_URI'], 'confirm',1) %>">Proceed</a> | 
+	<a href="<%= href('edit-item-drafts.html', 'content_id', $content_id, 'object_id', $object_id) %>">Cancel</a>
+	</div>
+<? endif ?>
+
+</div>
+
