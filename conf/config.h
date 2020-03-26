@@ -2,7 +2,7 @@
 
 $Gconfig = array(
 	'db' => array(
-                'dbname' => 'feedthefrontline',
+                'dbname' => 'bsnow-feedthefrontline',
         ),
 
 

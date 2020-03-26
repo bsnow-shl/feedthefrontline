@@ -129,7 +129,9 @@ foreach my $fn ( "lighttpd.conf","lighttpd.include", "php.ini" )  {
     }
 
     my $conffile = "/tmp/$fn.$port";
-    open( CONF, ">$conffile" );
+
+    die "can't write to $conffile" if !-W $conffile and -e $conffile;;
+    open( CONF, ">$conffile" ) ;
     print CONF $config;
     close(CONF);
 } 
