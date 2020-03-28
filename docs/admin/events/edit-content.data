@@ -1,0 +1,20 @@
+
+
+include_once 'i18n.h';
+include_once 'form.h';
+
+$eacid = 0+$_GET['eacid'];
+
+$eac_row = db_row('select * from event_additional_content where event_additional_content_id=?', $eacid);
+$event_url = href('edit.html', 'eid', $eac_row['event_id']);
+
+
+
+$form = i18n_form_fields('Event additional content', $eacid);
+form_set($form);
+if (form_valid()) {
+	i18n_form_handle('Event additional content', $eacid);
+	redirect($event_url);
+}
+
+$event = i18n_get('Event', $eac_row['event_id']);

@@ -1,0 +1,34 @@
+
+require_once 'translation.h';
+require_once 'form.h';
+
+if ($_GET['txn']) {
+    $_SESSION['admin']['i18n']['editing_txn'] = $_GET['txn'];
+}
+if (!$_SESSION['admin']['i18n']['editing_txn'] ) {
+    redirect('index.html');
+}
+
+if ($_GET['all']) {
+    $txn = db_multirow('select * from temp_translations');
+} else {
+    $txn = db_multirow('select * from temp_translations where needs_translation=1');
+}
+
+$form = array();
+foreach ($txn as $t) {
+    $form[ 't_'.$t['translation_id'] ] = array('type'=>'bigtext', 'default'=>$t['dest']);
+}
+
+form_set($form);
+if (form_valid()) {
+    foreach ($txn as $t) {
+        $var = 't_'. $t['translation_id'];
+        $dest = str_replace("\n", '\n', $$var);
+        $dest = str_replace("\t", '\t', $$var);
+        db_send('update temp_translations set dest=?,needs_translation=? where translation_id=?', $dest, ($dest=='') ? 1 : 0, $t['translation_id']);
+        $_SESSION['admin']['i18n']['unsaved_changes'] = 1;
+    }
+    redirect($_SERVER['REQUEST_URI']);
+}
+

@@ -1,0 +1,40 @@
+include_once 'i18n.h';
+
+require_once 'form.h';
+
+$erid = $_GET['erid'];
+$event_id = db_value('select event_id from event_pricing join event_registrations using (event_pricing_id) where event_registration_id=?', $erid);
+
+$sessions = db_multirow('select event_session_id, session_start,event_sessions.event_id,event_session_options.session_option_id, event_registration_id from event_sessions join event_session_options using (event_session_id) join event_session_registrations using (session_option_id) where event_registration_id=? order by session_start', $erid);
+i18n_get_batch($sessions, 'Event session option', 'session_option_id');
+foreach ($sessions as $s) {
+	$session_choice[$s['event_session_id']] = $s;
+}
+
+$options = db_multirow('select event_session_id,session_start,session_option_id from event_sessions join event_session_options using (event_session_id) where event_id=? order by session_start, session_option_id', $event_id);
+i18n_get_batch($options, 'Event session option', 'session_option_id');
+foreach ($options as $o) {
+	$menu_for_session[ $o['event_session_id'] ] [$o['session_option_id']] = $o['title'];
+    $lookup[ $o['session_option_id'] ] = $o['title'];
+}
+
+$menu = array();
+foreach($menu_for_session as $sid => $choices) {
+	if ($session_choice[ $sid ]) {
+	} else {
+		$menu[ 'menu'.$sid ] = array('type'=>'menu','menu' => $choices);
+	}
+}
+form_set($menu);
+if (form_valid()) {
+	foreach ($menu as $key => $options) {
+		if ($$key) {
+			db_send('insert into event_session_registrations (event_registration_id, session_option_id) values (?,?)',
+				$erid, $$key);
+            db_send('insert into event_registration_diary (event_registration_id,note) values (?,?)', $erid, sprintf('Added to session %s by %s', $lookup[ $$key ], user_email()));
+
+		}
+	}
+	redirect($_SERVER['REQUEST_URI']);
+}
+

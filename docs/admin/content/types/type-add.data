@@ -1,0 +1,29 @@
+require_once 'form.h';
+
+form_set(array(
+	'name' => 'text,required',
+
+	'table_name' => 'text',
+	'read_medium' => array('type'=>'menu', 'required'=>1, 'default' => 1, 'menu'=> array('1' => 'i18n tables', '2' => 'individual table', '3' => 'filesystem')),
+	'store_i18n' => array('type'=>'flag', 'hint'=>''),
+	'store_table' => array('type'=>'flag', 'hint'=>''),
+	'store_filesystem' => array('type'=>'flag', 'hint'=>''),
+	'editable_in_cms' => array('type'=>'flag','pretty' => 'Editable in CMS')
+));
+
+if (form_submitted()) {
+	db_send('begin');
+	$newid = db_newid('i18n_classes');
+	db_insert_hash('i18n_classes', array(
+		'class_id' => $newid,
+		'class_name' => $name,
+		'read_medium' => $read_medium,
+        'editable_in_cms' => $editable_in_cms,
+		'store_i18n' => $store_i18n,
+		'store_table' => $store_table,
+		'store_filesystem' => $store_filesystem,
+		'table_name' => $table_name,
+	));
+	db_send('commit');
+	redirect(href('type-edit.html', 'classid', $newid));
+}

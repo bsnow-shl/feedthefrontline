@@ -1,0 +1,20 @@
+<!--
+<title>Add a product</title>
+-->
+
+<div class="section">
+
+<p>Which type of product are you adding?
+</p>
+
+<ul>
+<? foreach ($types as $t): ?>
+<li><a href="<%= href('add-one.html', 'cid', 0+$_GET['cid'], 'ptid', $t['product_type_id'], 'goback', $_GET['goback']) %>"><%= $t['short_name'] %></a></li>
+<? endforeach ?>
+</ul>
+
+</div>
+
+
+
+

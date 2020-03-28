@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+<title>db_newid</title>
+<meta name="GENERATOR" content=
+"Modular DocBook HTML Stylesheet Version 1.79">
+<link rel="HOME" title="Content Publishing Framework Manual" href=
+"index.html">
+<link rel="UP" title="Function reference" href="x407.html">
+<link rel="PREVIOUS" title=" db_insert_or_update " href=
+"db-dbinsertorupdate.html">
+<link rel="NEXT" title="Form handling" href="forms.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2005-03-11T18:12:01">
+</head>
+<body class="REFENTRY" bgcolor="#FFFFFF" text="#000000" link=
+"#0000FF" vlink="#840084" alink="#0000FF">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="3" align="center">Content Publishing Framework
+Manual</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="bottom"><a href=
+"db-dbinsertorupdate.html" accesskey="P">Prev</a></td>
+<td width="80%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="bottom"><a href="forms.html"
+accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<h1><a name="DB-DBNEWID" id="DB-DBNEWID"></a>db_newid</h1>
+<div class="REFNAMEDIV"><a name="AEN567" id="AEN567"></a>
+<h2>Name</h2>
+db_newid &nbsp;--&nbsp; Obtains a new number out of a
+sequence.</div>
+<div class="REFSYNOPSISDIV"><a name="AEN570" id="AEN570"></a>
+<h2>Synopsis</h2>
+<pre class="SYNOPSIS">
+        $id = db_newid(identifier)
+        
+</pre></div>
+<div class="REFSECT1"><a name="AEN572" id="AEN572"></a>
+<h2>Description</h2>
+<p>Frequently, database systems need an auto-incremementing counter
+to generate primary keys. Every database vendor provides you a
+different one, and this function provides an abstraction over them
+all.</p>
+<p><tt class="REPLACEABLE"><i>identifier</i></tt> is the name of
+the identifier that you are counting through. This function returns
+a number 1 greater than all previous return values for <tt class=
+"REPLACEABLE"><i>identifier</i></tt>, or 1 if this is the first
+call for the given identifier.</p>
+<pre class="SCREEN">
+$id = db_newid('users');
+db_send("insert into users (user_id) values (?)", $id);
+</pre>
+<p>The new ID is guaranteed to be unique compared to all other ID's
+generated for that identifier, even if the system is under
+load.</p>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href=
+"db-dbinsertorupdate.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html"
+accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="forms.html"
+accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">db_insert_or_update</td>
+<td width="34%" align="center" valign="top"><a href="x407.html"
+accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">Form handling</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

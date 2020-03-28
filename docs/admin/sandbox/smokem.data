@@ -1,0 +1,5 @@
+
+# ... if ya got'em
+
+db_send('delete from email_sandbox');
+redirect('index.html');

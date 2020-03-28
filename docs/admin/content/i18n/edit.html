@@ -1,0 +1,28 @@
+<!--
+<title>Edit translation: <%= $_SESSION['admin']['i18n']['editing_txn'] %></title>
+<subtitle>Editing <%= sizeof($txn) %> translations</subtitle>
+-->
+
+<p>
+<? if ($_GET['all']): ?>
+Show: <b>all translations</b> | <a href="edit.html">only missing translations</a>
+<? else: ?>
+Show: <a href="edit.html?all=1">all translations</a> | <b>only missing translations</b>
+<? endif ?>
+</p>
+
+<p>Confused? <a href="help.html">Read the tutorial.</a></p>
+
+
+<? if ($_SESSION['admin']['i18n']['unsaved_changes']): ?>
+    <p class="nb">Your changes are not saved until you choose to <a href="save.html">save them</a>.</p>
+<? endif ?>
+
+<? form_start(); ?>
+<dl>
+<? foreach ($txn as $t): ?>
+<dt><div style="display: table-cell; border: 1px dotted grey"><%= nl2br(htmlspecialchars($t['source'])) %></div>
+<dd>@@t_<%= $t['translation_id'] %>@@
+<? endforeach ?>
+</dl>
+<? form_end(); ?>

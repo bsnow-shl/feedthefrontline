@@ -1,0 +1,26 @@
+<!--
+<title>Edit a time slot</title>
+<subtitle>during the <a href="<%= href('edit.html', 'eid', $ses['event_id'])%>"><%= $event_title %></a> event</subtitle>
+-->
+
+<div class="section">
+
+<p>
+<b>Time slot:</b> <%= substr($ses['session_start'],0,16) %>, for <%= $ses['duration'] %> minutes. (<a href="<%= href('session-edit-details.html', 'sid', $_GET['sid']) %>">edit</a>)
+</p>
+
+<h3>Sessions</h3>
+<ol>
+<? foreach ($sessions as $s): ?>
+<li><b><%= $s['title'] %></b><? if ($s['capacity']): ?>, max. <%= $s['capacity'] %> people.<? endif ?>
+ <a href="<%= href('session-option-drop.html', 'sid', $_GET['sid'], 'soid', $s['session_option_id']) %>">(drop</a> | 
+ <a href="<%= href('session-option-edit.html', 'sid', $_GET['sid'], 'soid', $s['session_option_id']) %>">edit)</a>
+</li>
+<? endforeach ?>
+</ol>
+
+<h4>Add a session</h4>
+<? form_start(); 
+   form_end(); ?>
+
+</div>

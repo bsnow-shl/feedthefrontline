@@ -1,0 +1,7 @@
+require_once 'users.h';
+if (!user_has_role('events_admin') && !user_has_role('event_manager') ) {
+	user_require('events_admin');
+}
+require_once 'events.h';
+
+

@@ -1,0 +1,23 @@
+
+require_once 'form.h';
+
+$pid = 0+$_GET['pid'];
+
+$row = db_row('select event_id,pricing_constraint_extra from event_pricing where event_pricing_id=?', $pid);
+if (!$row) { redirect('index.html'); }
+$current_raw = $row['pricing_constraint_extra'];
+if ($current_raw) {
+    $current = unserialize($current_raw);
+}
+
+form_set(array(
+    'magic_word' => array('type'=>'text','required'=>1, 'default' => $current['magic_word']),
+));
+if (form_valid()) {
+    db_send('update event_pricing set pricing_constraint_extra=? where event_pricing_id=?', serialize(
+        array('magic_word'=>$magic_word, 'maximum_uses'=>$maximum_uses
+        )
+        ), $pid);
+    redirect(href('edit.html','eid', $row['event_id']));
+}
+

@@ -1,0 +1,176 @@
+<!--
+<title>The templating system</title>
+<subtitle>part of the <a href="./">CPF manual</a>.</subtitle>
+-->
+
+<div class="section">
+<p>
+The Publishing Framework's templating system is designed to enforce a consistent look and feel across your entire site, or entire subsections of your site. It does this by providing a straightforward templating system that permits a separation between how the site looks overall, and how individual pages behave.
+
+</p>
+
+<h3> Terminology</h3>
+
+You can mentally split up most web pages you see these days into two parts: navigation that changes infrequently (which CPF terms the <em>template</em>), and page-specific material (which CPF terms the <em>part</em>). The template lives in a file called <cite>_template.html</cite>, and the part is whatever file under Apache's document root your web browser is asking for.
+
+<p>
+
+
+<h3>An example</h3>
+
+A basic CPF template looks something like this:
+
+<pre class=screen>
+/* _template.html */
+&lt;html>
+ &lt;head>
+   &lt;title>page title&lt;/title>
+ &lt;/head>
+ &lt;body>
+ ##PART##
+ &lt;/body>
+&lt;/html>
+</pre>
+
+Imagine there's a file called <cite>page.html</cite> that looks like this:
+
+<pre class=screen>
+Hello world!
+</pre>
+
+Notice that there is no markup whatsoever in this page. It's just one line with two words on it. When a web browser pulls <cite>page.html</cite> through the CPF, this is what the browser will get:
+
+<pre class=screen>
+&lt;html>
+ &lt;head>
+   &lt;title>page title&lt;/title>
+ &lt;/head>
+ &lt;body>
+Hello world!
+ &lt;/body>
+&lt;/html>
+</pre>
+
+The magic token ##PART## in <cite>_template.html</cite> has been replaced with the contents of <cite>page.html</cite>..
+<p/>
+
+
+The part can do more than appear verbatim inside the template: certain elements of the part are extracted and substituted into the template. The most common use is giving your page a title that web browsers can understand, via HTML's &lt;title> tag. Let's change the template like so:
+
+<pre class=screen>
+&lt;html>
+ &lt;head>
+   &lt;title>@&#64;TITLE@@&lt;title>
+ &lt;head>
+ &lt;body>
+##PART##
+ &lt;body>
+&lt;html>
+&lt;/html>
+</pre>
+
+And change the part like so:
+
+<pre class=screen>
+&lt;--
+&lt;title>Greetings&lt;/title>
+-->
+
+Hello, world!
+&lt;/html>
+</pre>
+
+If this page is put through the templating system, the browser gets something like this:
+
+<pre class=screen>
+&lt;html>
+ &lt;head>
+   &lt;title>Greetings&lt;/title>
+ &lt;/head>
+ &lt;body>
+Hello, world!
+ &lt;/body>
+&lt;/html>
+</pre>
+
+<p>
+Notice that the title has been extracted from the part, and sucked into the template. Using this technique, you can propagate all kinds of page-specific material up to the template.
+</p>
+
+<h3>How to make your graphic designer love you</h3>
+
+<p>
+
+Many templating systems go to some effort to distinguish between
+functional behaviour and graphical appearance. This, in principle,
+permits a "separation of concerns" between programmers and graphical
+designers, who, it is thought, will work on disjoint parts of the
+code base. Although perhaps overly idealistic, this is a worthwhile
+idea to aim for. At the very least, designers and programmers can
+avoid stomping on each other's code and use tools they prefer.
+
+<p/>
+
+The CPF takes a stab at such a separation by splitting parts into
+two separate files: the functional behaviour is specified in a file
+with a .data extension, and the user-visible HTML is in a file with
+a .php or .html extension suitable for use by Dreamweaver.
+
+<p/>
+A simple example will illustrate this separation. Imagine you have
+a system that has to display the contents of an address book, and
+display it in an HTML table, with one entry per table row. We'll
+build a data structure that has two address book entries, then
+design a page to display them. These will be in two separate files.
+
+<pre class=screen>
+/* show-addressbook.data */
+
+// this would usually by fetched with SQL, but we're not there yet
+$book = array(
+        array('name' => 'Steve',
+              'address' => '24 Sussex',
+              'phone number' => '416 555 1212'
+              ),
+        array('name' => 'Juan',
+              'address' => '78 Sussex',
+              'phone number' => '416 555 1212'
+              )
+);
+</pre>
+
+<pre class=screen>
+/* show-addressbook.php */
+&lt;-- 
+&lt;title>Address book example&lt;/title>
+-->
+
+&lt;table>
+&lt;tr>
+ &lt;th>name&lt;/th>
+ &lt;th>address&lt;/th>
+ &lt;th>phone number&lt;/th>
+&lt;/tr>
+&lt;? foreach ($book as $row): ?>
+    &lt;tr>
+     &lt;td>&lt;%= $row['name'] %>&lt;/td>
+    &lt;/tr>
+&lt;? endforeach ?>
+&lt;/table>
+</pre>
+
+
+ Thus, the <cite>.data</cite> file is an ideal place to hold what I like to call <em>horrible programmer gunk</em>. That includes
+ such esthetically unattractive things as database queries, form handling, exception handling, error reporting, page redirects,
+and sending out emails.
+
+<p/>
+
+In fact, the .data file is so perfect for this kind of stuff that it is entirely parsed in PHP mode: notice that the <cite>parse-addressbook.data</cite>
+ above doesn't have a <cite>&lt;?php</cite> opening tag.
+ The .data file should almost never generate output directly aside from HTTP headers. It makes sense to have it prepare things that will be output by the <cite>.php</cite> file, though.
+
+
+
+</div>
+

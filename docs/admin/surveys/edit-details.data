@@ -1,0 +1,10 @@
+
+require_once 'form.h';
+require_once 'i18n.h';
+
+$qid = $_GET['qid'];
+
+form_set(i18n_form_fields('Survey question', $qid));
+if (form_valid()) {
+    i18n_form_handle('Survey question', $qid);
+}

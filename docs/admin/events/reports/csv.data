@@ -1,0 +1,55 @@
+require_once 'i18n.h';
+require_once 'events.h';
+require_once 'dbadmin.h';
+require_once 'form.h';
+
+$info = i18n_get('Event', $eid);
+$pretty_name = $info['title'];
+
+header("Content-Disposition: attachment; filename=event-$eid".date("Y-m-d").".tsv");
+header("Content-type: text/tab-separated-values");
+
+
+$custom = event_is_custom($eid);
+$sql_select = $sql_join = '';
+$extra_cols = array();
+if ($custom) {
+	if ($t = $custom['linkin_table']) {
+		$sql_select = ", $t.*";
+		$sql_join = " left outer join $t using (event_registration_id) ";
+
+		$extra_cols_query = dbadmin_list_columns($custom['linkin_table']);	
+		foreach ($extra_cols_query as $col) {
+			$extra_cols[] = $col['attname'];
+		}
+	}
+}
+
+$details = db_multirow("select 
+	confirmed,paid,er.event_registration_id as reg_id,price, ep.name as price_name,pm.short_name as payment_method_name,er.first_name, er.last_name,telephone,email,company,address,city,province,country,postal_code $sql_select
+	from  event_pricing as ep  join event_registrations as er using(event_pricing_id) join event_payment_methods as pm using (payment_method_id) $sql_join
+	where event_id=? $sql_where order by last_name", $eid);
+
+if ($details) {
+	i18n_get_batch($details, "Event $eid fields", 'reg_id');
+	$extra_cols += db_array('select field_name from i18n_fields join i18n_classes using(class_id) where class_name=?', 
+		"Event $eid fields");
+}
+
+foreach ($details as $d) {
+	$det[$d['confirmed']][$d['paid']][] = $d;
+}
+
+
+$sum[0][0] = sizeof($det[0][0]);
+$sum[1][0] = sizeof($det[1][0]);
+$sum[1][1] = sizeof($det[1][1]);
+$sum[0][1] = sizeof($det[0][1]);
+
+foreach ($details as $d) {
+	if ($d['confirmed']) {
+		$histo[$d['price_name']] ++;
+	}
+} 
+template_disable();
+

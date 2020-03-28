@@ -1,0 +1,7 @@
+require_once 'shopping.h';
+
+$shopcart_id = shopping_shopcart_id();
+if (!$shopcart_id) {
+	redirect ('/shopping/');
+}
+

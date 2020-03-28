@@ -1,0 +1,38 @@
+<!--
+<title>Content tree</title>
+-->
+
+
+<? 
+function render_tree($which) {
+	global $tree;
+	if ($tree[$which]) {
+		if ($which) {
+			if ($tree[$which][title]) 
+			echo '<a href="',href('edit-submenu.html', 'content_id', $which),'">', $tree[$which][title],'</a>';
+			else 
+			echo '<a href="',href('edit-submenu.html', 'content_id', $which),'">', '<em>n/a</em>','</a>';
+		}
+    if ($tree[$which]['subtree']) {
+      echo '<ul>';
+      foreach ($tree[$which]['subtree'] as $k ) {
+        echo '<li>';
+        render_tree($k);
+      }
+      echo '</ul>';
+    } 
+	}
+}
+
+?>
+
+<? if (sizeof($tree)): ?>
+<div class=section>
+<h3>Category tree</h3>
+
+<? render_tree(null); ?>
+
+</div>
+<? endif ?>
+
+

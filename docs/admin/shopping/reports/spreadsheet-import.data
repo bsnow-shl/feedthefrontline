@@ -1,0 +1,128 @@
+
+require_once 'form.h';
+require_once 'uploads.h';
+
+form_set(array(
+	'file' => 'file'
+));
+if (form_valid()) {
+	db_send('begin');
+
+
+	$skip_column = $notes = array();
+	$failure_message = null;
+
+	# local name
+	$local = db_value('select local_filename from uploads where upload_id=?', $file_upload_id);
+	$fh = fopen($_SERVER['DOCUMENT_ROOT'].'/'.$local, 'r');
+	$mode = 'seek_begin';
+
+	foreach (array('sku','price','cost','supplier_sku') as $key) {
+		$key_groups[$key] = 'core';
+	}
+
+	foreach (db_multirow("select field_name , field_id from i18n_fields join i18n_classes using (class_id) where class_name='Product'") as $row) {
+		$key_groups[$row['field_name']] = 'product';
+		$field_name_map[$row['field_name']] = $row['field_id'];
+	}
+
+	while (!feof($fh) && !$failure_message) {
+		$line = fgetcsv($fh, 100000);
+		if (!is_array($line)) { continue; }
+
+		switch ($mode) {
+		case 'seek_begin': 
+			if ($line[0]=='begin') {
+				# pick out the product type ID
+				if ($line[1] == 'product_type_id' && ($product_type_id=$line[2])) {
+					$mode = 'seek_sku';
+					$product_class = db_value('select class_id from shopping_product_types where product_type_id=?', $product_type_id);
+					foreach (db_array("select field_name from i18n_fields where class_id=?", $product_class) as $key) {
+						$key_groups[$key] = 'producttype';
+					}
+					$supplier_id = db_value('select supplier_id from shopping_products where product_type_id=? limit 1', $product_type_id);
+					$notes[] = "Found begin line; product type is #$product_type_id";
+				} else {
+					$failure_message = "Didn't find a product_type_id line";
+				}
+			}	
+			break;
+
+		case 'seek_sku':
+			if ($line[0]=='sku') {
+				for ($i=3; $i<sizeof($line); $i++) {
+					$sku = $sku_map[$i-3] = $line[$i];
+					if ($sku == '') { $skip[$i]++; continue; }
+
+					$product_id = $product_id_map[$i-3] = db_value('select product_id from shopping_products where product_type_id=? and sku=?', $product_type_id, $line[$i]);
+					if (!$product_id) {
+						$product_id = $product_id_map[$i-3] = db_newid('shopping_products');
+						db_insert_hash('shopping_products', array(
+							'product_id' => $product_id,
+							'supplier_id' => $supplier_id,
+							'product_type_id' => $product_type_id,
+							'sku' => $sku
+						));
+						$notes[] = "SKU $sku is new, and has been created.";
+					} else {
+						$notes[] = "Found SKU $sku in product database.";
+					}
+							
+				}
+				$mode = 'process';
+			}
+			break;
+
+		case 'process':
+			$key = $line[0];
+			$language = $line[2];
+
+			if ($key == 'end') { $mode = 'done'; $notes[] = "Finished processing after reading $data_count fields."; continue; }
+			if (!$key_groups[$key]) { continue; }
+
+			if (!$language && $key_groups[$key]!='core') {
+				$failure_message = "Key $key doesn't have a language.";
+				continue;
+			}
+
+			for ($i=3; $i<sizeof($line); $i++) {
+				if ($skip[$i]) { continue; }
+				if ($language) {
+					$data[$key_groups[$key]][$product_id_map[$i-3]][$language][$key] = $line[$i];
+				} else {
+					$data[$key_groups[$key]][$product_id_map[$i-3]][$key] = $line[$i];
+				}
+				$data_count++;
+			}
+			break;
+		}
+	}
+
+	if ($mode != 'done') {
+		$failure_message = "Didn't find an importable spreadsheet.";
+	}
+
+	if (!$failure_message) {
+		foreach ($data['core'] as $pid=>$update) {
+			db_send('update shopping_products set price=?,cost=?,supplier_sku=? where product_id=?',
+				$update['price']*100, $update['cost']*100, $update['supplier_sku'], $pid);
+		}
+
+		# process product data
+		foreach ($data['product'] as $pid => $update) {
+			if ($pid) foreach ($update as $language => $content) {
+				i18n_set('Product', $pid, $language, $content);
+			}
+		}
+		
+		# process product type data
+		foreach ($data['producttype'] as $pid => $update) {
+			if ($pid) foreach ($update as $language => $content) {
+				i18n_set($product_class, $pid, $language, $content);
+			}
+		}
+
+		upload_delete($file_upload_id);
+		db_send('commit');
+	}
+}

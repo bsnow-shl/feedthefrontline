@@ -1,0 +1,11 @@
+<? global $next,$prev,$page_flow; ?><hr/>
+<table width="100%">
+<tr><td>
+<? if ($prev) {
+		echo "Previous: <br/><a href=\"$prev\">".$page_flow[$prev]."</a>";
+} ?>
+</td><td align=right>
+<? if ($next) {
+		echo "Next: <br/><a href=\"$next\">".$page_flow[$next]."</a>";
+} ?>
+</td></tr></table>	

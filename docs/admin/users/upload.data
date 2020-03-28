@@ -1,0 +1,64 @@
+
+
+require_once 'form.h';
+
+
+$fields_orig = array(
+    'email' => array('type' => 'email'),
+    'first_name' => array('type' => 'text'),
+    'last_name' => array( 'type' => 'text'),
+);
+
+$callback = config_get('users', 'fields_callback');
+if (is_callable($callback)) {
+    // p1 = yes, please indicate if field is req'd or not
+    $fields_orig += $callback(1);
+}
+
+$fields = $form = array();
+foreach ($fields_orig as $k => $f) {
+    if ($f['type']=='menu') {
+        $form [ $k ] = $f;
+    } else {
+        $fields[] = $k;
+    }
+}
+$form['file'] = array('type'=>'bigtext', 'required' =>1, 'rows'=>50, 'cols' => 100);
+
+form_set($form);
+
+if (form_valid()) {
+    $fh = tmpfile();
+    fwrite($fh, $file);
+    rewind($fh);
+
+
+    db_send('begin');
+    while ($line = fgetcsv($fh)) {
+        $line_no++;
+        $insert = array('password' => user_random_password());
+        foreach($fields_orig as $k => $f) {
+            if ($f['type']=='menu') {
+                $insert[$k] = $$k;
+            } else {
+                $insert[$k] = rtrim(array_shift($line));
+            }
+        }
+        $insert['email'] = strtolower($insert['email']);
+        if (is_email($insert['email'])) {
+//            if ($uid = user_id_for_email($insert['email'])) {
+  //              db_update('users', 'user_id', $uid, $insert);
+    //            $results['user updated: '.$insert['email'] ] ++;
+      //      } else {
+                db_insert_hash('users', array('user_id' => db_newid('users')) + $insert);
+                $results['new user(s) added'] ++;
+        //    }
+        } else {
+            $results["line $line_no skipped"]='';
+        }
+    }
+    db_send('commit');
+    // print_a($results);
+    redirect('index.html');
+}
+

@@ -1,0 +1,8 @@
+body, td, tr, pre.code {
+	background-color: none;
+	color: black;
+}
+
+.rightside, .subtitle {
+	display: none;
+}

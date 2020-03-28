@@ -1,0 +1,30 @@
+require_once 'form.h';
+$comment = db_row('select * from comments where comment_id=?', $_GET[id]);
+
+form_set(array(
+	'commented_thing' => 'integer',
+	'comment_system_id' => array(
+			'type'=>'menu',
+			'sql'=>'select comment_system_id as key, plural  as value from comment_systems'
+			),
+	'user_id' => user_menu_byname(),
+	'author_name' => 'text',
+	'author_email' => 'email',
+	'comment' => 'bigtext'
+));
+if (form_valid()) {
+	db_update('comments', 'comment_id', $_GET[id],
+	 array(
+	    'commented_thing'=> $commented_thing,
+	    'comment_system_id'=>$comment_system_id,
+	    user_id => $user_id,
+	    author_name => $author_name,
+	    author_email => $author_email,
+	    comment => $comment
+	    ));
+}
+		
+if (!form_was_submitted()) {
+	$_REQUEST = $comment;
+}
+

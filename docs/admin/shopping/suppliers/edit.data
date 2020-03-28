@@ -1,0 +1,20 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+$sid = 0+$_GET['sid'];
+
+
+$row = db_row('select * from shopping_suppliers where supplier_id=?', $sid);
+$supplier_name = $row['short_name'];
+$contract_id = $row['contract_id'];
+
+form_set(array(
+	'contract' => array('type'=>'menu', 'sql'=>'select contract_id as key, short_name as value from contracts where retired=0', 'value' => $contract_id),
+	'visible' => array('type' =>'flag', 'value' => $row['visible'])
+));
+if (form_valid()) {
+	db_send('update shopping_suppliers set visible=?,contract_id=? where supplier_id=?', $visible, $contract, $sid);
+	redirect("index.html");
+}
+
+$supplier_products = db_value('select count(*) from shopping_products where supplier_id=?', $sid);

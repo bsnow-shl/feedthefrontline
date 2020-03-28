@@ -1,0 +1,53 @@
+$erid = $_GET['erid'];
+
+$new_conf = $_GET['confirmed'];
+$new_paid = $_GET['paid'];
+$new_approved = $_GET['approved'];
+
+# if the person backed out of a free event, just flip paid to zero so it doesn't freak out for no reason
+if ($new_conf != null and $new_conf == 0) {
+	$price = db_value('select price from event_pricing join event_registrations using (event_pricing_id) where event_registration_id=?', $erid);
+	if ($price == 0)  {
+		$new_paid = 0;
+	}
+}
+
+
+# deal with changing confirmed
+if (!is_null($new_conf)) {
+	db_send('update event_registrations set confirmed=? where event_registration_id=?', $new_conf, $erid);
+	$note .= " set confirmed to ". ($new_conf?'yes':'no') .' ';
+}
+
+
+# deal wtih changing paid
+if (!is_null($new_paid)) {
+	db_send('update event_registrations set paid=? where event_registration_id=?', $new_paid, $erid);
+	$note .= " set paid to ". ($new_paid?'yes':'no') .' ';
+}
+
+# deal wtih changing paid
+if (!is_null($new_approved)) {
+	db_send('update event_registrations set confirmed=?, needs_approval=0 where event_registration_id=?', $new_approved, $erid);
+	$note .= " manually reviewed this event and  ". ($new_approved?'approved':'rejected') .' it.';
+}
+
+# deal wtih changing paid
+if ($_GET['needs_approval']) {
+	db_send('update event_registrations set needs_approval=1 where event_registration_id=?', $erid);
+	$note .= " marked this record as in need of manual review";
+}
+
+
+# add a comment
+if ($note) {
+	$note = user_name().' : '.$note;
+	db_send('insert into event_registration_diary (event_registration_id,note) values (?,?)', $erid, $note);
+}
+
+if ($_GET['goback']) {
+	redirect($_GET['goback']);
+} else {
+	redirect(href('inspect.html', 'erid', $erid));
+}
+

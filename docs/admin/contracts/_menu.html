@@ -1,0 +1,16 @@
+<div class=links>
+<b><a href="/admin/contracts/">Contracts admin</a></b>
+<a href="taxes-query.html">Tax report</a>
+<a href="timeline.html">Timeline</a>
+</div>
+
+<? $contract = $_GET['contract'];
+   if ($contract): ?>
+<div class=links>
+<h3>this contract</h3>
+<a href="<%= href("add-item.html", "contract", $contract) %>">Add charge...</a>
+<a href="<%= href("view.html", "contract", $contract) %>">View charges</a>
+<a href="<%= href("view-invoices.html", "contract", $contract) %>">View invoices</a>
+<a href="<%= href("finalize-invoice.html", "contract", $contract) %>">Finalize invoice...</a>
+</div>
+<? endif ?>

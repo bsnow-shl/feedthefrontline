@@ -1,0 +1,15 @@
+
+require_once 'i18n.h';
+require_once 'survey.h';
+
+foreach (db_array('select language_key from i18n_languages where active=1') as $language) {
+    $content = i18n_get('Survey preamble', $_GET['sid'], $language);
+
+    if (!$content['form']) {
+        list ($form, $template) = survey_get_form_for_survey($_GET['sid']);
+        $content['form'] = $template;
+        i18n_set('Survey preamble', $_GET['sid'], $language, $content);
+    }
+}
+
+redirect(href('edit.html', 'sid', $_GET['sid']));

@@ -1,0 +1,36 @@
+<!--
+<title><%= _('Delivery') %></title>
+-->
+
+<div class="section">
+
+<? if ($type_name == 'Video(s)'):  ?>
+
+	<h3><%= $item['title'] %></h3>
+
+	<p>
+	&raquo; <a href="/shopping/sku/<%= $item['sku'] %>"><%= $video_count == 1 ?
+		_('View more details about this video...') :
+		_('View more details about these videos...')
+		%></a>
+	</p>
+
+	<div align=center>
+	<? foreach ($videos as $idx=>$title): ?>
+		<div id="movie<%= $idx %>"> 
+		Video loading... 
+		</div>
+		
+		<p><b><%= $title %></b></p>
+	<? endforeach ?>
+	</div>
+
+
+
+<? else: ?>
+
+	Unknown product type <%= $type_name %>.
+
+<? endif ?>
+
+</div>

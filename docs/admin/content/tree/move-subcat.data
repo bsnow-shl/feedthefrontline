@@ -1,0 +1,33 @@
+$pcontent_id = 0+$_REQUEST['pcontent_id'];
+$content_id = 0+$_REQUEST['content_id'];
+
+if (!$pcontent_id) { exit("No parent content ID specified."); }
+  $condition = "content_id=$content_id and parent_content_id=$pcontent_id";
+        
+	
+db_send('begin');
+
+if ($_REQUEST['movedown']) {
+        $current = db_value('select display_order from i18n_content_hierarchy where '.$condition );
+        $next = db_value('select min(display_order) from i18n_content_hierarchy where display_order>? and parent_content_id=?', $current, $pcontent_id);
+        if ($next) {
+                db_send('update i18n_content_hierarchy set display_order=? where display_order=?', $current, $next);
+                db_send('update i18n_content_hierarchy set display_order=? where '.$condition, $next);
+        }
+}
+
+
+if ($_REQUEST['moveup']) {
+        $current = db_value('select display_order from i18n_content_hierarchy where '.$condition);
+        $previous = db_value('select max(display_order) from i18n_content_hierarchy where display_order<? and parent_content_id=?', $current, $pcontent_id);
+        if ($previous) {
+                db_send('update i18n_content_hierarchy set display_order=? where display_order=?', $current, $previous);
+                db_send('update i18n_content_hierarchy set display_order=? where '.$condition, $previous);
+        }
+}
+
+db_send('commit');
+
+redirect(href("edit-submenu.html", 'content_id', $pcontent_id));
+
+

@@ -1,0 +1,23 @@
+<!--
+<title>Search results</title>
+-->
+
+<div class="section">
+
+<table class="padded">
+<tr><th>#</th><th>Status</th><th>Value</th><th>Buyer</th></tr>
+<? foreach ($carts as $c): ?>
+<tr>
+<td><%= $c['shopcart_id'] %></td>
+<td><%= $c['status'] %></td>
+<td><%= sprintf('$%.02f', $c['cached_price']/100.0) %></td>
+<td><%= $c['buyer_email'] %></td>
+<td><a href="detail.html?sid=<%= $c['shopcart_id'] %>">details</a></td>
+
+</tr>
+
+<? endforeach ?>
+</table>
+
+</div>
+

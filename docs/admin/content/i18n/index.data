@@ -1,0 +1,6 @@
+
+
+require_once 'translation.h';
+
+$txns = translation_get_translations();
+

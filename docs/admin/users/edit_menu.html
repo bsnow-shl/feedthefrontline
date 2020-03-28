@@ -1,0 +1,36 @@
+<? global $edit_user; ?>
+<div class="box">
+<h2>Links to other systems</h2>
+    <p>
+
+        <? if (user_has_role('newsletter_admin')): ?>
+        <p>
+        <a href="/admin/newsletter/sub.html">Newsletter subscriptions</a>
+        </p>
+        <? endif ?>
+
+        <? if (user_has_role('shopping_admin')): ?>
+        <p>
+        <a href="<%= href('/admin/shopping/reports/search.html', 'user_id', $edit_user) %>">Shopping</a>
+        </p>
+        <? endif ?>
+
+    </p>
+</div>
+
+<div class="box">
+    <h2>This user</h2>
+    <p>
+    <a href="<%= href('relogin.html', 'user', $edit_user) %>">Log in as this user</a>
+    </p>
+    <? if (user_has_role('role_admin')): ?>
+        <p>
+        <a href="<%= href('edit-roles.html', 'user', $edit_user) %>">Edit permissions</a>
+        </p>
+    <? endif ?>
+    <p>
+    <a href="<%= href('delete.html', 'user', $edit_user) %>">Delete </a>
+    </p>
+
+</div>
+

@@ -1,0 +1,34 @@
+<!--
+<title>Delete <em><%= $name %></em>?</title>
+-->
+
+<? if ($_GET['yes']): ?>
+	<pre>
+	<%= $message %>
+	</pre>
+<? else: ?>
+<div class="section">
+Are you sure? This will result in deleting:
+
+<ul>
+
+<? foreach ($tables as $table => $user_key) {
+	$count = db_value("select count(*) from $table where $user_key=?", $user);
+	if (!$count) {
+		continue;
+	}
+	print "<li>$count rows in $table";
+} ?>
+</ul>
+If you'd rather not destroy that information, you could 
+change this user's password to something unguessable and revoke their access.
+
+<p/>
+
+<span style="font-size: 300%">
+<a href="<%= href("delete.html", 'user', $user, 'yes',1) %>">Yes, do it</a>
+</span>
+
+
+</div>
+<? endif ?>

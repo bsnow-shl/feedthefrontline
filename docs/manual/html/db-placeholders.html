@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+<title>Understanding placeholders</title>
+<meta name="GENERATOR" content=
+"Modular DocBook HTML Stylesheet Version 1.79">
+<link rel="HOME" title="Content Publishing Framework Manual" href=
+"index.html">
+<link rel="UP" title="Database Connectivity" href="c335.html">
+<link rel="PREVIOUS" title="Database Connectivity" href=
+"c335.html">
+<link rel="NEXT" title="Function reference" href="x407.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2005-03-11T18:12:01">
+</head>
+<body class="SECTION" bgcolor="#FFFFFF" text="#000000" link=
+"#0000FF" vlink="#840084" alink="#0000FF">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="3" align="center">Content Publishing Framework
+Manual</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="bottom"><a href="c335.html"
+accesskey="P">Prev</a></td>
+<td width="80%" align="center" valign="bottom">Chapter 4. Database
+Connectivity</td>
+<td width="10%" align="right" valign="bottom"><a href="x407.html"
+accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="SECTION">
+<h1 class="SECTION"><a name="DB-PLACEHOLDERS" id=
+"DB-PLACEHOLDERS">4.2. Understanding placeholders</a></h1>
+<p>All of the CPF's database calls that take SQL also take any
+number of SQL parameters, terming them <i class=
+"FIRSTTERM">placeholders</i>. So what are they?</p>
+<p>Placeholders are a common sight in database abstraction systems
+outside of PHP. They have a number of performance benefits, but
+their primary benefit is in producing more secure, reliable code
+for the programmer. Consider an online banking system that permits
+visitors to change their address. Perhaps you might write code like
+the following:</p>
+<pre class="SCREEN">
+db_send("update addresses set postal_code='$postcode' where customer_id=$id");
+</pre>
+<p>$postcode came from a form the user filled out. Seems
+reasonable. Now imagine if the user enters their new postal code
+like so: <kbd class="USERINPUT">' blah; update accounts set
+balance='10000000</kbd>. Now, the following SQL was sent to the
+database: (slightly cleaned up for legibility)</p>
+<pre class="SCREEN">
+update addresses set postal_code='' blah;
+update accounts set balance='10000000' where user_id=92
+</pre>
+<p>The first query will fail, and the second query will make our
+attacker a millionaire. Whoops. One alternative is to use
+placeholders:</p>
+<pre class="SCREEN">
+db_send('update address set postal_code=? where customer_id=?', $postcode, $id);
+</pre>
+<p>The database layer will intelligently substitute each parameter
+in place of the question marks, performing any necessary quoting on
+the parameter value to protect against bad information beting sent
+to the database. This also supports the PHP language's value
+<span class="emphasis"><i class="EMPHASIS">null</i></span> as a a
+means of setting an SQL NULL.</p>
+<pre class="SCREEN">
+/* sets all last_visit columns to SQL NULL */
+$value = null;
+db_send('update log set last_visit=?', $value);
+</pre>
+<p>Queries must provide at least parameter for every placeholder.
+If you provide extra parameters beyond those required, they will be
+ignored. If you don't provide enough, a PHP error message will be
+raised.</p>
+<p>The system is also smart enough to distinguish between quoted
+question marks (that are left alone) and unquoted question
+marks:</p>
+<pre class="SCREEN">
+/* won't confuse the database layer */
+db_send("update users set favourite_character='?' where user_id=?", $user_id);
+</pre></div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="c335.html"
+accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html"
+accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="x407.html"
+accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">Database
+Connectivity</td>
+<td width="34%" align="center" valign="top"><a href="c335.html"
+accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">Function reference</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

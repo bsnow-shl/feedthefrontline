@@ -1,0 +1,30 @@
+require_once 'form.h';
+require_once 'users.h';
+require_once 'i18n.h';
+
+$eid = 0+$_GET['eid'];
+
+if (!$eid) { redirect( '/'); }
+$event = array_merge(i18n_get('Event', $eid) , db_row('select name from events where event_id=?', $eid));
+
+
+form_set(array(
+  'name'=>array('type'=>'text', 'required'=>1, 'pretty' => _('Name')),
+  'email' => array('type'=>'email', 'required' => 1, 'pretty' => _('E-mail')),
+  'phone' => array('type'=>'text', 'required' => 1, 'pretty' => _('Phone')),
+  'company' => array('type'=>'text', 'pretty' => _('Company')),
+  'date_of_interest' => array('type'=>'menu', 'pretty' => _('Date(s) desired'),
+    'menu'=> array ('April 4'=> _('April 4'), 'April 5'=>_('April 5'), 'April 4 and 5'=>_('April 4 + 5'))),
+));
+
+if (form_valid()) {
+  $to_mail = users_with_role('event_manager', $eid);
+  foreach ($to_mail as $uid) {
+	$to = user_email($uid);
+
+	cpf_mail($to, 'Waiting list for '.$event['name'].": $name", "Name: $name\nCompany: $company\nPhone: $phone\nEmail: $email");
+	$srid = db_newid('event_standby_registrations');
+	db_send('insert into event_standby_registrations (standby_registration_id, event_id, name, email, phone, company,language_id, notes) values (?,?,?,?,?,?,?,?)', $srid, $eid, $name, $email, $phone, $company, CPF_LANGUAGE, "Interested in $date_of_interest");
+  }
+  redirect('waitinglist-thanks.html');
+}

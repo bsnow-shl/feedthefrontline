@@ -1,0 +1,44 @@
+<!--
+<title>Administer e-mail accounts</title>
+-->
+<div class="section">
+<p>
+	<b>Note:</b> Please follow our <a href="http://tinyplanet.ca/client/email.html">email configuration instructions</a>.  We recommend <a href="http://www.mozilla.com/thunderbird/">Thunderbird</a> as an email client.
+	</p>
+</div>
+
+
+<? foreach ($classes as $name => $accts): ?>
+<h2><%= $name %> accounts</h2>
+<div class="section">
+<ul>
+<? foreach ($accts as $a): ?>
+<li><%= $a['from_addr'] %>
+<? if ($a['to_addr']) {
+        echo ' => ';
+        echo $a['to_addr'];
+} ?>
+
+(<a href="remove.html?id=<%= $a['email_account_id'] %>">remove</a>
+ | <a href="edit.html?id=<%= $a['email_account_id'] %>">edit</a>)
+
+<? endforeach ?>
+</ul>
+</div>
+<? endforeach ?>
+
+
+<div class="section">
+
+<h3>Actions:</h3>
+<p>
+Don't forget to click "publish changes" at right when you're done.
+</p>
+<ul>
+<? if ($email_valid_classes) foreach ($email_valid_classes as $t => $ti): ?>
+<li><a href="add.html?class=<%= $t %>">Add a new <%= $t %> account.</a>
+<? endforeach ?>
+</ul>
+
+
+</div>

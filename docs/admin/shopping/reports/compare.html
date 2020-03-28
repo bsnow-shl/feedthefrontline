@@ -1,0 +1,29 @@
+<!--
+<title>Build a comparison PDF</title>
+-->
+
+<div class=section>
+<p>Check off up to three products and click 'proceed'.</p>
+
+<form method="POST">
+<input type=hidden name="submit" value="yes" />
+
+<input type=submit value="Proceed">
+
+<table class='padded'>
+<tr><th>✓</th><th>Title/SKU</th></tr>
+
+<? foreach ($products as $p) {
+	if ($p['category_id'] != $category_id) {
+		echo '<tr><th colspan=2>'.$p['title'].'</th></tr>';
+		$category_id = $p['category_id'];
+	}
+	echo '<td><input name="chosen['.$p['product_id'].']" type=checkbox></td><td>'.$p['sku'].'</td></tr>';
+}?>
+
+</table>
+<input type=submit value="Proceed">
+
+</form>
+
+</div>

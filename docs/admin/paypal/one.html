@@ -1,0 +1,65 @@
+<!--
+<title>Browsing <%= $system_name %></title>
+-->
+
+<h3>Filters:</h3>
+<div class=section>
+<? form_start(); form_end(); ?>
+</div>
+
+
+<table class=padded>
+<tr><th>invoice#</th><th>for item#</th><th>date/time</th><th>gross</th><th><%= $include_tax_details ? join('</th><th>', $tax_columns) : '+taxes' %></th><th>=$expected</th><th>$paid</th></th><th>status</th></tr>
+<? foreach ($payments as $p): ?>
+<? if ($show_wierd_transactions_only && 
+    (($p['transaction_status'] == 'paid' && ($p['amount_expected'] == $p['amount_received'])) ||
+     ($p['transaction_status'] == 'unpaid' && $p['amount_received'] == 0) ||
+     ($p['transaction_status'] == 'refunded' && $p['amount_received'] == 0)) ) { continue; } ?>
+
+<tr>
+<td><a href="<%= href('txn-detail.html', 'txnid', $p['paypal_transaction_id']) %>">&nbsp;<%= $p['paypal_transaction_id'] %>&nbsp;</a></td>
+<td><%= $p['system_reference'] %></td>
+<td><%= date('r', $p['date']) %></td>
+<td align=right><%= sprintf('%0.2f', $p['gross']) %></td>
+	<? $this_total=0;
+	   foreach ($tax_columns as $t) { 
+		if ($include_tax_details) {
+			if ($p[$t]) {
+				echo '<td align=right>'.sprintf('%.02f', $p[$t]).'</td>';
+			} else {
+				echo '<td></td>';
+			}
+		}
+		$tax_total[$t] += $p[$t];
+		$tax_total['total'] += $p[$t];
+		$this_total += $p[$t];
+	} 
+
+	if (!$include_tax_details) {
+		printf('<td align=right>%0.2f</td>', $this_total);
+	}
+	?>
+<td align=right><%= sprintf('%0.2f', $p['amount_expected']) %></td>
+<td align=right><%= sprintf('%.02f', $p['amount_received']) %></td>
+<td><%= $p['transaction_status'] %></td>
+</tr>
+<? $expected_sum +=  $p['amount_expected'];
+   $gross_sum += $p['gross'];
+   $received_sum += $p['amount_received'];
+?>
+<? endforeach %>
+<tr><th>sum</th><td></td><td></td><th align=right><%= sprintf("$%.02f", $gross_sum) %></th>
+	<? if ($include_tax_details): ?>
+		<? if ($tax_total): ?>
+			<? foreach ($tax_total as $k => $v) {
+				printf("<th align=right>%.02f</th>", $v);
+			} ?>
+		<? endif ?>
+	<? else: ?>
+		<? printf("<th align=right>%0.2f</th>", $tax_total['total']); ?>
+	<? endif ?>
+<th align=right><%= sprintf("$%.02f", $expected_sum) %></th>
+<th align=right><%= sprintf("$%.02f", $received_sum) %></th></tr>
+
+</table>
+

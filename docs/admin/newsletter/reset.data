@@ -1,0 +1,5 @@
+
+$nmid = $_GET['nmid'];
+db_send('update newsletter_queue set bounced=0, opened=0, clicked_through=0, sent=0 where newsletter_mailing_id=?', $nmid);
+db_send('delete from newsletter_clickthroughs where newsletter_queue_id in (select newsletter_queue_id from newsletter_queue where newsletter_mailing_id=?)', $nmid);
+redirect('index.html');

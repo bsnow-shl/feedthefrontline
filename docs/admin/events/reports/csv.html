@@ -1,0 +1,72 @@
+Summary
+<%= $sum[1][1]+$sum[1][0] %> people are coming.
+<%= $sum[1][0] ? $sum[1][0]." of them haven't paid yet" : 'All have paid.' %>
+<%= $sum[0][1] ? '<b>Yikes:</b>: '.$sum[0][1]." people paid, but haven't confirmed or have backed out" : '' %>
+
+
+
+<?
+function render_list($conf, $paid) {
+	echo 'Attendees: '.($conf?'coming':'backed out') .' / '.($paid?'paid for event':'not yet paid')."\n";
+	global $det;
+	global $eid;
+	global $extra_info, $extra_cols;
+
+	echo "Reference #\tLast name\tFirst name\tPrice\tPrice point\tPaymethod\tPhone #\tEmail\tCompany\tTitle\tAddress\tCity\tProvince\tCountry\tPostal code";
+	if ($extra_info) {
+		echo "\tNotes";
+	}
+	if ($extra_cols) {
+		foreach ($extra_cols as $c) {
+			echo "\t".form_beautify_identifier($c);
+		}
+	}
+
+	echo "\n";
+	foreach ($det[$conf][$paid] as $d) {
+		echo $d['reg_id'];
+		echo "\t".$d['last_name'].'';
+		echo "\t".$d['first_name'].'';
+		echo "\t".$d['price'].'';
+		echo "\t".$d['price_name'].'';
+		echo "\t".$d['payment_method_name'].'';
+		echo "\t".$d['telephone'].'';
+		echo "\t".$d['email'].'';
+		echo "\t".$d['company'].'';
+		echo "\t".$d['title'].'';
+
+		echo "\t".$d['address'].($d['address_2'] ? $d['address2'] : '').'';
+		echo "\t".$d['city'].'';
+		echo "\t".$d['province'].'';
+		echo "\t".$d['country'].'';
+		echo "\t".$d['postal_code'].'';
+		if ($extra_info) {
+			$info = $extra_info[ $d['reg_id'] ];
+			echo "\t";
+			foreach ($info as $k=>$v) {
+				echo "$k: $v";
+			}
+			echo '';
+		}
+		if ($extra_cols) {
+			foreach ($extra_cols as $c) {
+				echo "\t".$d[$c];
+			}
+		}
+		echo "\n";
+		$att_subtot += $d['price'];
+	}
+	echo "subtotal\t".sprintf("%.02f", $att_subtot);
+	echo "\n";
+}
+?>
+
+<? render_list(1,1) ?>
+<? render_list(1,0) ?>
+
+<? if ($sum[0][1]): ?>
+These people reequire attention: 
+<? render_list(0,1) ?>
+<? endif ?>
+
+

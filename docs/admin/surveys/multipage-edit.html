@@ -1,0 +1,77 @@
+<!--
+<title>Edit <cite><%= $survey['short_name'] %></cite></title>
+-->
+
+<div class="section">
+
+<? if ($survey['survey_status']=='draft'): ?>
+
+<h3>Survey pages</h3>
+
+<table class=padded><tr>
+    <th>#</th>
+    <th># questions</th>
+    <th>Section name</th>
+    <th>Move</th>
+    <th>Actions</th>
+    </tr>
+	<? if ($pages) foreach ($pages as $p): ?>
+	    <tr>
+	    <td><%= ++$counter %></td>
+	    <td><%= $p['question_count'] %></td>
+	    <td><%= $p['pretty_name_en'] %></td>
+	    <td><a href="<%= href('page-move.html','sqldebug',1,'sid', $_GET['sid'], 'pid', $p['page_id'], 'move', 'up') %>">up</a>
+	    |
+	    <a href="<%= href('page-move.html','sqldebug',1,'sid', $_GET['sid'], 'pid', $p['page_id'], 'move', 'down') %>">down</a>
+	    </td>
+	    <td>
+		    <a href="<%= href($_SERVER['REQUEST_URI'], 'goback', $_SERVER['REQUEST_URI'], 'goedit', $p['class_id']) %>">Edit questions...</a>
+		    | <a href="<%= href('drop-page.html', 'sid', $sid, 'pid', $p['page_id']) %>">Drop</a>
+	    </td>
+	    </tr>
+	<? $total_questions += $p['question_count'] ?>
+	<? endforeach ?>
+	<tr><td></td><th><%= $total_questions %></th></tr>
+
+</table>
+
+    <p><a href="<%= href('multipage-add.html', 'sid', $sid) %>">Add a page...</a></p>
+
+<? else: ?>
+
+  <p>Once a survey is live, you cannot adjust its questions.</p>
+
+<?endif ?>
+
+<h2>Invitations</h2>
+
+<? if ($invitations): ?>
+<table class="padded">
+  <tr><th>Status</th><th>Count</th></tr>
+  <? foreach ($invitations as $i): ?>
+  <tr>
+    <td><%= $i['invitation_status'] %></td>
+    <td><%= $i['count'] %></td>
+    <td><a href="<%= href('multipage-invite-search.html', 'sid', $sid, 'status', $i['invitation_status']) %>">View</a></td>
+  </tr>
+  <? endforeach ?>
+</table>
+<? endif ?>
+
+<? if ($has_invitation): ?>
+<p><a href="<%= href('multipage-invite-search.html', 'sid', $sid) %>">View all invitations to this survey</a> | <a href="<%= href('multipage-invite-create.html', 'sid', $sid) %>">Extend an invitation to respond...</a>
+</p>
+
+<h3>Responses</h3>
+
+<p>
+   You can view responses to this survey:
+</p>
+    <? form_start();  ?>
+    <? form_end(); ?>
+
+<? else: ?>
+
+<p>You can't issue invitations to this survey, because you haven't specified a mailing that goes out.  Click "Edit survey settings..." on the left to set that up.</p>
+
+<? endif ?>

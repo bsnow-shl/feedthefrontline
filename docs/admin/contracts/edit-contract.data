@@ -1,0 +1,26 @@
+require_once 'form.h';
+
+$cid = 0+$_GET['contract'];
+$c = db_row('select short_name,party_1_tax,party_2_tax, due_days,contract_terms,retired from contracts where contract_id=?', $cid);
+if (!$c) { redirect("index.html"); }
+
+form_set('default',array(
+	'short_name' => 'text,required',
+	'due_days' => 'integer,positive',
+    'party_1_tax' => array('type'=>'text','pretty'=>'Biller tax ID number'),
+    'party_2_tax' => array('type'=>'text','pretty'=>'Billee tax ID number'),
+	'contract_terms' => 'bigtext'
+), $c);
+if (form_valid()) {
+	db_update('contracts', 'contract_id', $cid,  array(
+		'short_name' => $short_name,
+		'due_days' => $due_days,
+        'party_1_tax' => $party_1_tax,
+        'party_2_tax' => $party_2_tax,
+		'contract_terms' => $contract_terms
+	));
+	redirect("index.html");
+}
+
+
+

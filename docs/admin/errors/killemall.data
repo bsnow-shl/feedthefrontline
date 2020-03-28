@@ -1,0 +1,5 @@
+
+if ($_GET['force']==1) {
+	db_send('delete from errors');
+	redirect("index.html");
+}

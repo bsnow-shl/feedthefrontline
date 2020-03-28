@@ -1,0 +1,13 @@
+require_once 'uploads.h';
+
+$post = db_row('select * from bboard_messages where bboard_message_id=?', $_REQUEST[post]);
+
+if ($_REQUEST['confirm'] == 'Yes') {
+	db_send('delete from bboard_messages where bboard_message_id=? or parent_post=?', $_REQUEST[post], $_REQUEST[post]);
+	upload_delete($post['upload_id']);
+} 
+
+if ($_REQUEST['confirm']) {
+	redirect($_REQUEST[goback]);
+}
+

@@ -1,0 +1,23 @@
+<!--
+<title>Edit item: <cite><%= $item_name %></cite></title>
+-->
+
+<div class="section">
+<p>This item is of type <b><%= $type_name %></b>. You can <a href="<%= href('change-type.html', 'content_id', $content_id) %>">change that</a>.
+</p>
+
+<? form_start();
+   form_end(); ?>
+</div>
+
+<dl>
+<dt>Created
+<dd><%= $current_item['create_datetime'] %> by <%= user_name($current_item['created_by']) %>
+<dt>Posted
+<dd><%= $current_item['posting_datetime'] %>
+<? if ($r['locked']): ?>
+<dt>This item is <em>locked</em>.
+<dd>It can only be unlocked by a content super-administrator<%= $is_superadmin ? ", i.e. you." : ', i.e. not you' %>
+<? endif ?>
+</dl>
+

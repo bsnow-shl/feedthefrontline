@@ -1,0 +1,48 @@
+
+require_once 'form.h';
+require_once 'uploads.h';
+
+$sku = db_value('select sku from shopping_products where product_id=?', $_GET['pid']);
+if (!$sku) { redirect('index.html'); }
+if (strpos($sku,'/')!== FALSE) {
+	$sku = "sku".$_GET['pid'];
+}
+
+form_set(array(
+	'image'=>'file,required',
+	'size' => array('type'=>'menu', 'default'=>'gen', 'required'=>1,
+				'menu' => array(
+					'gen'=>'generate S,M,L from this image',
+					'S' => 'small',
+					'M' => 'medium',
+					'L' => 'large'
+					)
+			)
+));
+if (form_valid()) {
+	$info = db_row('select * from uploads where upload_id=?', $image_upload_id);
+	
+	$old_file = $_SERVER['DOCUMENT_ROOT'].$info['local_filename'];
+
+	if ($size=='gen') {
+		shopping_make_product_images($sku, $old_file);
+	} else {
+		system("convert \"$old_file\" \"${_SERVER[DOCUMENT_ROOT]}/products/images/$sku-$size.jpg\"");
+	}
+
+	form_add_note("Upload processed. You can view the new images below, or <a href=\"".href('edit.html', 'pid', $_GET['pid'])."\">return to the product page</a>.  Please note you may need
+	 to do a shift-reload in order to flush your browser of old versions of this product's
+	 images.");
+
+	upload_delete($image_upload_id);
+}
+
+chdir($_SERVER['DOCUMENT_ROOT']);
+if (!is_dir('../uploads/') || !is_writable('../uploads/')) {
+	$permissions_problem .= "<p>{$_SERVER['DOCUMENT_ROOT']}../uploads/ must exist and be writable.</p>";
+}
+
+if (!is_dir('products/images/') || !is_writable('products/images/')) {
+	$permissions_problem .= "<p>{$_SERVER['DOCUMENT_ROOT']}products/images/ must exist and be writable.</p>";
+}
+

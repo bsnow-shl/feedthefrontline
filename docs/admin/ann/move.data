@@ -1,0 +1,29 @@
+$aid = $_REQUEST['aid'];
+        
+db_send('begin');
+
+if ($_REQUEST['moveup']) {
+        $current = db_value('select display_order from announcements where announcement_id=?', $aid);
+        $next = db_value('select min(display_order) from announcements where display_order>?', $current);
+        if ($next) {
+                db_send('update announcements set display_order=? where display_order=?', $current, $next);
+                db_send('update announcements set display_order=? where announcement_id=?', $next, $aid);
+        }
+}
+
+
+
+if ($_REQUEST['movedown']) {
+        $current = db_value('select display_order from announcements where announcement_id=?', $aid);
+        $previous = db_value('select max(display_order) from announcements where display_order<?', $current);
+        if ($previous) {
+                db_send('update announcements set display_order=? where display_order=?', $current, $previous);
+                db_send('update announcements set display_order=? where announcement_id=?', $previous, $aid);
+        }
+}
+
+db_send('commit');
+
+redirect('index.html#item'.$aid);
+
+

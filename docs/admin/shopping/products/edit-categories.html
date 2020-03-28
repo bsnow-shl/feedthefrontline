@@ -1,0 +1,44 @@
+<!--
+<title>Category settings for <cite><%= $sku %></cite></title>
+-->
+
+<div class="section">
+
+<? if (form_valid()) { ?>
+	<? if ($edits): ?>
+	<p>
+	The following changes were noted:
+	<ul><li><%= join("<li>", $edits) %>
+	</ul>
+	</p>
+	<? else: ?>
+		<p>No edits observed.</p>
+	<? endif ?>
+	<p>
+	&raquo; <a href="<%= href('edit.html', 'pid', $pid) %>">Return to editing <%= $sku %>.</a>
+	</p>
+
+<? } else { ?>
+
+	<? form_start();  ?>
+	<table class=padded>
+	<tr>
+	<? foreach ($checkbox_pickers as $name => $ignored): ?>
+	<th><%= $name %></th>
+	<? endforeach ?>
+	</tr>
+	<tr>
+	<? foreach ($checkbox_pickers as $name => $cb): ?>
+	<td valign=top>
+	<? foreach ($cb as $id => $field): ?>
+	@@<%= $id %>@@ <%= $field['pretty'] %><br/>
+	<? endforeach ?>
+	</td>
+	<? endforeach ?>
+	</tr>
+	</table>
+	<? form_end(); ?>
+
+<? } ?>
+
+</div>

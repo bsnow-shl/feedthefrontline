@@ -1,0 +1,76 @@
+require_once 'form.h';
+
+$cid = 0+$_GET['contract'];
+$c = db_row('select short_name,retired,party_1_tax,due_days from contracts where contract_id=?', $cid);
+if (!$c) { redirect("index.html"); }
+
+
+
+
+
+form_set('cutoff', array('cutoff_date'=>'date', 
+		  'create_date' => array('type'=>'date', 'default'=>'today'),
+			'due_date' => array('type'=>'date', 'default' => $c['due_days'].' days'),
+			'preview' => array('type'=>'submit','value'=>'Preview items to be invoiced'),
+			'generate' => array('type'=>'submit','value'=>'Generate invoice')
+));
+
+
+if (form_valid('cutoff')) {
+	if ($cutoff_date) {
+		$cutoff_sql = "AND create_date < '$cutoff' ";
+		$cutoff_message = $cutoff_date;
+	}
+} 
+if (!$cutoff_sql) {
+	$cutoff_message = "now";
+}
+
+$uncharged = db_value("select sum(amount) from contract_invoice_items where invoice_id is null and contract_id=? and void=0". $cutoff_sql, $cid);
+
+
+
+form_set('taxitem', array(
+      'tax_rate' => array('type'=>'float', 'default' => '5', 'positive'=> 1),
+      'tax_description' => array('type'=>'text', 'default'=>'GST '.$c['party_1_tax'], 'required', 1)
+));
+if (form_valid('taxitem')) {
+    $tax_amount = round($uncharged*$tax_rate/100);
+    db_insert_hash('contract_invoice_items', array(
+              'invoice_item_id' => db_newid('contract_invoice_items'), 
+              'contract_id' =>  $cid, 
+	      'is_tax' => 1,
+              'amount'=> $tax_amount, 
+              'name'=> 'Tax: '.$tax_description
+        ));
+    $uncharged += $tax_amount;
+    form_add_note( sprintf( 'Created tax charge of $%.02f.', $tax_amount/100.0), 'taxitem');
+}
+
+
+
+
+if ($preview) {
+	$uncharged_detail = db_multirow("select *, date_part('epoch', create_date) as create_date  from contract_invoice_items where void=0 and invoice_id is null and contract_id=? ". $cutoff_sql, $cid);
+}
+
+if ($generate) {
+	if ($uncharged) {
+		db_send('begin');
+		$new_invoice = db_newid('contract_invoices');
+
+
+		db_send("insert into contract_invoices (invoice_id, contract_id, cached_amount,created_by, due_date, create_date) values (?,?,?,?,?,?)", $new_invoice, $cid, 0+$uncharged, user_id(), $due_date, $create_date);
+
+		db_send('update contract_invoice_items set invoice_id=? where
+				invoice_id is null and void=0 and
+				contract_id=? '. $cutoff_sql,
+			$new_invoice, $cid);
+		db_send('commit');
+		redirect(href('details.html', 'contract', $cid));
+	} else {
+		form_error('generate', "No items to be invoiced; invoice not generated.");
+	}	
+}
+
+

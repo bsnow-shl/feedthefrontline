@@ -1,0 +1,22 @@
+<!--
+<title>Document consistency check</title>
+-->
+
+<? if ($problems): ?>
+<h2>Problems found</h2>
+
+<table class="padded">
+<tr><th>Upload #</th><th>File</th><th>Size</th><th>Linked to</th><th>Problem</th></tr>
+<? foreach ($problems as $p): ?>
+<tr>
+<td><%= $p['upload_id'] %></td>
+<td><%= $p['original_name'] %></td>
+<td><%= $p['size'] %></td>
+<td><%= $p['referring_table'].' '.$p['referring_id'] %></td>
+<td><%= $p['problem'] %></td>
+</tr>
+<? endforeach ?>
+</table>
+
+
+<? endif ?>

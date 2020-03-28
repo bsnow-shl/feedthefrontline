@@ -1,0 +1,27 @@
+<!--
+<title>Recover your password</title>
+-->
+
+<div class="pagebody"> <div class="container"> <div class="row"><div class="span12">
+
+<? if ($privacy_freak): ?>
+
+	<p>If <%= $_GET['email'] %> has an account on this system, they have been sent a password reminder.  </p>
+
+	<p> Check your e-mail in a few moments, and then <a href="login.html">try logging in again</a>.  </p>
+
+	<p> For privacy reasons, we cannot confirm whether or not the e-mail address you gave is registered with this service.</p>
+
+<? else: ?>
+
+	<p> Okay, your password has been sent to <%= $_GET['email'] %>.  </p>
+
+	<p> Check your e-mail in a few moments, and then <a href="<%= href('login.html', 'email', $_GET['email']) %>">try logging in again</a>.  </p>
+
+    <? if ($_SERVER['DEVEL']): ?>
+    <p>Baaaah, just joking. Your password is <b><%= $password %></b>.</p>
+    <? endif ?>
+
+<? endif ?>
+
+  </div></div></div>

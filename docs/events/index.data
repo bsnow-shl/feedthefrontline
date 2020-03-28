@@ -1,0 +1,14 @@
+require_once 'i18n.h';
+require_once 'events.h';
+require_once 'users.h';
+
+
+if  (!user_has_role('events_admin')) {
+	$restriction = "and publishing_status='published'";
+} else {
+	$restriction = "and publishing_status in ('published','unpublished') ";
+}
+
+$events = db_multirow('select event_id,event_start_date,event_end_date,publishing_status from events where  true 
+	'.$restriction.' and event_start_date > CURRENT_TIMESTAMP order by event_start_date');
+

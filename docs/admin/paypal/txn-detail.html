@@ -1,0 +1,55 @@
+<!--
+<title>Details for invoice #<%= $txn_id %></title>
+-->
+
+<h3>Invoice information</h3>
+
+<div class=section>
+<? if ($notify_id): ?>
+<p>	
+<span class=error>
+This invoice was flagged for your attention.  </span> Please review the events below, particularly the highlighted ones.  If everything is fine, <a href="<%= href('txn-action-taken.html', 'notify_id', $notify_id) %>">click here</a> to un-flag it.
+</p>
+<? endif ?>
+
+<table class="padded">
+<tr><th>Invoice #</th><td><%= $info['paypal_transaction_id'] %></td></tr>
+<tr><th>Created</th><td><%= date('r',$info['create_datetime']) %></td></tr>
+<tr><th>User id payment is for</th><td><%= $info['user_id'] %> &mdash; <%= $user_ref %></td></tr>
+<tr><th>Re:</th><td><%= $regarding %></td></tr>
+<tr><th>Amount expected</th><td><%= $info['amount_expected'] %></td></tr>
+<tr><th>Currency expected</th><td><%= $info['currency_expected'] %></td></tr>
+<tr><th>Invoice status</th><td><%= $info['transaction_status'] %></td></tr>
+</table>
+<? form_start('txndetail'); form_end('txndetail'); ?>
+</div>
+
+<h3>Events and notifications</h3>
+<div class=section>
+
+<table class=padded>
+<tr><th>Timestamp</th><th>Paypal's identifier</th><th>Is authentic?</th><th>Amount received</th><th>Note</th></tr>
+<? foreach ($combined as $c): ?>
+
+<tr 
+	<? if ($c['requires_action']): ?>
+		class=error
+	<? endif ?>
+>
+<td><%= is_null($c['timestamp']) ? '' : date('r', $c['timestamp']) %></td>
+<td><%= $c['paypal_txnid'] %></td>
+<td><%= a_href('notification-detail.html', 'nid', $c['paypal_notification_id'])%>><%= is_null($c['is_authentic']) ? '' : ($c['is_authentic']==1?'yes':'no') %></a></td>
+<td><%= is_null($c['amount_received']) ? '': sprintf('%0.2f',$c['amount_received']) %></tD>
+<td><%= $c['note'] %>
+
+<? if ($c['is_authentic']==='0'): ?><a href="<%= href('revalidate.html', 'notify_id', $c['paypal_notification_id']) %>">revalidate</a><? endif ?>
+
+</td>
+</tr>
+<? endforeach ?>
+</table>
+
+<? form_start(); form_end(); ?>
+
+</div>
+

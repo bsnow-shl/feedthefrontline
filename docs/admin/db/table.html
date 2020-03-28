@@ -1,0 +1,47 @@
+<h1><?= $table ?>, a table with <?= $row_count ?> row(s)</h1>
+Part of <a href="./">database administration</a>
+<hr/>
+<br/>
+
+<? if (!$rows): ?>
+
+	Nothing to show you.  It's empty.
+
+<? elseif ($row_count>100 && !$doit): ?>
+
+	<p>Whoah, watch out.  There's <?= $row_count ?> rows. You can make up a where clause to constrain the query.
+	</p>
+	<? form_start(); form_end(); ?>
+	<p>Columns:
+	<blockquote>
+	<? print_a($keys); ?>
+	</blockquote>
+	</p>
+
+<? else: ?>
+
+	<table border=1>
+	<tr><?
+		$titles = array_keys($rows[0]);
+		foreach ($titles AS $t) {
+			$self = href('table.html', 'table', $table, 'order', $t);
+			printf( '<th><a href="%s">%s</a></th>', $self, $t);
+		}
+	?></tr>
+	
+	<? foreach($rows AS $r) {
+		echo '<tr>';
+		foreach ($titles AS $t) {
+			if ($t == 'rowid') {
+				echo '<td><a href="'.href('edit.html','table',$table,'rowid',$r[$t]).'">'.$r[$t].'</a></td>';
+			} else {
+				echo '<td>'.$r[$t].'</td>';
+			}
+		}
+		echo '</tr>';
+	} ?>
+	</table>
+
+	<p><a href="<%= href('insert.html', 'table', $table) %>">Insert a row...</a></p>
+
+<? endif ?>

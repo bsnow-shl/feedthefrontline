@@ -1,0 +1,32 @@
+
+
+$paypal_systems = db_multirow('select paypal_system_name,paypal_system_id from paypal_systems');
+
+
+require_once 'form.h';
+form_set(array(
+	'item_name' => array('required'=>1, 'type'=>'menu', 'sql'=>'select paypal_system_id as key, paypal_system_name as value from paypal_systems'),
+	'item_number' => 'text,required',
+	'price' => 'text,required',
+));
+
+
+if (form_valid()) {
+	paypal_redirect($item_name, $item_number, $price);
+}
+
+$summary = db_hash_multirow('paypal_system_id', 
+		"select paypal_system_id, sum(amount_received) as amount_received
+		from paypal_transactions as p, paypal_notifications as n 
+		where p.paypal_transaction_id = n.paypal_transaction_id 
+			AND notification_timestamp > CURRENT_TIMESTAMP - interval '7 day' 
+		GROUP BY paypal_system_id");
+$summary += array('summary' => db_row("
+		select sum(amount_received) as amount_received
+		from paypal_transactions as p, paypal_notifications as n 
+		where p.paypal_transaction_id = n.paypal_transaction_id 
+			AND notification_timestamp > CURRENT_TIMESTAMP - interval '7 day' 
+"));
+
+$requires_attention = db_array('select distinct paypal_notification_id from paypal_notifications where requires_action=1');
+

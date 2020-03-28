@@ -1,0 +1,21 @@
+
+require_once 'survey.h';
+
+$unsent = db_array("select invitation_id 
+	from survey_invitations where  (
+		(valid_until > CURRENT_TIMESTAMP + INTERVAL '7 days' and valid_until < CURRENT_TIMESTAMP + INTERVAL '8 days') or 
+		(valid_until > CURRENT_TIMESTAMP + INTERVAL '14 days' and valid_until < CURRENT_TIMESTAMP + INTERVAL '15 days') 
+	) 
+	and invitation_status in (?,?,?) ", 'sent', 'opened', 'started');
+
+foreach ($unsent as $iid) {
+      survey_send_reminder($iid);
+
+      db_send('update survey_invitations set invitation_status=? where invitation_id=?', 'sent', $iid);
+
+      db_insert_hash('survey_invitation_diary', array(
+              'invitation_id'=>$iid,
+              'note' => 'Reminder sent'
+      ));
+}
+

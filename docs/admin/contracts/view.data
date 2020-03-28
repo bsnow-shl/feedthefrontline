@@ -1,0 +1,8 @@
+require_once 'form.h';
+
+$cid = 0+$_GET['contract'];
+$c = db_row('select short_name from contracts where contract_id=?', $cid);
+if (!$c) { redirect("index.html"); }
+
+$charges = db_multirow("select invoice_item_id,date_part('epoch', create_date) as create_date,void,amount,name from contract_invoice_items where invoice_id is null and contract_id=?", $cid);
+

@@ -1,0 +1,54 @@
+require_once 'form.h'; 
+
+$bboard_id = 0+$_GET['bboard_id'];
+
+
+user_require();
+
+
+
+$level_map = array(
+	'00' => 'unsub',
+	'10' => 'posts',
+	'11' => 'posts-and-comments'
+);
+
+$sub_levels = array(
+	'unsub'=> 'unsubscribed',
+	'posts' => 'posts only',
+	'posts-and-comments' => 'posts and comments'
+);
+
+form_set(array(
+	'subscription_level' => array('type' => 'menu', 
+					'menu' => $sub_levels,
+					'required' => 1)
+));
+if (form_valid()) {
+	db_send('delete from bboard_subscriber_map where bboard_id=? and user_id=?', $bboard_id, user_id());
+	if ($subscription_level != 'unsub') {
+		$level_map_flip = array_flip($level_map);
+		$new_val = $level_map_flip[$subscription_level];
+		db_send('insert into bboard_subscriber_map (bboard_id,user_id,subscribe_posts,subscribe_comments) values (?,?,?,?)',
+				$bboard_id, user_id(), substr($new_val,0,1), substr($new_val,1,1) );
+	}
+	form_add_note('Your change has been saved.');
+}
+
+
+
+
+
+# stuff for display
+$level_row = db_row('select * from bboard_subscriber_map where bboard_id=? and user_id=?', $bboard_id, user_id());
+$level=$level_map[$level_row['subscribe_posts'].$level_row['subscribe_comments']];
+if (!$level) $level='unsub';
+
+$_REQUEST['subscription_level'] = $level;
+
+$sub_level = $sub_levels[$level];
+
+$forum = db_row('select * from bboards where bboard_id=?', $bboard_id);
+$short_name = $forum['short_name'];
+$pretty_name = $forum['pretty_name'];
+

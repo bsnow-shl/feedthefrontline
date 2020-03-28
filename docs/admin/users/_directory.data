@@ -1,0 +1,9 @@
+require_once 'users.h';
+
+user_require('user_admin');
+$edit_user = $_SESSION['edit_user'];
+if ($_GET['edit_user']) {
+	$_SESSION['edit_user'] = $edit_user = $_GET['edit_user'];
+}
+
+

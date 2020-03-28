@@ -1,0 +1,11 @@
+
+$faq_id = $_GET['faq_id'];
+
+
+db_send('begin');
+db_send('delete from faqs where faq_id=?', $faq_id);
+i18n_delete('FAQ', $faq_id);
+db_send('commit');
+
+redirect('index.html');
+

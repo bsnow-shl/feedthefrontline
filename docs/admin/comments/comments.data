@@ -1,0 +1,42 @@
+require_once 'form.h';
+require_once 'comments.h';
+form_set(array(
+	'comment_system' => array('type'=>'menu', 'sql' => 'select comment_system_id as key, plural as value from comment_systems'),
+	'commented_thing' => 'integer',
+	'comment' => 'text'
+));
+$sql = '';
+$params = array();
+
+if (form_valid()) {
+	$sql .= 'where true ';
+	
+	if ($commented_thing) {
+		$sql .= 'and commented_thing =?';
+		$params[] = $commented_thing;
+	}
+	if ($comment_system) {
+		$sql .= 'and comment_system_id = ? ';
+		$params[] = $comment_system;
+	}
+	if ($comment) {
+		$sql .= 'and comment like ? ';
+		$params[] = '%'.$comment.'%';
+	}
+}
+
+$csys_q = db_multirow('select * from comment_systems');
+foreach ($csys_q as $r) {
+	$csys[$r['comment_system_id']] = $r['singular'];
+}
+
+$comments = db_multirow("
+	select *,date_part('epoch', comment_timestamp) 
+	as comment_timestamp  from comment_systems join comments using (comment_system_id) left outer join users using(user_id)
+	$sql
+	order by singular,commented_thing,comments.comment_timestamp
+", $params);
+foreach ($comments as $c) {
+	$commented_things[$c['commented_thing']][] = $c;
+}
+

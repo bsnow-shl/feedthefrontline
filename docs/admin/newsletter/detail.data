@@ -1,0 +1,24 @@
+
+$nmid = 0+$_GET['nmid'];
+
+
+$mailing = db_row('select * from newsletter_mailings where newsletter_mailing_id=?', $nmid);
+$newsletter = db_row('select 
+  count(*) as num_queued,
+	sum(sent) as num_sent,
+	sum(opened) as num_opened,
+	sum(bounced) as num_bounced,
+
+	sum(case when unsubscribed>0 then 1 else 0 end) as num_unsubscribed,
+	sum(case when opened>0 then 1 else 0 end) as num_opened,
+	sum(case when clicked_through>0 then 1 else 0 end) as num_clickthrough,
+
+	sum(opened) as sum_opened,
+	sum(clicked_through) as sum_clickthrough
+
+
+	from newsletter_mailings join newsletter_queue using (newsletter_mailing_id)
+	where newsletter_mailing_id=?
+', $nmid);
+
+

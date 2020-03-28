@@ -1,0 +1,70 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+$cid = 0+$_GET['cid'];
+
+
+if ($_REQUEST['sku_filter']) {
+	$sql = "sku like '%{$_REQUEST['sku_filter']}%' ";
+} else {
+	$sql = "true";
+}
+
+form_set('newproduct', array(
+	'new_product_sku' => array('type'=>'menu', 'pretty' => 'SKU', 'sql' => 
+			"select product_id as key, sku as value from shopping_products where visible_admin=1 and $sql order by sku limit 100"
+			),
+	'sku_filter' => 'text'
+));
+if (form_valid('newproduct') && $new_product_sku) {
+	db_insert_hash('shopping_product_category_map', array(
+		'category_id' => $cid,
+		'product_id' => $new_product_sku,
+		'display_order' => db_newid('display_order')
+	));
+	$_REQUEST['new_product_sku'] = '';
+}
+
+
+$contents = db_multirow('select * from shopping_product_category_map join shopping_products using (product_id)
+		where category_id=? order by display_order', $cid);
+i18n_get_batch($contents, 'Product', 'product_id');
+
+
+
+
+// now the category contents
+
+if ($_REQUEST['category_name_filter']) {
+	$sql = "short_name like '%{$_REQUEST['category_name_filter']}%' ";
+} else {
+	$sql = "true";
+}
+
+form_set('newsubcat', array(
+	'new_category_name' => array('type'=>'menu', 
+            'sql'=> "select category_id as key, short_name as value from shopping_categories where category_id != ? and $sql 
+                and category_id not in (select category_id from shopping_category_category_map where parent_category_id=?) order by short_name limit 100", 
+            'sqlp1' => $cid,
+            'sqlp2' => $cid
+			),
+	'category_name_filter' => 'text'
+));
+if (form_valid('newsubcat') && $new_category_name) {
+	db_insert_hash('shopping_category_category_map', array(
+		'parent_category_id' => $cid,
+		'category_id' => $new_category_name,
+		'display_order' => db_newid('display_order')
+	));
+}
+
+$cat_contents = db_multirow('select * from shopping_category_category_map join shopping_categories using (category_id)
+		where parent_category_id=? order by display_order', $cid);
+i18n_get_batch($cat_contents, 'Product category', 'category_id');
+
+
+
+
+
+$cat_name = db_value('select short_name from shopping_categories where category_id=?', $cid);
+if (!$cat_name) { redirect("index.html"); } 

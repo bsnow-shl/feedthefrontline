@@ -1,0 +1,39 @@
+<!--
+<title>Contract and invoices timeline</title>
+-->
+
+<div class="section">
+<h2>Time range</h2>
+<? form_start(); form_end(); ?>
+
+
+<? foreach ($index as $month => $items): ?>
+<h3><%= $month %></h3>
+<ul>
+<? foreach ($items as $i): ?>
+<? if ($voided[$i['invoice_id']]) { $strike = '<strike>'; $unstrike = '</strike>'; } else { $strike = $unstrike = ''; } ?>
+<? if ($i['contract_id']): ?>
+	<li><%= date("Y-m-d", $i['tstamp']) %>: <%= $strike %><a href="<%= href('view-invoice.html', 'invoice', $i['invoice_id']) %>">Invoice #<%= $i['invoice_id'] %></a><%= $unstrike %> created for 
+	$<%= $i['amount']/100.0 %> on 
+	<a href="<%= href('details.html', 'contract', $i['contract_id']) %>"><%= $contracts[$i['contract_id']]['short_name'] %></a>.  
+
+<? if ($i['void']): ?>
+	(<%= $i['void'] ? 'Voided on '.$i['void_date'] : '' %>)
+	<? if ($i['paid']): ?> 
+		<b>Whoah:</b> 
+		<%= 'Marked paid on '.$i['paid_date'] %>
+	<? endif ?>
+<? else: ?>
+	(<%= $i['paid'] ? 'Paid on '.$i['paid_date'] : 'Currently unpaid.' %>)
+<? endif ?>
+	</li>
+<? else: ?>
+	<li><%= date("Y-m-d", $i['tstamp']) %>: <%= $strike %><a href="<%= href('view-invoice.html', 'invoice', $i['invoice_id']) %>">Invoice #<%= $i['invoice_id'] %></a><%= $unstrike %>: <%= $i['note'] %>
+<? endif ?>
+<? endforeach ?>
+
+</ul>
+
+<? endforeach ?>
+
+</div>

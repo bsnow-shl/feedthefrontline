@@ -1,0 +1,35 @@
+require_once 'comments.h';
+$keyword_sql = '';
+if ($_GET['keyword']) {
+    $keyword_sql = 'AND weblog_entry_id in (select weblog_entry_id from weblog_entry_keywords where keyword=?) ';
+}
+
+$which_to_get = db_array("select weblog_entry_id from weblog_entries where weblog_id=? $keyword_sql 
+		order by posting_date desc limit 5", $weblog_row['weblog_id'], $_GET['keyword']);
+
+$page_author = $weblog_row['first_name'].' '.$weblog_row['last_name'];
+$page_author_email = $weblog_row['email'];
+
+if ($which_to_get) {
+    $sql_to_get = 'weblog_entry_id in ('.join(',', $which_to_get).')';
+
+    $entries = db_multirow("
+            SELECT *,date_part('epoch', posting_date) as posting_date 
+            FROM weblog_entries,users 
+            WHERE author=user_id 
+            AND $sql_to_get
+	    order by weblog_entries.posting_date desc
+    ");
+    $keywords = db_multirow("
+            SELECT weblog_entry_id,keyword 
+            FROM weblog_entry_keywords
+            WHERE $sql_to_get
+    ");
+
+    $i_ = sizeof($keywords);
+    for($i=0; $i<$i_; $i++) {
+        $kw[$keywords[$i][weblog_entry_id]][] = $keywords[$i][keyword];
+    }
+} else {
+    $which_to_get = array(); 
+}

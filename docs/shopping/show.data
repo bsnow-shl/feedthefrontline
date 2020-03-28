@@ -1,0 +1,7 @@
+require_once 'shopping.h';
+
+$sku = $_GET['sku'];
+if (!$sku) { redirct('index.html'); }
+
+$info = shopping_get_product($sku);
+

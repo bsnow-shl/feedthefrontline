@@ -1,0 +1,34 @@
+<!--
+<title>Edit item: <cite><%= $item_name %></cite></title>
+-->
+
+<h3>Category items</h3>
+<div class="section">
+
+<? if ($item_contents): ?>
+<table class="padded"><tr><th>Name</th><th>Type</th><th>Title</th></tr>
+
+<? foreach ($item_contents as $c): ?>
+<? 
+   $info = i18n_get('Content item', $c['content_id']);
+   $type= (0==$c['grandchild_count'])?'item':'submenu';
+   $pretty_type = $c['class_name'];
+  ?>
+
+
+<tr><td><a href="<%= href("/admin/content/tree/edit-$type.html", 'content_id', $c['content_id'] ) %>"><%= $c['short_name'] %></a></td><td><%= $pretty_type %></td><td><%= $info['title'] %></td>
+<td>
+<a href="<%= href('delete.html', 'content_id', $c['content_id'],  'pcontent_id', $content_id) %>">drop</a> | 
+<a href="<%= href('move-subcat.html', 'content_id', $c['content_id'], 'pcontent_id', $content_id, 'moveup', 1) %>">move up</a> | 
+<a href="<%= href('move-subcat.html', 'content_id', $c['content_id'], 'pcontent_id', $content_id, 'movedown', 1) %>">move down</a> 
+
+</td></tr>
+<? endforeach ?>
+</table>
+<? endif ?>
+
+<p><a href="<%= href('add-item.html', 'parent', $content_id) %>">Add an item under this one...</a></p>
+<p><a href="<%= href('edit-item.html', 'content_id', $content_id) %>">Edit "<%= $item_title %>" page...</a></p>
+
+</div>
+

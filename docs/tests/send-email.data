@@ -1,0 +1,3 @@
+$_ENV['DEVEL']=1;
+
+cpf_mail("svanegmond@tinyplanet.ca", "subject line", "Everything is hunkydory. But you will want to click this link: http://".$_SERVER['SERVER_NAME'].':'.$_SERVER['SERVER_PORT'].'/tests/send-email-2.html   and not this one http://www.cnn.com/ .', "From: bsnow@tinyplanet.ca");

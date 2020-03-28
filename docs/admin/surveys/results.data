@@ -1,0 +1,17 @@
+
+require_once 'i18n.h';
+require_once 'survey.h';
+
+$sur = db_row('select * from surveys where survey_id=?', 0+$_GET['sid']);
+if ($sur['survey_type']=='multi-page') {
+	redirect(href('multipage-invite-search.html', 'sid', 0+$_GET['sid']));
+}
+
+if (!$sur) { exit(); }
+
+
+$results = survey_get_summary_results($_GET['sid']);
+
+
+
+

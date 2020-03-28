@@ -1,0 +1,13 @@
+require_once 'users.h';
+
+$privacy_freak = config_get('account', 'privacy_freak');
+
+$uid = user_id_for_email($_GET['email']);
+$password = user_random_password();
+$site = $_SERVER['HTTP_HOST'];
+
+if ($password) {
+	db_send('update users set password_md5=? where user_id=?', user_hash_for_password($password), $uid);
+	cpf_mail($_GET['email'], "Password for $site", "You can log in at http://$site/account/ .\n\nYour password is: $password\n\nRegards,\nThe $site web server.");
+}
+

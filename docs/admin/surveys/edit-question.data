@@ -1,0 +1,39 @@
+require_once 'i18n.h';
+
+$qid = 0+$_GET['qid'];
+
+if ($_POST['newoption']) {
+	foreach ($_POST['newoption'] as $lang=>$opts) {
+        foreach ($opts as $o) {
+            if ($o == '') { continue; }
+            $put[$lang][] = $o;
+        }
+	}
+    
+    if ($survey['survey_type']=='multiple-choice-exam') {
+        $put['right_answer'] = $_POST['answer'];    
+    }
+	db_send('update survey_questions set question_type_extra=? where survey_question_id=?', serialize($put), $qid);
+}
+
+$question = db_row('select * from survey_questions where survey_question_id=?', $qid);
+$survey = db_row('select * from surveys where survey_id=?', $question['survey_id']);
+
+if ($_POST['done']) {
+    redirect(href('edit.html', 'sid', $question['survey_id']));
+}
+
+if ($question['question_type'] != 'menu' &&
+    $question['question_type'] != 'flaglist') {
+     exit("How'd you get here?");
+}
+
+$options = unserialize($question['question_type_extra']);
+if (!$options) { $options = array(); }
+
+
+$languages = config_get('i18n', 'allowed_languages');
+
+$question_content = i18n_get('Survey question', $qid);
+$question_text = $question_content['question'];
+

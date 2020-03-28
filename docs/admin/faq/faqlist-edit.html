@@ -1,0 +1,34 @@
+<!--
+<title>FAQ List: <cite><%= $faq_name %></cite></title>
+-->
+
+
+<div class="section">
+
+<p>The public URI of this FAQ is <tt>/faq/view/<%= $faq_details['short_name'] %></tt>.</p>
+
+
+<table class="padded">
+<tr><th>Question #</th><th>Question</th><th>Action</th></tr>
+
+<? foreach ($questions as $q): ?>
+
+<tr><td><%= ++$counter %></td>
+<td><%= $q['question'] %></td>
+<td>
+<a href="<%= href('question-edit.html', 'question_id', $q['faq_question_id']) %>">Edit</a> | 
+<a href="<%= href('question-drop.html', 'faq_id', $faq_id, 'question_id', $q['faq_question_id']) %>">Drop</a>
+ | <a href="<%= href('question-add.html',  'faq_id', $faq_id, 'after_question_id', $q['faq_question_id']) %>">Add question here</a>
+ | <a href="<%= href('move.html',  'refer', $_SERVER['REQUEST_URI'], 'moveup', 1, 'faq_question_id', $q['faq_question_id']) %>">Up</a>
+ | <a href="<%= href('move.html',  'refer', $_SERVER['REQUEST_URI'], 'movedown', 1, 'faq_question_id', $q['faq_question_id']) %>">Down</a>
+</td>
+
+<? endforeach ?>
+<tr><td colspan=3><a href="<%= href('question-add.html', 'faq_id', $faq_id) %>">Add a question...</a></td></tr>
+
+</table>
+
+<? if (sizeof($questions)==0): ?>
+	Since this FAQ is empty, you can also <a href="<%= href('faq-drop.html', 'faq_id', $faq_id) %>">drop it</a>.
+<? endif ?>
+</div>

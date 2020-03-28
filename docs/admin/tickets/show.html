@@ -1,0 +1,38 @@
+<!--
+<title>Ticket #<%= $ticket['ticket_id'] %> details</title>
+-->
+
+<div class="section">
+
+<? form_start(); ?>
+<table class=padded>
+<tr><th><b>component</b></th><td><%= $ticket['component'] %></td></tr>
+<tr><th><b>entered by</b></th><td><a href="mailto:<%= $ticket['submitter_email'] %>"><%= $ticket['submitter_email'] %></a> - <%= $ticket['submitter_name'] %></td></tr>
+<tr><th><b>entry date</b></th><td><%= date("F j, Y", $ticket['date_added']) %></td></tr>
+<tr><th><b>assigned to</b></th><td>@@assignedto@@ @@go@@</td></tr>
+<tr><th><b>cc</b></th><td><%= join(',', $ticket['cc']) %></td></tr>
+<tr><th><b>status</b></th><td><%= $ticket['ticket_status'] %>
+<? if ($ticket['ticket_status']=='closed') {
+        printf (' &mdash; <a href="%s">Reopen this ticket</a>', href('ticket-update.html', 'id', $ticket['ticket_id'], 'ticket_status', 'open'));
+} ?>
+</td></tr>
+<tr><th><b>message</b></th><td><%= nl2br($ticket['description']) %></td></tr>
+<tr><th><b>comments</b></th><td><%= comments_on('tickets', $id, 'inline') %>
+</td></tr>
+</table>
+<? form_end(); ?>
+
+</div>
+
+<h2>Actions</h2>
+
+<div class="section">
+
+<ul>
+<? if ($ticket['ticket_status'] != 'closed'): ?>
+<li> <a href="ticket-update.html?id=<%= $ticket['ticket_id'] %>&ticket_status=closed">Close this ticket</a>
+<? endif ?>
+
+</ul>
+</div>
+

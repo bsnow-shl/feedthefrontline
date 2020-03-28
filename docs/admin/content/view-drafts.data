@@ -1,0 +1,7 @@
+
+require_once 'i18n.h';
+
+$items = db_multirow('select i18n_content.content_id,short_name from i18n_content join i18n_content_map using (content_id) where posting_datetime is null');
+
+i18n_get_batch($items, 'Content item', 'content_id');
+

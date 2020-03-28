@@ -1,0 +1,19 @@
+<!--
+<title>Save system translations</title>
+-->
+
+
+<? if ($success): ?>
+<p>
+ <%= $count %> system translations saved. These will be visible on the site in a few minutes.
+</p>
+
+<? echo $result ?>
+
+<? else: ?>
+
+<p>Saving translation dictionary failed. Please report this to support@tinyplanet.ca.</p>
+
+<? echo $result ?>
+
+<? endif ?>

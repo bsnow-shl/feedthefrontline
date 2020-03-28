@@ -1,0 +1,8 @@
+<div class=links>
+<h3>actions</h3>
+<? $email_valid_classes = email_get_valid_classes();
+   foreach ($email_valid_classes as $t => $ti): ?>
+<a href="add.html?class=<%= $t %>">Add <%= $t %>...</a>
+<? endforeach ?>
+<a href="/admin/special/gen-system-files.html">Publish changes</a>
+</div>

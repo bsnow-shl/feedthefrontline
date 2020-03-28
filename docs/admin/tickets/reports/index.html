@@ -1,0 +1,14 @@
+<!--
+<title>Tickets reports</title>
+-->
+
+<h2>All tickets: By assignee and status</h2>
+<div class="section">
+<? if ($assignee_status) {  dump_table($assignee_status);  } ?>
+</div>
+
+<h2>Tickets opened in last 30 days:</h2>
+<div class="section">
+<? if ($assignee_status_last_month) { dump_table($assignee_status_last_month); }?>
+</div>
+

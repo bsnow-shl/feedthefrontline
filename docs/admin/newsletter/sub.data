@@ -1,0 +1,107 @@
+require_once 'newsletter.h';
+require_once 'form.h';
+
+if (isset($_GET['uid'])) {
+	$uid = $_GET['uid'];
+} else {
+	$uid = $_SESSION['edit_user'];
+}
+$user_row = db_row('select email from users where user_id=?', $uid);
+
+$subscriptions = array();
+if ($uid) {
+	# pull all subscriptions for this user
+	$subscription_query = db_multirow('select newsletter_id,parameter from newsletter_subscriptions where user_id=?', $uid);
+	foreach ($subscription_query as $r) {
+		$subscriptions[ $r['newsletter_id'] ][ $r['parameter'] ] = 1;
+	}
+}
+
+
+$newsletters = db_multirow('select newsletter_id,name from newsletters');
+$editions = newsletter_editions();
+if (!$editions) { exit("You need to set newsletter->editions in configuration."); }
+foreach ($newsletters as $n) {
+	foreach ($editions as $ekey => $ename) {
+		$form[ "sub[${n['newsletter_id']}][$ekey]" ] = array('type'=>'flag', 'default' => $subscriptions[ $n['newsletter_id'] ] [$ekey]);
+	}
+}
+if (!$uid) {
+	$form['batch'] = array('type'=>'bigtext', 'rows'=>40, 'cols' => 80);
+}
+
+
+
+function unsubscribe($user, $newsletter, $parameter) {
+	db_send('update newsletter_subscriptions set parameter=null where parameter=? and newsletter_id=? and user_id=?',
+		$parameter, $newsletter, $user);
+}
+function subscribe($user, $newsletter, $parameter) {
+	if (!db_value('select count(*) from newsletter_subscriptions where user_id=? and newsletter_id=? and parameter=?', $user, $newsletter, $parameter)) {
+		db_insert_hash('newsletter_subscriptions', array(
+				'user_id' => $user,
+				'newsletter_id' => $newsletter,
+				'parameter'=> $parameter));
+	}
+}
+
+form_set($form);
+if (form_valid()) {
+	db_send('begin');
+
+	if ($batch) {
+		$messages = array();
+		$accepted = $rejected = 0;
+
+		$tempfh = tmpfile();
+		fwrite($tempfh, $batch);
+		fseek($tempfh, 0);
+
+		while ($x = fgetcsv($tempfh, 1024)) {
+			list( $email, $first, $last, $company) = $x;
+			$email = trim($email);
+			$first = trim($first);
+			$last = trim($last);
+			$company = trim($company);
+			$uid = null;
+			if (is_email($email)) {
+				if ($uid = db_value('select user_id from users where email=?', $email)) {
+					# great
+					$messages[] = "$email: subscribed";
+				} else {
+					db_send('insert into users(email,first_name,last_name, company) values (?,?,?,?)', $email, $first, $last, $company);
+					$uid = db_value('select user_id from users where email=?', $email);
+					$messages[] = "$email (new account): subscribed";
+				}
+				$accepted++;
+			} else {
+				$messages[] = htmlspecialchars($email)." doesn't look like an email address";
+				$rejected++;
+			}
+			$uidlist[] = $uid;
+		}
+	} else { 
+		$uidlist = array($uid);
+	}
+
+	foreach ($uidlist as $uid) {
+		if ($uid) foreach ($newsletters as $n) {
+			foreach ($editions as $ekey => $ename) {
+				if ($subscriptions[ $n['newsletter_id'] ][$ekey] && !$_REQUEST['sub'][$n['newsletter_id']][$ekey]) {
+					unsubscribe($uid, $n['newsletter_id'], $ekey);
+				}
+				if (!$subscriptions[ $n['newsletter_id'] ][$ekey] && $_REQUEST['sub'][$n['newsletter_id']][$ekey]) {
+					subscribe($uid, $n['newsletter_id'], $ekey);
+				}
+			}
+		}
+	}
+
+	db_send('commit');
+	if (!$messages) {
+		if ($_GET['goback']) {
+			redirect ($_GET['goback']);
+		}
+		redirect('/admin/users/edit.html');
+	}
+}

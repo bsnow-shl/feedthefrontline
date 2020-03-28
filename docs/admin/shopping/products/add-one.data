@@ -1,0 +1,111 @@
+
+require_once 'form.h';
+require_once 'i18n.h';
+
+if (!$_GET['ptid']) { redirect('index.html');  }
+$product_i18n_id = db_value('select class_id from shopping_product_types where product_type_id=?', $_GET['ptid']);
+
+$realms = array();
+if (config_get('shopping', 'realms')) {
+	$realm_query = db_multirow('select sr.realm_id, short_name, pretty_name, product_id from shopping_realms as sr left outer join shopping_realm_product_map as srpm on (sr.realm_id = srpm.realm_id) and product_id =?', $pid);
+	foreach ($realm_query as $row) {
+		$realms['realm_'.$row['short_name']] = array('type'=>'flag','pretty'=>'<cite>'.$row['pretty_name'].'</cite>&nbsp;catalog', 'default' => $row['product_id'] ? 1 : 0);
+	}
+}
+
+$category_to_add = $_GET['cid'];
+
+$category_picker = config_get('shopping','admin_category_picker');
+$category_menu = array();
+if ($category_picker) foreach ($category_picker as $name => $cid) {
+	$checkboxes = shopping_get_tree_checkboxes($cid);
+	$checkbox_pickers[$name] = $checkboxes;	
+	$category_menu += $checkboxes;
+}
+
+$form = array(
+	'sku'=>'urifragment,required',
+	'supplier_id' => array('type'=>'menu', 'required' =>1, 'sql' => 'select supplier_id as key, short_name as value from shopping_suppliers where visible=1'),
+	'supplier_sku'=>'text'
+)+$realms + array(
+	'price'=>'dollars,required',
+	'cost'=>'dollars',
+	'product_image' => 'file',
+	)+i18n_form_fields('Product') 
+	 +i18n_form_fields($product_i18n_id) 
+	 + $category_menu ;
+
+form_set('default', $form, $_SESSION);
+
+if (form_was_submitted()) {
+    # make sure there's no other visible item with that sku
+	if (db_value('select count(*) from shopping_products where sku=? and visible_public=1', $sku)) {
+		form_error('sku', 'another product with that SKU is already published.');
+	}
+
+	# no slashes in SKU's
+	if (strpos($sku, '/')!== FALSE) {
+		form_error('sku','No slashes allowed.');
+	}
+}
+
+if (form_valid()) {
+	db_send('begin');
+	$new_prod = db_newid('shopping_products');
+	$_SESSION['supplier_id'] = $supplier_id;
+
+	db_insert_hash('shopping_products', array(
+			'product_id' => $new_prod,
+			'product_type_id' => $_GET['ptid'],
+			'supplier_id' => $supplier_id,
+			'price' => $price*100,
+			'cost' => $cost*100,
+			'sku' => $sku,
+			'supplier_sku' => $supplier_sku));
+	i18n_form_handle('Product', $new_prod);
+	i18n_form_handle($product_i18n_id, $new_prod);
+
+	foreach ($category_menu as $k => $ignored) {
+		if ($$k) {
+			# we have to add it
+			db_insert_hash('shopping_product_category_map', array(
+				'category_id' => $k,
+				'product_id' => $new_prod,
+				'display_order' => -db_newid('display_order')
+			));
+		}
+	}
+    if ($category_to_add) {
+        db_insert_hash('shopping_product_category_map', array(
+            'category_id' => $category_to_add,
+            'product_id' => $new_prod,
+            'display_order' => -db_newid('display_order')
+        ));
+    }
+	
+	if ($realm_query) {
+		foreach ($realm_query as $row) {
+			$k = 'realm_'.$row['short_name'];
+			if ($$k) {
+			$realms['realm_'.$row['short_name']] = array('type'=>'flag','pretty'=>'<cite>'.$row['pretty_name'].'</cite>&nbsp;catalog', 'value' => $row['product_id'] ? 1 : 0);
+				db_insert_hash('shopping_realm_product_map', array(
+					'realm_id' => $row['realm_id'],
+					'product_id' => $new_prod
+				));
+			}
+		}
+	}
+	
+	$upload_info = db_row('select * from uploads where upload_id=?', $product_image_upload_id);
+	
+	$old_file = $_SERVER['DOCUMENT_ROOT'].$upload_info['local_filename'];
+	shopping_make_product_images($sku, $old_file);
+
+	db_send('commit');
+
+    if ($_GET['goback']) {
+        redirect($_GET['goback']);
+    }
+	redirect('index.html');
+}
+

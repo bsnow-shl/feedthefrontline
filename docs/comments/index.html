@@ -1,0 +1,38 @@
+<!--
+<title>Comment on a <%= $singular %></title>
+-->
+
+<?
+require_once 'photos.h';
+if ($what =='photos') {
+        photo($which, 'right', array('size'=>'small'));
+} else if ($what == 'documents') {
+	require_once 'i18n.h';
+
+	$desc = i18n_get('document', $which_row['document_id']);
+    print "<b><a href=\"/documents/show-attachment.php?doc_id=${which_row['document_id']}\">${desc['name']}</a> - ${desc['description']}</b>";
+}
+?>
+
+<? if ($show_other_comments) {
+    echo '<blockquote>';
+    comments_on($csys['table_name'], $which);
+    echo '</blockquote>';
+} ?>
+
+
+<? if ($forget_it_pal): ?>
+   You have to <a href="<%= user_register_link() %>">register</a>
+   or <a href="<%= user_login_link() %>">log in</a>
+   to post comments.
+<? else: ?>
+
+ <? if (!user_id()): ?>
+     If you have an account with us, you can <a href="<%= user_login_link() %>">log in</a> before recording your comment.
+ <? endif ?>
+
+<? form_start();
+   form_end();
+?>
+
+<? endif ?>

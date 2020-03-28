@@ -1,0 +1,7 @@
+
+require_once 'form.h';
+require_once 'shopping.h';
+
+shopping_drop_shopcart_entry($_GET['itemid']);
+redirect('cart.html');
+

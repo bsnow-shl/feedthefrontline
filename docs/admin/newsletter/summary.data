@@ -1,0 +1,18 @@
+
+
+$newsletters = db_multirow('select newsletter_mailings.newsletter_mailing_id,description,count(*) as num_queued,
+	sum(sent) as num_sent,
+	sum(opened) as num_opened,
+	sum(bounced) as num_bounced,
+
+	sum(case when opened>0 then 1 else 0 end) as num_opened,
+	sum(case when clicked_through>0 then 1 else 0 end) as num_clickthrough,
+
+	sum(opened) as sum_opened,
+	sum(clicked_through) as sum_clickthrough
+
+	from newsletter_mailings join newsletter_queue using (newsletter_mailing_id)
+	group by newsletter_mailing_id, description
+');
+
+

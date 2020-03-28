@@ -1,0 +1,13 @@
+
+
+$n_id = 0+$_GET['newsletter_id'];
+$edition = $_GET['sub'];
+
+$n_row = db_row('select * from newsletters where newsletter_id=?', $n_id);
+if (!$n_row) { redirect ('index.html'); }
+
+$newsletter_name = $n_row['name'];
+
+
+$report = db_multirow("select users.user_id,email,first_name || ' ' || last_name as full_name  from newsletter_subscriptions join users using (user_id) where newsletter_id=? and parameter=?", $n_id, $edition);
+

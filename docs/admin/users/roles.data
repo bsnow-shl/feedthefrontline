@@ -1,0 +1,17 @@
+require_once 'form.h';
+
+require_once 'users.h';
+user_require('role_admin');
+
+
+form_set(array(
+	'role_name'=>'text,required',
+	'description' => 'text'
+));
+if (form_valid()) {
+	db_send('insert into roles (role_name, description,visible) values (?,?,1)', $role_name, $description); 
+	form_add_note("The new permission <b>$role_name</b> was added.");
+}
+
+$roles = db_multirow('select role_id,visible,role_name,description,count(user_id) from roles left outer join user_role_map using (role_id) group by role_id,role_name,description, visible order by role_name ');
+

@@ -1,0 +1,137 @@
+<!--
+<title>Form Handling</title>
+<subtitle>part of the <a href="./">CPF manual</a>.</subtitle>
+-->
+
+<div class="section">
+<p>
+Form handling is possibly one of the most annoying and least
+interesting aspects of web development. Even the simplest of form
+systems should let the user see which fields are required, and which
+are not, and should point out mistakes without requiring data
+re-entry, by applying validation rules both canned and custom. And
+of course the system has look out for the ', ", and > symbols that
+inevitably mess things up.
+
+</p><p>
+
+Form handling systems vary wildly in their approach to these problems.
+Some take an extremely abstract approach, treating each form element
+as an object, and permitting the form's author to override the
+object and provide custom validation functions, or custom functions
+for appearance, error messages, and so on. This sounds like a lot
+of work.
+
+
+</p><p>
+
+In contrast, the CPF's form handling system's goal is to support
+quickly bashing out a form, by declaring its characteristics, and
+leaving the specific appearance and behaviour issues for later.
+Here is a form description for a form with three elements (name,
+address, and age). <pre class=screen>
+form_set(array(
+        'name' => 'text,required',
+        'address' => 'text,required',
+        'age' => 'integer,positive'
+));
+</pre>
+
+<p>Take a look at the <a
+href="http://tinyplanet.ca/cpf/manual/examples/formdetails.1.html">result</a>.
+</p>
+
+<p>
+This form will politely deal with missing information, negative
+or invalid numbers, and re-displaying the form in case there's
+mistakes. You get all that for free.
+
+</p><P>
+
+The Content Publishing Framework lets you quickly bash out a form
+and get it on the screen. Later, you can apply some refinements -
+a better layout, more detailed validation, etc.
+
+</p><P>
+
+You might recall that when you're hand-coding HTML, you have to
+indicate with the <cite>&lt;form action=></cite> attribute which URL the form should
+be sent to. That is not the case with the CPF. The idiom we use is
+that web pages with forms on them send the information to themselves,
+verify the information, and if it's good, issue an HTTP redirect
+to the next step or confirmation page. This approach provides a lot
+of flexibility for a number of things, as we shall see.
+
+
+</p>
+<h3>A detailed example</h3>
+
+<p>
+
+You saw in <a href="templating.html">templating</a> that pages are actually split in two: the template and the part. The part is itself split into information (a <cite>.data</cite> extension), and an HTML fragment that lays it out (a <cite>.php</cite> or <cite>.html</cite> file). In the forms facility, you specify form content and rules in the <cite>.data</cite> file, and you may choose to lay out the form in the <cite>.php</cite> file, or just let the system generate a reasonable-looking layout for you.
+
+</p><P>
+
+Here is a detailed example of a form that collects a name, age, and biography from the user. The name is required, the age must be positive, and the biography can be left empty.
+
+<pre class=screen>
+/* form.data */
+require_once 'form.h';
+
+form_set(array(
+        'name' => 'text,required',
+        'your_age' => 'integer,positive',
+        'your_biography' => 'bigtext'
+));
+if (form_valid()) {
+        print "Nice to see you, $name";
+}>
+</pre>
+<pre class=screen>
+/* form.php */
+<!--
+&lt;title>Form example&lt;/title>
+-->
+
+&lt;? form_start();
+   form_end(); ?>
+</pre>
+
+
+<a href="http://tinyplanet.ca/cpf/manual/examples/formdetails.1a.html">This is what you'll see when you load up form.php.</a>
+
+</p><P>
+
+As you can see, it infers form labels from the abstract names you gave. It intelligently deals with underscores (turning them into spaces) and generally looks alright. Try out the live example, and submit some information.
+
+</p><P>
+
+Now let's imagine that a lawyer knocks on your door, and says that you can't collect information about children who are 
+15 or younger. That's a one-line change:
+
+<pre class=screen>
+        'your_age' => array('type'=>'integer', 'min'=>16),
+</pre>
+
+<a href="http://tinyplanet.ca/cpf/manual/examples/formdetails.1b.html">This is what you get now: try putting in an age less than 16.</a>
+
+</p><p>
+
+Each of those types -- text, integer, bigtext -- are termed <em>widgets</em>,
+a term used in desktop application development that refers to
+graphical elements that do something or collect information. Although
+they have some relation to the usual range of form elements, they
+are not necessarily one-to-one. In the form descriptor, you simply
+describe the information you want to collect, and leave how it is
+collected to the framework.
+
+
+</p><p>
+This pays off when the user agents improve. Right now, some web browsers support some kind of styled-text editing field, supporting various colours and font choices. Most web mail systems use this facility. It's an excellent replacement for the baleful empty stare of a <cite>textarea</cite> element. When you ask the CPF for a form element of type <cite>richtext</cite>, it intelligently figures out if the remote browser can support rich text editing, and if so, uses that.
+
+
+</p><p>
+Eventually, more interesting widgets will be possible: little calendars for entering dates, or calculators to help you figure out dollar figures. Most of this is possible with Flash MX or incredible feats of Javascript hacking. Eventually, the web will be nearly as usable and responsive as a desktop computer circa 1987.
+
+</div>
+

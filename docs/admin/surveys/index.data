@@ -1,0 +1,6 @@
+
+$surveys = db_multirow('select * from surveys');
+foreach ($surveys as $s) {
+	$surv[$s['survey_status']][] = $s;
+}
+

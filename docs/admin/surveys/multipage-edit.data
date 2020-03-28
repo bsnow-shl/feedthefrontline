@@ -1,0 +1,35 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+$sid = 0+$_GET['sid'];
+$survey = db_row('select * from surveys where survey_id=?', $sid);
+
+$pages = db_hash_multirow('page_id', 'select survey_pages.*,pretty_name_en from survey_pages join i18n_classes using (class_id) where survey_id=? order by display_order', $sid);
+
+foreach ($pages as $k=>$p) {
+  $first_field_id = db_value('select field_id from i18n_fields where class_id=? order by precedence limit 1', $p['class_id']);
+  if ($first_field_id) {
+    $pages[$k]['question_count'] = db_value('select count(*) from i18n_fields where class_id=?', $p['class_id']);
+  }
+}
+
+if ($_GET['goedit']) {
+    $_SESSION['goback'] = $_GET['goback'];
+    redirect(href('/admin/content/types/type-edit.html', 'classid', $_GET['goedit']));
+}
+
+$invitations = db_multirow('select invitation_status,count(*) from survey_invitations where survey_id=? group by invitation_status', $sid);
+
+$has_invitation = $survey['invitation_mailing_id'];
+
+form_set(array(
+    'report_scope' => array('type'=>'menu' , 'radio' => 1, 'required' => 1, 'menu' => array(
+        'finalized' => 'Only finalized responses',
+        'all' => 'All responses, finalized or not'
+    )),
+    'with_questions' => array('type'=>'flag', 'pretty' => 'Include question text'),
+));
+if (form_valid()) {
+    redirect(href('multipage-report.html', 'sid', $sid, 'mode', $report_scope, 'with_questions', $with_questions));
+}
+

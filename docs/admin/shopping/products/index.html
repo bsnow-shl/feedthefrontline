@@ -1,0 +1,31 @@
+<!--
+<title>Product catalogue: Products</title>
+-->
+
+
+
+<? if (!is_null($search_results)) {
+  echo "<h1>$search_message</h1>";
+  	if ($show_count) {
+		echo '<p>',sizeof($search_results),' matching products</p>';
+	}
+
+	echo '<table class=padded><tr><th>SKU</th><th>Item</th><th>Price</th></tr>';
+	foreach ($search_results as $s) {
+		if ($s['visible_public']==0) {
+			$wrap = 'strike';
+		} else {
+			$wrap = 'span';
+		}
+
+		printf("<tr><td>%s</td><td><%s><a href=\"%s\">%s</a></%s></td><td>%.02f</td></tr>", $s['sku'], $wrap, href('edit.html', 'pid', $s['product_id']), $s['title'], $wrap, $s['price']/100.0);
+	}
+	echo '</table>';
+} ?>
+
+<h4>Find a product</h4>
+<div class="section">
+<? form_start(); form_end(); ?>
+</div>
+
+

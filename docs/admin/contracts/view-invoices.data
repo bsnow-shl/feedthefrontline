@@ -1,0 +1,14 @@
+$cid = 0+$_GET['contract'];
+$contract_title = db_value('select short_name from contracts where contract_id=?', $cid);
+if (!$contract_title) { redirect("index.html"); }
+
+if ($_GET['with_paid']) {
+	$paid_sql = "true";
+} else {
+	$paid_sql = "paid=0";
+}
+
+$invoices = db_multirow('select invoice_id,cached_amount,paid,void,sum(payment_amount) as amount_paid from contract_invoices left outer join contract_invoice_diary using (invoice_id) where contract_id=? and '. $paid_sql. '
+	group by invoice_id,cached_amount,paid,void 
+	order by invoice_id', $cid);
+

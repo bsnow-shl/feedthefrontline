@@ -1,0 +1,68 @@
+<!--
+<title>Responses to <cite><%= $sn %></cite></title>
+-->
+
+
+<? if ($survey_responses): ?>
+
+    <table class="padded">
+    <thead>
+        <tr>
+        <th colspan="4">&mdash;</th>
+        <? foreach ($survey_pages as $p): ?>    
+          <th colspan="<%= sizeof($p) %>">Page <%= ++$page_no %></th>
+        <? endforeach ?>
+        </tr>
+    </thead>
+        <tr>
+        <th>Name</th><th>Company</th><th>Email</th><th>Invitation Status</th>
+        <? foreach ($survey_pages as $fields): ?>    
+                <? foreach ($fields as $f => $info) : ?>
+                <th>
+                <%= $f %>
+                </th>
+            <? endforeach ?>
+        <? endforeach ?>
+        </tr>
+        <? if ($with_pretty): ?>
+            <tr>
+            <td colspan="4"></td>
+            <? foreach ($survey_pages as $fields): ?>    
+                    <? foreach ($fields as $f => $info) : ?>
+                    <th>
+                        <%= $info['pretty_name_en'] %>
+                    </th>
+                <? endforeach ?>
+            <? endforeach ?>
+            </tr>
+        <? endif ?>
+    <tbody>
+        <? foreach ($survey_responses as $r) { ?>
+            <tr>
+            <td><%= $r['user_info']['name'] %></td>
+            <td><%= $r['user_info']['company'] %></td>
+            <td><%= $r['user_info']['email'] %></td>
+            <td><%= $r['user_info']['invitation_status'] %></td>
+            <? 
+            foreach ($survey_pages as $pid => $fields) {
+                if ($r[$pid]) {
+                    $reply = i18n_get( $page_classes[$pid], $r[$pid]['response_id']);
+
+                    foreach ($fields as $f) {
+                        echo '<td>',$reply[$f['field_name']], '</td>';
+                    }
+                } else {
+                    printf ('<td colspan="%d">(no reply to this page yet)</td>', sizeof($fields));
+                }
+            }  
+            echo '</tr>';
+        } ?>
+    </tbody>    
+    </table>
+
+<? else: ?>
+
+    <p>Nothing to show you.</p>
+
+<? endif ?>
+

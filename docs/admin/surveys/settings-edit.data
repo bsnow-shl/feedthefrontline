@@ -1,0 +1,55 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+$sid = 0+$_GET['sid'];
+$survey = db_row('select * from surveys where survey_id=?', $sid);
+
+
+$extra = array();
+
+if ($survey['survey_type']=='multi-page') {
+  $extra['invitation_mailing_id'] = array(
+      'type'=>'menu',
+      'sql'=>"select newsletter_mailing_id as key, description as value from newsletter_mailings join newsletters using (newsletter_id) where callback_header != '' ", 
+      'default' => $survey['invitation_mailing_id']
+  );
+  $extra['reminder_mailing_id'] = array(
+      'type'=>'menu',
+      'sql'=>"select newsletter_mailing_id as key, description as value from newsletter_mailings join newsletters using (newsletter_id) where callback_header != '' ", 
+      'default' => $survey['reminder_mailing_id']
+  );
+}
+
+$form = array(
+  'creator'=> array('type'=>'visible', 'value'=> user_name($survey['created_by'])),
+
+	'status' => array('type'=>'menu', 'menu' => array(
+				'draft'=>'Draft',
+				'live'=>'Live',
+				'promo'=>'Live + in promo spot',
+				'retired'=>'Retired'
+				), 'required'=>1, 'default'=>$survey['survey_status']),
+    'notify_email' => array('type'=>'email', 'pretty'=>'Send submissions to', 'default' => $survey['notify_email']),
+	'show_answers_to' => array('type'=>'menu', 'menu' => array(
+		'respondents' => 'Respondents after participating',
+		'admin' => 'Administrators only'
+		), 'required'=>1, 'default'=> $survey['answers_available_to'])
+) + $extra + i18n_form_fields('Survey preamble', $sid);
+form_set('details', $form);
+
+if (form_valid('details')) {
+	db_send('update surveys set survey_status=?, notify_email=?, answers_available_to=? where survey_id=?', $status, $notify_email, $show_answers_to, $sid);
+
+    if ($invitation_mailing_id) {
+      db_send('update surveys set invitation_mailing_id=? where survey_id=?', $invitation_mailing_id, $sid);
+    }
+    if ($reminder_mailing_id) {
+      db_send('update surveys set reminder_mailing_id=? where survey_id=?', $reminder_mailing_id, $sid);
+    }
+
+	i18n_form_handle('Survey preamble', $sid);
+
+    redirect('/admin/surveys/');
+}
+
+

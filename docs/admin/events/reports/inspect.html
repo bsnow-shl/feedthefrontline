@@ -1,0 +1,100 @@
+<!--
+<title>Event registration record #<%= $erid %></title>
+-->
+
+<h3>Event</h3>
+<div class=section>
+<b>Name:</b> <a href="/events/details.html?event_id=<%= $event['event_id'] %>"><? $info = i18n_get('Event', $event['event_id']); echo $info['title']; ?></a><br/>
+<b>Date(s) of event:</b> <%= $event['event_start_date'] . (
+		$event['event_end_date'] ? 
+			' to '.$event['event_end_date'] :
+			'' ) %><br/>
+<b>Registration status:</b> <%= event_refuses_registrations($eid) ? event_refuses_registrations($eid) : 'open' %><br/>
+</div>
+
+
+<h3>Status of this record</h3>
+<div class=section>
+<ul>
+<? if ($attendee['confirmed']): ?>
+<li>Customer has confirmed they are coming. <%= a_href('inspect-change.html', 'erid', $erid, 'confirmed', 0) %>>Click here if they've backed out of attending.</a>
+<? else: ?>
+<li>Customer has not yet confirmed they are coming or has backed out. 
+<%= a_href('inspect-change.html', 'erid', $erid, 'confirmed', 1) %>>Click here if they have confirmed.</a>
+<? endif ?>
+
+<? if ($attendee['paid']): ?>
+<li>Customer has paid for this event.
+<? if (!$attendee['confirmed']):  ?>
+<span class=error>A paid but unconfirmed attendance record is bad.  Please either confirm attendance or give them a refund.</span>
+<? endif ?>
+<%= a_href('inspect-change.html', 'erid', $erid, 'paid', 0) %>>Click here if they have been refunded.</a>
+<? else: ?>
+<li>Customer has not yet paid for this event.
+<%= a_href('inspect-change.html', 'erid', $erid, 'paid', 1) %>>Click here if they have paid.</a>
+<? endif ?>
+<? if ($paypal_invoice_id): ?>
+<a href="<%= href("/admin/paypal/txn-detail.html", 'txnid', $paypal_invoice_id) %>">This</a> is the corresponding PayPal invoice.
+<? endif ?>
+
+<? if ($attendee['needs_approval']): ?>
+<li>This record requires <b>manual review</b>: you can  <a href="<%= href('inspect-change.html', 'erid', $erid, 'approved', 0) %>">reject</a> or
+<a href="<%= href('inspect-change.html', 'erid', $erid, 'approved', 1) %>">approve</a> it.
+<? else: ?>
+<li>You can mark this record as <a href="<%= href('inspect-change.html', 'erid', $erid, 'needs_approval', 1) %>">in need of review</a>.
+<? endif ?>
+</ul>
+</div>
+
+<h3>Customer info (<a href="<%= href('inspect-edit.html', 'erid', $erid) %>">edit</a>)</h3>
+<div class=section>
+<ul>
+<li>Name: 
+<%= $attendee['first_name']. ' '.$attendee['last_name'].' - '. $attendee['email'] %><br/>
+<li>Contact: <%=$attendee['telephone'] %><br/>
+<%=$attendee['company'] %><br/>
+<%=$attendee['address'] %> <%=$attendee['address_2'] %><br/>
+<%=$attendee['city'].', '.$attedee['province'].', '.$attendee['country'].', '.$attendee['postal_code'] %><br/>
+<? if ($custom_fields): ?>
+<? foreach ($custom_fields as $k=>$v) {
+	if ($k=='event_registration_id') { continue; }
+	echo '<li><b>'.form_beautify_identifier($k)."</b>: $v";
+} ?>
+</ul>
+<? endif ?>
+</div>
+
+<? if ($sessions): ?>
+<h3>Session preferences (<a href="<%= href('inspect-edit-sessions.html', 'erid', $erid) %>">edit</a>)</h3>
+<div class="section">
+<ol>
+<? foreach ($sessions as $s): ?>
+<li><%= substr($s['session_start'],0,16).': '.$s['title'] %></li>
+<? endforeach ?>
+</ol>
+</div>
+<? endif ?>
+
+
+<h3>Price</h3>
+<div class=section>
+<ul>
+<li>Price point: <%= $pricing['name'] %> &mdash; (<a href="<%= href('pricepoint-edit.html', 'erid', $_GET['erid']) %>">edit</a>)
+<li>Attendance fee: <%= $pricing['price'] %>
+<? foreach ($taxes as $t) {
+	echo '<li>'.$t['description'].': '.$t['amount'];
+	$ttax += $t['amount'];
+} ?>
+<li>Total: <%= sprintf("%.02f",$pricing['price'] + $ttax) %>
+</ul>
+</div>
+
+<h3>Audit log</h3>
+<ol>
+<li><%= date("Y M d H:i", $attendee['create_datetime']) %> -- registration record created by <%= $attendee['user_id'] ? user_name($attendee['user_id']).' ('.user_email($attendee['user_id']).') ' : '(someone not logged in at the time)' %>.
+<? foreach ($audit_log as $a): ?>
+<li><%= date("Y M d H:i", $a['diary_datetime']) %> -- <%= $a['note'] %>
+
+<? endforeach ?>
+</ol>
+

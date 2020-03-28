@@ -1,0 +1,4 @@
+
+db_send('delete from event_sessions where event_session_id=?', $_GET['sid']);
+redirect(href('edit.html', 'eid', $_GET['eid']));
+

@@ -1,0 +1,22 @@
+<!--
+<title>Download a spreadsheet of product information</title>
+-->
+
+<div class="section">
+
+
+<p>Choose a product type to download a spreadsheet for:
+<ol>
+<? foreach ($types as $t): ?>
+<li><a href="<%= href($_SERVER['REQUEST_URI'], 'type', $t['product_type_id']) %>"><%= $t['short_name'] %></a></li>
+<? endforeach ?>
+</ol></p>
+
+<p>
+When you're done making your edits, <a href="spreadsheet-import.html">upload it here</a>.
+</p>
+
+<p>The spreadsheet will at first be a little confusing. Here is a key to help you understand what you're seeing.
+</p>
+<img src="import-help.png" alt="" />
+

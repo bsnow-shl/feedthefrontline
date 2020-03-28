@@ -1,0 +1,21 @@
+require_once 'users.h';
+user_require('role_admin');
+
+$role_id = $_GET['id'];
+
+$class = db_row('select * from classes where class_id=(select role_parameter_class_id from roles where role_id=?)', $role_id);
+
+$tablename = $class['table_name'];
+$pkey = $class['table_pkey_column'];
+$column = $class['table_pretty_column'];
+
+if ($tablename && $pkey && $column) {
+	$who = db_multirow("select users.user_id,first_name||' '||last_name as name,email,$tablename.$column as parameter from users,user_role_map left outer join $tablename on ($tablename.$pkey = parameter) where users.user_id=user_role_map.user_id and role_id=? ", $role_id);
+} else {
+	$who = db_multirow("select users.user_id,first_name||' '||last_name as name,email from users,user_role_map where users.user_id=user_role_map.user_id and role_id=? ", $role_id);
+}
+$role_name = db_value('select role_name from roles where role_id=?', $role_id);
+
+
+
+

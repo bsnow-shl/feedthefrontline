@@ -1,0 +1,28 @@
+<!--
+<title>Retire the contract <cite><%= $c['short_name'] %></cite>  ?!!?</title>
+-->
+
+
+<div class="section">
+<p>
+When you retire a contract, it is hidden from all administrative views.
+This is useful when a contract has been terminated, but you want to keep the financial transactions done under it, for later
+review or accounting.
+
+</p>
+<p>You can later un-retire this contract if it becomes active again.
+</p>
+</div>
+
+<h2>Are you sure?</h2>
+
+<div class="section">
+
+<table width="50%">
+<tr><td>
+<a href="index.html">no</a></td>
+<td align="right">
+<a href="<%= href("retire.html", "contract", $cid, 'sure', 1) %>">yes</a>
+</td></tr></table>
+
+

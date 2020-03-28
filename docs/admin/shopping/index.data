@@ -1,0 +1,70 @@
+require_once 'form.h';
+require_once 'shopping-local.h';
+
+
+
+$todo = array();
+
+if (db_value('select count(*) from shopping_suppliers')==0) {
+	$todo['/admin/shopping/suppliers/add.html'] = 'Define some suppliers.';
+}
+
+if (db_value('select count(*) from shopping_product_types')==0) {
+	$todo['/admin/shopping/types/add.html'] = 'Define some product types.';
+}
+
+if (db_value('select count(*) from shopping_categories')==0) {
+	$todo['/admin/shopping/categories/add.html'] = 'Define some categories.';
+}
+
+if (db_value('select count(*) from shopping_products')==0) {
+	$todo['/admin/shopping/products/add.html'] = 'Define some products.';
+}
+
+$num_prod = db_value('select count(*) from shopping_products');
+$num_cat = db_value('select count(*) from shopping_categories');
+
+$shopcarts = db_hash_multirow('status', 'select status,count(*) from shopping_shopcarts group by status');
+
+if (config_get('shopping','accept_payment')) {
+    $num_fucked = db_value("select count(*) from shopping_shopcarts where paid=0 and status not in ('new','finalized','abandoned')");
+}
+
+
+form_set('search', array(
+	'address_id' => 'text',
+	'shopcart_id' => 'text'
+));
+if (form_valid('search')) {
+	if ($address_id) {
+			$addrid = $address_id;
+			$weak_addrid = db_value('select address_id from user_addresses where strong_address_id=?', $address_id);
+			$addrid = $weak_addrid ? $weak_addrid : $address_id;
+	 		$found = db_value('select shopcart_id from shopping_shopcart_entries where address_id=?', 0+$addrid);
+	}
+
+	if ($shopcart_id && !$found) {
+		 $weak_sid = db_value('select shopcart_id from shopping_shopcarts where strong_shopcart_id=?', $shopcart_id);
+		 $found = $weak_sid ? $weak_sid : $shopcart_id;
+	}
+	if ($found) {
+		redirect(href('reports/detail.html', 'sid', $found));
+	}
+}
+
+$num_orphans = db_value(' select count(*) from  shopping_products where visible_public=1 and product_id not in (Select product_id from shopping_product_category_map ); ');
+
+
+$use_realms = config_get('shopping', 'realms');
+if ($use_realms) {
+	require_once 'dbadmin.h';
+	$realms = db_array('select short_name from shopping_realms');
+	foreach ($realms as $k) {
+		if (!dbadmin_column_exists('shopping_products', "realm_$k")) {
+			dbadmin_create_column('shopping_products', "realm_$k", 'integer default 0', true);
+			db_send("update shopping_products set realm_${k}=0");
+
+		}
+
+	}
+}

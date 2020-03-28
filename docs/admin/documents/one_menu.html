@@ -1,0 +1,8 @@
+<? global $id; ?>
+<div class="context"><div class="links">
+<? if (user_has_role('document_category_admin')): ?>
+<a href="<%= href('add-category.html', 'parent_category_id', $id) %>">Add category here...</a>
+<? endif ?>
+<a href="sort.html?id=<%= $id %>">Sort alphabetically</a>
+<a href="add-document.html?id=<%= $id %>">Add a document to this category...</a>
+</div></div>

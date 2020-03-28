@@ -1,0 +1,17 @@
+require_once 'ann.h';
+require_once 'uploads.h';
+
+$info = db_row('select * from announcements where announcement_id=?', $_GET[id]);
+
+if ($_GET['confirm']) {
+    db_send('delete from announcements where announcement_id=?', $_GET[id]);
+    if ($info['upload_id']) {
+    	upload_delete($info['upload_id']);
+    }
+    i18n_delete('announcement', $_GET[id]);
+    redirect('index.html');
+} 
+
+
+$info += i18n_get('announcement', $_GET['id']);
+

@@ -1,0 +1,53 @@
+require_once 'form.h';
+
+$itemid = 0+$_GET['item'];
+if (!$itemid) { redirect("index.html"); }
+$item = db_row('select * from contract_invoice_items where invoice_item_id=?', $itemid);
+$audit = db_multirow("select date_part('epoch', tstamp) as tstamp, note from contract_invoice_item_diary where invoice_item_id=? order by tstamp", $itemid);
+
+
+
+$form = array(
+	'comment' => 'text,required',
+	'add_comment' => array('type'=>'submit','value'=>'Add a comment')
+);
+if (!$item['invoice_id']) {
+	if ($item['void']) {
+		$form += array(
+			'unvoid_item' => array('type'=>'submit','value'=>'Un-void this item')
+		);
+	} else {
+		$form += array(
+			'void_item' => array('type'=>'submit','value'=>'Void this item'),
+		);
+	}
+}
+form_set($form);
+
+if (form_valid()) {
+	if ($unvoid_item) {
+		db_send('begin');
+		db_send('insert into contract_invoice_item_diary (invoice_item_id, note) values (?,?)',
+			$itemid,
+			"Un-voided by ".user_email(user_id())."; reason given is: ".$comment);
+		db_send('update contract_invoice_items set void=0,void_reason=null where invoice_item_id=?', $itemid);
+		db_send('commit');
+	} else if ($void_item) {
+		db_send('begin');
+
+		db_send('insert into contract_invoice_item_diary (invoice_item_id, note) values (?,?)',
+			$itemid,
+			"Voided by ".user_email(user_id())."; reason given is: ".$comment);
+		db_send('update contract_invoice_items set void=1,void_reason=? where invoice_item_id=?', $comment, $itemid);
+
+		db_send('commit');
+	}	else {
+		db_send('insert into contract_invoice_item_diary (invoice_item_id, note) values (?,?)',
+			$itemid, $comment);
+  }
+	redirect(href('view.html', 'contract', db_value('select contract_id from contract_invoice_items where invoice_item_id=?', $itemid)));
+}
+
+
+
+

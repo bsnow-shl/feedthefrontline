@@ -1,0 +1,23 @@
+
+require_once 'form.h';
+
+
+$eid = 0+$_GET['eid'];
+$row = db_row('select * from events where event_id=?', $eid);
+if (!$row) { redirect('index.html'); }
+
+form_set('default', array(
+	'custom_registration_form_header' => 'text',
+	'custom_registration_form_function' => 'text',
+	'manual_approval' => 'flag',
+	'allow_waitinglist' => 'flag',
+	'disable_postal_fields' => 'flag',
+	'creditcard_only' => 'flag',
+	'reply_to'=>array('type'=>'email','pretty'=>'Reply-to on outgoing email'),
+), $row);
+
+if (form_valid()) {
+	db_send('update events set allow_waitinglist=?,creditcard_only=?,custom_registration_form_header=?,custom_registration_form_function=?, manual_approval=?, disable_postal_fields=?, reply_to=?  where event_id=?',
+		$allow_waitinglist, $creditcard_only, $custom_registration_form_header, $custom_registration_form_function, $manual_approval, $disable_postal_fields, $reply_to ? $reply_to : '', $eid);
+	redirect(href('edit.html', 'eid', $eid));
+}

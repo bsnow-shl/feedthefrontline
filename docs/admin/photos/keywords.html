@@ -1,0 +1,22 @@
+<!--
+<title>Keywords</title>
+<subtitle>in the <a href="./">photo db</a></subtitle>
+-->
+
+<? if ($with_photos): ?>
+<ul>
+<? foreach ($keywords as $r): ?>
+<li><%= $r['keyword'] %> (<a href="/photos/keyword/<%= $r['keyword'] %>"><%= $r['count'] %> photos</a>)
+<? echo photo($r['photo_id'],'left'); ?>
+<? endforeach ?>
+</ul>
+
+<? else: ?>
+<? foreach ($keywords as $r): ?>
+<? $size=10+6*log($r['count']); ?>
+<a href="/photos/keyword/<%= $r['keyword'] %>" style="font-size: <%= $size %>pt">
+<%= $r['keyword'] %>
+(<%= $r['count'] %>)</a>
+
+<? endforeach ?>
+<?endif ?>

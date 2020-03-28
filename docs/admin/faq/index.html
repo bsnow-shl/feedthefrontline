@@ -1,0 +1,16 @@
+<!--
+<title>FAQ Admin</title>
+-->
+
+<div class="section">
+
+<h3>FAQs that have been published</h3>
+<ul>
+<? foreach ($faqs as $f): ?>
+<li><a href="<%= href('faqlist-edit.html', 'faq_id', $f['faq_id']) %>"><%= $f['faq_name'] %></a></li>
+<? endforeach ?>
+<li><a href="faqlist-add.html">Add one...</a></li>
+</ul>
+
+</div>
+

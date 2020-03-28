@@ -1,0 +1,15 @@
+
+$notify_id = 0+$_GET['notify_id'];
+
+
+db_send('update paypal_notifications set requires_action=0 where paypal_notification_id=?', $notify_id);
+
+
+$name = db_value("select first_name ||' ' || last_name from users where user_id=?", user_id());
+
+$txn_id = db_value('select paypal_transaction_id from paypal_notifications where paypal_notification_id=?', $notify_id);
+paypal_add_diary_note($txn_id, "This transaction was flagged for attention; cleared by $name");
+
+
+redirect('index.html');
+

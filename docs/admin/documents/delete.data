@@ -1,0 +1,29 @@
+$params = split('/', $_SERVER['PATH_INFO']);
+
+require_once 'users.h';
+require_once 'uploads.h';
+$what = $params[1];
+$which = $params[2];
+$confirmed = $params[3] != '';
+
+if ($what == 'category') {
+	if (!user_has_role('document_category_admin')) {
+		exit;
+	}
+	$details = db_row('select * from document_categories where document_category_id=?', $which);
+	if ($confirmed) {
+		db_send('delete from document_categories where document_category_id=?', $which);
+		redirect("/admin/documents/");
+	}
+} else if ($what == 'document') {
+	if (!user_has_role('document_admin')) {
+		exit;
+	}
+	$details = db_row('select * from documents where document_id=?', $which);
+	if ($confirmed) {
+		db_send('delete from documents where document_id=?', $which);
+		upload_delete($details['upload_id']);
+		redirect('/admin/documents/one.html');
+	}
+}
+

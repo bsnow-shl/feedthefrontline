@@ -1,0 +1,70 @@
+
+require_once 'users.h';
+require_once 'form.h';
+
+if ($cond) {
+	$num_users = db_value('select count(*) from users where '.$cond);
+} else {
+	$num_users = db_value('select count(*) from users');
+}
+
+
+
+if ($num_users > 4 || config_get('users', 'force_search')) {
+    $searchy = 1;
+
+    $search_form = array(
+        'first_name' => 'text',
+        'last_name' => 'text',
+        'email' => 'text'
+        );
+
+    $callback = config_get('users', 'user_admin_search_callback');
+    $form_extra = '';
+    if ($callback) {
+        $search_form += $callback();
+    }
+    form_set($search_form);
+    if (form_valid()) {
+        $where = array();
+        $where[] = ' true ';
+        foreach ($_POST as $k => $v) {
+            if ($v) {
+                $params[] = '%'.strtolower($v).'%';
+                $where[] = " lower($k) like ? ";
+            }
+        }
+            
+        global $cond;
+        if ($cond) {
+            $where[] = $cond;
+        }
+    }
+} else {
+    form_set('byname', array(
+        'user' => user_menu_byname()
+    ));
+
+    form_set('byemail', array(
+        'user' => user_menu_byemail()
+    ));
+
+    if (form_valid('byname') || form_valid('byemail')) {
+        redirect(href('edit.html', 'edit_user', $user));
+    }
+}
+
+$preamble_callback = config_get('users','user_admin_edit_preamble');
+
+if ($where || ($showall = config_get('users','admin_userindex_showall'))) {
+    if (!$where) $where = array('true');
+    
+    if (!$showall) {
+        $previous_maxrows = db_set('maxrows', 300);
+    }
+    $search_result = db_multirow('select user_id,first_name,last_name,email, company FROM users where '.join(' and ', $where).  ' order by email ',$params);
+    $num_matching = db_get('last_rowcount');
+    if (!$showall) {
+        db_set('maxrows', $previous_maxrows);
+    }
+}

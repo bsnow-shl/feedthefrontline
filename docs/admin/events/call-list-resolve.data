@@ -1,0 +1,11 @@
+$erid = 0+$_GET['erid'];
+$status = $_GET['newstat'];
+
+if ($status == 'paid') {
+	db_send('update event_registrations set paid=1 where event_registration_id=?', $erid);
+}
+if ($status == 'notcoming') {
+	db_send('update event_registrations set confirmed=0 where event_registration_id=?', $erid);
+}
+redirect ('call-list.html');
+

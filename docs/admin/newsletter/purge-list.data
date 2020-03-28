@@ -1,0 +1,14 @@
+
+$newsletter_id = $_GET['newsletter_id'];
+
+db_send('delete from newsletter_clickthroughs where newsletter_queue_id in (select newsletter_queue_id from newsletter_queue join newsletter_mailings using (newsletter_mailing_id) where newsletter_id=?)', $newsletter_id);
+db_send('delete from newsletter_queue where newsletter_queue_id in (select newsletter_queue_id from newsletter_queue join newsletter_mailings using (newsletter_mailing_id) where newsletter_id=?)', $newsletter_id);
+db_send('delete from newsletter_mailings where newsletter_mailing_id in (select newsletter_mailing_id from newsletter_mailings where newsletter_id=?)', $newsletter_id);
+db_send('delete from newsletter_subscriptions  where newsletter_id=?', $newsletter_id);
+db_send('delete from newsletters  where newsletter_id=?', $newsletter_id);
+
+
+redirect('index.html');
+
+
+

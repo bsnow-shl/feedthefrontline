@@ -1,0 +1,25 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+$cat_id = 0+$_GET['cat_id'];
+$cat = db_row('select * from document_categories where document_category_id=?', $cat_id);
+if (!$cat) { redirect('index.html'); }
+
+form_set('default', i18n_form_fields('document category', $cat_id) + array(
+  'allow_comments' => 'flag',
+  'admin_only' => 'flag',
+  'restrict_to_role' => array('type'=>'menu', 'sql'=>'select role_name as key, role_name as value from roles where visible != 0 order by role_name'),
+), $cat);
+if (form_valid()) {
+  db_send('begin');
+	db_update('document_categories', 'document_category_id', $cat_id, array(
+		  'allow_comments' => $allow_comments,
+		  'admin_only' => $admin_only,
+		  'restrict_to_role' => $restrict_to_role,
+	));
+	i18n_form_handle('document category', $cat_id);
+	db_send('commit');
+	redirect(href('one.html', 'category_id', $cat_id));
+}
+
+

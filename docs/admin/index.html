@@ -1,0 +1,50 @@
+<!--
+<title>Administration area</title>
+-->
+
+<table width="100%" ><tr><td> 
+<? $side=1; 
+   if ($areas) foreach ($areas as $order => $group) {
+		if ($order % 2 == $side) {
+			echo '<td valign="top">';
+		} else {
+			echo '</tr><tr><td valign="top">';
+			$side = 0;
+		}
+		
+		foreach ($group as $name => $area) {
+			echo "<h3>$name</h3><ul class=\"admin_options\">";
+			foreach ($area as $a) {
+				if ($a['description']) {
+					echo "<li> <a href=\"$a[uri]\">$a[description]</a>";
+					if ($a['caption']) {
+						echo ' - '.$a['caption'];
+					}
+					echo '</li>';
+				}
+				if ($a['function']) {
+					require_once ($a['include_header']);
+					$a['function']();
+				}
+			}
+			echo '</ul>';
+		}
+
+		echo '</td>';
+		$side = ($side+1) % 2;
+   }
+?>
+
+
+
+</td></tr></table>
+
+<? if ($whatup): ?>
+<h3>What's new</h3>
+<div class="section"><%= $whatup['content'] %></div>
+<? endif ?>
+
+
+<p>
+Or maybe it's <a href="/account/logout.html">time to logout</a>.
+</p>

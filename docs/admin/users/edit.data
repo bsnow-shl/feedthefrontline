@@ -1,0 +1,132 @@
+// <?
+
+require_once 'ajax.h';
+require_once 'dbadmin.h';
+
+if (!$edit_user) {
+    redirect('/admin/users/');
+}
+
+
+if ($act = ajax_action()) {
+	switch ($act) {
+		case 'country_changed':
+			require_once 'geo.h';
+
+			$params = ajax_parameters();
+			$country = $params['country'];
+			$list = geo_province_list_for_country($country);
+			if ($list) {
+				$widget = '<select name="province">';
+				foreach ($list as $k=>$v) {
+					$widget .= "<option value=\"$k\">$v</option>";
+				} 
+				$widget .= "</select>";
+			} else {
+				$widget = "<input name=\"province\" type=text />";
+			}
+
+
+			print 'provincewidget|'.$widget;
+			exit;
+
+	}
+}
+
+require_once 'form.h';
+
+
+$user_row = db_row('select * from user_reporting_view where user_id=?', $edit_user);
+
+$edit_form =  array(
+    'email' => 'email',
+    'first_name' => 'text', 
+    'last_name' => 'text',
+    'password' => 'text'
+);
+
+$callback = config_get('users', 'user_admin_edit_callback');
+$form_extra = '';
+if ($callback) {
+    list ($form_extra, $structure) = $callback(0);
+    $edit_form += $structure;
+}
+
+
+form_set('edits', $edit_form, $user_row);
+if (form_submitted('edits')) {
+    if (db_value('select count(*) from users where email=? and email != ?', $email, $user_row['email'])) {
+        form_error('email','That email address is already in use.');
+    }
+    if ($membership_id && db_value('select count(*) from users where membership_id=? and email != ?', $membership_id, $user_row['email'])) {
+        form_error('membership_id','That membership_id is already in use.');
+    }
+}
+if (form_valid('edits')) {
+    unset ($_POST['proceed']);
+    $columns = dbadmin_list_columns('users');
+    foreach ($columns as $c) {
+        $exists[$c['attname']]++;
+    }
+    foreach ($_POST as $k=>$v) {
+        if ($exists[$k]) {
+            if ( $_POST[$k]==='') { $update[$k] = null; } else { $update[$k] = $v; }
+            if ($v != $user_row[$k]) {
+				user_add_diary($edit_user, sprintf("%s: changed %s from '%s' to '%s'", user_email(), $k, $user_row[$k], $v));
+             }
+        }
+    }
+
+    db_send('begin');
+
+    # possibly update the password
+    if ($password) {
+	$update['password_md5'] = user_hash_for_password($password);
+	$update['password'] = null;
+    }
+    $old_row = db_row('select * from users where user_id=?', $edit_user);
+    $result = db_update('users', 'user_id', $edit_user, $update );
+    $new_row = db_row('select * from users where user_id=?', $edit_user);
+
+    $handle_callback = config_get('users','admin_edit_submit_handler');
+    if ($handle_callback) {
+        $result = $handle_callback($edit_user, $old_row, $new_row); 
+        if ($result != 'ok') {
+            $_SESSION['admin']['user_edit_response'] = $result;
+            db_send('rollback');
+        } else { 
+            db_send('commit');
+            $err = db_errormessage();
+            if ($err) {
+                $_SESSION['admin']['user_edit_response'] = $err;
+            } else {
+                $_SESSION['admin']['user_edit_response'] = 'Changes saved.';
+            }
+        }
+    } else {
+        db_send('commit');
+        $err = db_errormessage();
+        if ($err) {
+            $_SESSION['admin']['user_edit_response'] = $err;
+        } else {
+            $_SESSION['admin']['user_edit_response'] = 'Changes saved.';
+        }
+    }
+
+    if ($_GET['goback']) {
+        redirect($_GET['goback']);
+    } else {
+        redirect(href('/admin/users/edit.html', 'edit_user', $edit_user));
+    }
+}
+
+
+# yank the diary
+
+$diary = db_multirow("select note,date_part('epoch', tstamp) as tstamp from user_diary where user_id=? order by tstamp", $edit_user);
+
+if (!config_get('users','no_addresses')) {
+    $addresses = db_multirow('select nickname,street,visible from user_addresses where user_id=?', $edit_user);
+}
+
+// ?>

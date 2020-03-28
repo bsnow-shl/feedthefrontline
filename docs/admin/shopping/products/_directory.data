@@ -1,0 +1,4 @@
+require_once 'shopping.h';
+require_once 'users.h';
+user_require('shopping_admin');
+

@@ -1,0 +1,202 @@
+<!--
+<title>Database Layer introduction</title>
+<subtitle>part of the <a href="./">CPF manual</a>.</subtitle>
+-->
+
+<div class="section">
+
+If we can learn anything from the last few decades of dealing with
+relational databases, it's that SQL is an incredibly leaky abstraction. In
+spite of the presence of standards written by very smart people, it
+is not widely known what is, and what is not, "standard" SQL. Worse,
+widespread support for SQL97 is only appearing in 2003, with SQL99
+still some ways off. MySQL is still working on adding sub-selects,
+and everybody thinks it's the best thing since sliced bread.
+
+<p/>
+
+Most database vendors don't bother to tell you which parts of the
+standards they support, because if you accidentally start using a feature
+only they support, you're locked in to their system, and the cost of
+switching has just gone up dramatically. Good for them, bad for you.
+
+<p/> In the face of all this, writing a database abstraction layer seems
+a ludicrous concept. Why pretend you're using some abstract SQL engine
+(you're not sure which one) when sooner or later, you'll be writing SQL
+statements that bind you fully and firmly to some particular SQL system.
+It's just not worth pretending.
+
+<p/>That said, the CPF does not prohibit using PEAR or any of the other
+dozen or so database abstraction layers, should you wish to use them.
+
+<br/>
+<br/>
+
+<p/> It doesn't take much experience with the web and databases to
+realize that queries fall into five categories:
+
+<ol>
+<li>
+      give me a value
+
+<li>
+      give me a row
+
+<li>
+      give me a list of values
+
+<li>
+      give me a list of rows
+
+<li>
+      everything else
+</ol>
+
+Therefore, the CPF explicitly supports each of these five possibilities with five function calls, each returning
+
+<ol>
+<li>
+      a scalar (<a href="db.h.html#value">db_value</a>)
+
+<li>
+      a hash (<a href="db.h.html#row">db_row</a>)
+
+<li>
+      an array of scalars (<a href="db.h.html#array">db_array</a>)
+<li>
+
+      an array of hashes (<a href="db.h.html#multirow">db_multirow</a>)
+
+<li>
+      a PostgreSQL result object (<a href="db.h.html#send">db_send</a>)
+</ol>
+
+
+
+<h3>Some database layer examples</h3>
+
+Here is an example that uses the hundreds of thousands of lines of code in your database and web servers to add two numbers together:
+
+<pre class=screen>
+   $answer = db_value('select 5+7');
+   print $answer;
+</pre> 
+
+The first thing to notice is that there is no connection management
+infrastructure to deal with: all you do is ask for an answer, and in the
+background the CPF will take care of finding your database, connecting
+to it, sending the query, fetching the query, iterating over the query
+rows, and dealing with any exceptions that may crop up during any of
+these steps.
+
+<p/>
+The above code is an example of the first kind of database call we
+identified in the previous section: fetch one value, done via the db_value
+function. Here are some more examples that deal in a single value:
+
+<pre class=screen>
+   print db_value('select email_address from users where user_id=?', 52);
+   print db_value('select count(*) from users');
+   print db_value("select avg(income) from population where married='y'");
+</pre> 
+
+Note that they all return exactly one row with exactly one column. The
+name of the row isn't important. The first example makes use of a modern
+database-ism called placeholders. More on that in shortly. For now,
+though, it's enough to know that the question mark in the query is
+replaced with the user ID given, and that this is an insanely useful
+feature.
+
+<p/>
+The second type of call is one where you want fetch an entire row's worth
+of data, whether from one table, by joining several tables together,
+or anything else you can imagine that will return a single row of
+information. This is done with the <cite>db_row</code> call.
+
+<pre class=screen>
+  $row = db_row("select name,address,phone_number from users 
+                 where user_id=?", 52);
+  print "User 52's name is ".$row['name'];
+</pre> 
+
+In this case, the CPF fetches an entire row, and turns it into a hash,
+keyed by the name of the column. More examples:
+
+<pre class=screen>
+  db_row('SELECT users.last_name, demographics.number_of_children
+             FROM users,demographics
+            WHERE users.user_id = demographics.user_id 
+              AND users.user_id = ?', 52);
+  db_row('SELECT MAX(age) as maxage, MAX(income) as maxincome 
+            FROM demographics'); 
+</pre> 
+
+<p/> In the first example, the rows will be returned as a hash with
+two keys: "last_name" and "number_of_children".
+
+<p/> In the second example, the aggregate column names (and thus the
+has keys) are explicitly given a name, with SQL's AS phrase. This is
+a good habit to get into, so that you can be certain what the hash key
+for that information will be.
+
+<h3>The incredible gift of placeholders</h3>
+
+These alone are worth the price of admission.
+
+<p/>
+All of the CPF's database calls that take SQL also take any number of
+SQL parameters, terming them <em>placeholders</em>.  
+
+Placeholders are a common sight in database abstraction systems
+outside of PHP. They have a number of performance benefits, but their
+primary benefit is in producing more secure, reliable code for the
+programmer. Consider an online banking system that permits visitors to
+change their address. Perhaps you might write code like the following:
+
+<pre class=screen>
+db_send("update addresses set postal_code='$postcode' where customer_id=$id");
+</pre>
+
+<cite>$postcode</code> came from a form the user filled out. Seems
+reasonable. Now imagine if the user enters their new postal code like
+so: <cite>' blah; update accounts set balance='10000000</code>. Now,
+the following SQL was sent to the database: (slightly cleaned up for
+legibility)
+
+<pre class=screen>
+update addresses set postal_code='' blah;
+update accounts set balance='10000000' where user_id=92
+</pre>
+
+The first query will fail, and the second query will make our attacker a millionaire. Whoops. One alternative is to use placeholders:
+
+<pre class=screen>
+db_send('update address set postal_code=? where customer_id=?', $postcode, $id);
+</pre>
+
+The database layer will intelligently substitute each parameter in
+place of the question marks, performing any necessary quoting on the
+parameter value to protect against bad information being sent to the
+database. This also supports the PHP language's value null as a a means
+of setting an SQL NULL.
+
+<pre class=screen>
+/* sets all last_visit columns to SQL NULL */
+$value = null;
+db_send('update log set last_visit=?', $value);
+</pre>
+
+Queries must provide at least parameter for every placeholder. If you
+provide extra parameters beyond those required, they will be ignored. If
+you don't provide enough, a PHP error message will be raised.
+
+<p/> The system is also smart enough to distinguish between quoted
+question marks (that are left alone) and unquoted question marks:
+
+<pre class=screen>
+/* won't confuse the database layer */
+db_send("update users set favourite_character='?' where user_id=?", $user_id);
+</pre>
+
+</div>
+

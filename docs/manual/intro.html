@@ -1,0 +1,204 @@
+<!--
+<title>Introduction & installation</title>
+<subtitle>part of the <a href="./">CPF manual</a>.</subtitle>
+-->
+
+<div class="section">
+ The Content Publishing Framework is a low-ceremony, highly-effective system for quickly developing and publishing web sites using PHP and 
+ PostgreSQL. It features a simple templating system, elegant form handling, a useful database model, and facilities for user management and 
+ role-based permissions. It's mostly 
+ modular and designed to be easy to extend, merge in future improvements, and support concurrent development using CVS.  
+         
+<p/>
+ The framework's driving value is effectiveness. There's no idealism here in any form: no object-oriented nirvana, no squandered effort on 
+ database abstraction, and it does not attempt to be all things to all people. It's meant for people who have to quickly develop and operate 
+ a dynamic web site, and don't mind using a system with some opinions about how things should be done.   
+         
+<p/>
+ Some of the consequences of this philosophy include a complete lack of support for MySQL, or any other database aside from PostgreSQL. The system has been 
+ integrated with other codebases that themselves use MySQL, but the core depends loosely but irretrievably on PostgreSQL.  
+         
+<p/>
+ Its original author is Stephen van Egmond, who wrote the system based on his experience with complex, large-scale web development, and the 
+ practical, small details that can make it easy for those involved. Support is provided through Tiny Planet Consulting, a consulting company 
+ that builds standards-based infrastructure, and advises on software development process and technique. Other developers, notably Bill Snow, 
+ have contributed to its development.       
+         
+<h3>Software requirements</h3>
+         
+ This system requires recent versions of Apache, PHP, and PostgreSQL to work. Apache 1.3.26, PHP 4.3, and PostgreSQL 7.4 have been seen to 
+ work well. The PHP modules mhash and pgsql are required.
+         
+<p/>
+ <em>Optional and recommended packages.</em> The page testing infrastructure requires Ant 1.5 and a Java 1.4 development environment. 
+ <ul>
+ <li> CVS 1.10 or some other source control system.
+ <li>exim mail server
+ <li>ecartis mailing list manager
+ <li>xdebug PHP extension 
+ <li><a href="http://www.reedmedia.net/software/virtualmail-pop3d/">vm-pop3d POP3 server</a> supporting virtual maildrops
+ </ul>
+         
+<p/>
+ As of May 2003, if you are running the Debian "Woody" distribution, running the following command as root will load the appropriate 
+ packages into your system:        
+         
+<p/>
+<pre class=screen># recommended installation on Debian
+apt-get install postgresql apache php4-pgsql php4-mhash \ 
+  php4 cvs ant alien memcached
+pear install xdebug
+pear install memcache </pre>
+<p/>
+
+ You will still have to go to <a href="http://java.sun.com/">Sun's web site</a> to download the Java 1.4 development RPM -- not the runtime. Once downloaded, you can turn the 
+ RPM into a Debian package with alien: 
+ <pre class="code">
+alien j2sdk*.rpm
+dpkg -i j2sdk*.deb     </pre>         
+<p/>
+
+<h4>Configuring PHP</h4>
+<pre class=screen>
+# recommended /etc/php4/apache/php.ini
+
+auto_prepend_file =  prepend.h
+auto_append_file =  append.h
+error_reporting = 2039
+asp_tags = on 
+
+register_globals=off
+magic_quotes_gpc=off
+zlib.output_compression = on
+
+default_charset = "utf-8"
+
+extension=pgsql.so
+extension=mhash.so
+extension=xdebug.so
+
+xdebug.auto_trace=on
+xdebug.collect_params=off
+xdebug.show_mem_delta=on
+xdebug.trace_output_dir=/tmp </pre>
+
+
+<h4>Configuring PostgreSQL</h4>
+
+ PostgreSQL must be configured with <cite>transform_null_equals=true</code> in <code>/etc/postgresql/postgresql.conf</code>.  
+
+<pre class=screen>
+sudo su - postgres
+
+createlang plpgsql template1
+
+createuser www-data
+# can create databases? yes
+# can create new users? no 
+
+createuser youraccount
+# can create databases? yes
+# can create new users? no 
+</pre>
+         
+<h4>Configuring exim</h4>
+
+<pre class=screen>
+# /etc/exim/exim.conf
+
+...
+# permit the web server to forge mail senders
+trusted_users = www-data
+</pre>
+
+
+If you want Exim to work with vm-pop3d:
+
+<pre class=screen>
+# /etc/exim/exim.conf
+
+...
+
+# transports section
+# how to deliver to a virtual mailbox
+virtual_localdelivery: 
+	driver = appendfile 
+	file = /var/mail/virtual/${domain}/${local_part} 
+	user = mail 
+	group = mail 
+	mode = 660
+end
+
+
+# directors section
+# people who match this director are delivered to a virtual mailbox
+virtual_localuser: 
+	driver = aliasfile 
+	file_transport = address_file 
+	transport = virtual_localdelivery 
+	domains = "partial-lsearch;/etc/exim/domain.map" 
+	file = /etc/exim/${domain_data}/passwd 
+	modemask = 000
+	search_type = lsearch 
+
+# people who match this director go through a virtual alias
+virtual_alias: 
+	driver = aliasfile 
+	file_transport = address_file 
+	pipe_transport = address_pipe
+	domains = "partial-lsearch;/etc/exim/domain.map" 
+	file = /etc/exim/${domain_data}/aliases 
+	modemask = 000
+	search_type = lsearch* 
+	user = mail 
+	qualify_preserve_domain 
+</pre>
+
+<h2>Recommended reading</h2>
+
+   This manual assumes that you are at least somewhat familiar with PHP, SQL, and the fundamentals of HTML and web programming. Here are some suggested
+   materials if you don't know them.
+
+<dl>
+<dt>
+   PHP
+   <dd>
+          The <a href="http://www.php.net/manual/">PHP manual</a> is an excellent place to learn PHP. Run through the tutorial, read the language reference, paying less attention to the later
+          sections on references and objects, then skim the chapters on "Variable functions", "Array functions", and "String functions".
+
+<dt>
+   SQL
+   <dd>
+          Philip Greenspun's <a href="http://philip.greenspun.com/sql/">SQL for Web Nerds</a> is a good place to get a crash course in SQL. Try to tune out the parts where it talks about Oracle. The
+          <a href="http://www.postgresql.org/docs/">PostgreSQL manual</a> is an excellent place to understand Postgres's own unique take on SQL.
+
+<p/>
+          For truly advanced SQL, SQL for Smarties by Joe Celko is an excellent resource that will teach you all the things you didn't know you didn't
+          know about SQL.
+
+<dt>
+   HTML and CSS
+   <dd>
+          The <a href="http://www.htmlhelp.com/">Web Design Group</a> publishes outstanding references to <a href="http://www.htmlhelp.com/reference/html40/>wHTML 4.0</a> and <a href="http://www.htmlhelp.com/reference/css/">CSS</a>. They quickly explain the relevant points for each and every tag in
+          the specifications. If you don't already know CSS, you can learn it in fairly short order using their tutorial.
+
+<dt>Web publishing
+<dd>
+	<a href="http://philip.greenspun.com/panda/">Philip and Alex's Guide to Web Publishing</a> is, as the author now says, sort of embarrassing for all
+	its retro emphasis on <em>usable</em> sites built out of <em>boring</em> technology, but if you really lack
+	for opinions why the Web can be cool, and how it can be made that way, the author will hand you
+	quite a few to choose from.
+	<p/>
+	His <a href="http://philip.greenspun.com/internet-application-workbook/">Internet Application Workbook</a> 
+	is somewhat drier, but has a clearer focus.  Watch for the parts where he disses PHP: I've paid attention, and tried
+	to remedy those beefs with the CPF.
+
+<dt>
+   Everything else
+   <dd>
+          In addition to the obvious search engines, three resources stand out among the places to figure out unfamiliar technologies: <a href="http://www.w3schools.com/">W3Schools.com</a>
+          offers crash courses on a number of technologies. <a href="http://www.whatis.com/">Whatis.com</a> is a great way to quickly learn about an acronym and get pointers to places to
+          learn about them. Finally, the <a href="http://www.wdvl.com/">Web Developer Virtual Library</a> takes a more comprehensive look at standards-based technologies, including HTTP,
+          and XSL.
+</dl>
+

@@ -1,0 +1,14 @@
+require_once 'i18n.h';
+require_once 'form.h';
+
+$classid = $_GET['class'];
+$objid = $_GET['obj'];
+
+$class_name = db_value('select class_name from i18n_classes where class_id=?', $classid);
+
+
+form_set(i18n_form_fields($class_name, $objid));
+if (form_valid()) {
+	i18n_form_handle($class_name, $objid);
+	redirect(href('sysobjects.html', 'type', $classid));
+}

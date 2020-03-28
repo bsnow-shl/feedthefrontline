@@ -1,0 +1,12 @@
+
+require_once 'form.h';
+require_once 'i18n.h';
+
+$eid = 0+$_GET['eid'];
+
+form_set(i18n_form_fields('Event registration email', $eid));
+if (form_valid()) {
+	i18n_form_handle('Event registration email', $eid);
+	redirect(href('edit.html', 'eid', $eid));
+}
+

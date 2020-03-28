@@ -1,0 +1,24 @@
+<!--
+<title>Hospitals by status</title>
+-->
+
+<h2>Add a site</h2>
+<? form_start(); form_end(); ?>
+
+<?php foreach ($status as $state => $hospitals): ?>
+<h2><%= $state %></h2>
+<table class="padded">
+<thead>
+  <tr><th>Hospital</th><th>City</th><th>Unit</th><th>Contact</th></tr>
+</thead>
+<?php foreach ($hospitals as $row): ?>
+<tr>
+  <td><%= $row['hospital_name'] %></td>
+  <td><%= $row['city'] %></td>
+  <td><%= $row['unit_name'] %></td>
+  <td><a href="<%= href('mailto:'.$row['contact_email']) %>"><%= $row['contact_email'] %></a> <%= $row['contact_phone'] %></td>
+  <td><a href="<%= href('edit.html', 'id', $row['unit_id']) %>">edit</a>
+<?php endforeach ?>
+</table>
+<?php endforeach ?>
+

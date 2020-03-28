@@ -1,0 +1,50 @@
+<!--
+<title><%= $weblog_row['weblog_title'] %></title>>
+-->
+
+<p>
+<%= $_GET['keyword'] ? "&raquo; Only showing posts from category <i>".$_GET['keyword']."</i> (<a href=\"./\">remove filter</a> | <a href=\"../?keyword=".$_GET['keyword']."\">show all matchin on Intranet</a>). <br/>" : '' %>
+</p>
+
+<? for ($i=0; $i<sizeof($entries); $i++): ?>
+<? $e = $entries[$i]; 
+   $e['posting_date'] = strftime('%A, %B %d %Y', $e['posting_date']);
+?>
+
+
+
+<div class="section">
+<h2><%= $e['entry_title'] %></h2>
+<p>
+<%= $e[body] %>
+</p>
+
+<p/>
+
+<? if (1 || $e['author'] != $weblog_row['owner']): ?>
+<i>&mdash; written by <%= $e['first_name'].' '.$e['last_name'] %></i><br/>
+<? endif ?>
+
+<? if ($kw[$e['weblog_entry_id']]): ?>
+	<i>&mdash; filed under 
+    <?
+	foreach ($kw[$e['weblog_entry_id']] as $k) {
+		print "<a href=\"".href('', 'keyword', $k)."\">$k</a> ";
+	}
+    ?>
+	</i><br/>
+<? endif ?>
+
+<div class="subhead">
+    <i> <%= $e['posting_date'] %></i> - <A href="article/<%= $e['weblog_entry_id'] %>">permalink</a>
+    <? if (weblog_is_editor()) {
+    	print '- <a href="'.href('post.html', 'id', $e['weblog_entry_id']).'">revise</a>';
+    } ?>
+    <? comments_on('weblog_entries', $e['weblog_entry_id'],'brief') ?>
+</div>
+
+</div>
+<? endfor ?>
+
+&raquo;  <a href="browse.html">Older posts</a>
+

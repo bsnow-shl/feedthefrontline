@@ -1,0 +1,20 @@
+require_once 'form.h';
+
+$cid = 0+$_GET['contract'];
+$c = db_row('select short_name from contracts where contract_id=?', $cid);
+if (!$c) { redirect("index.html"); }
+
+
+
+form_set(array(
+	'invoice_item_id' => array('type'=>'hidden', 'value' => db_newid('contract_invoice_items') ),
+	'name' => 'text,required',
+	'amount' => 'dollars,required',
+	'date' => array('type'=>'date','default'=>'')
+));
+if (form_valid()) {
+	db_send("insert into contract_invoice_items (invoice_item_id, contract_id, amount, created_by, create_date, name) values (?,?,?,?,?,?)",
+		$invoice_item_id,
+		$cid, 100*$amount, user_id(), $date?$date:'now', $name);
+	redirect(href("details.html", "contract", $cid));
+}

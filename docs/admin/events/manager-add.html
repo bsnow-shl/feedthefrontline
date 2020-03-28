@@ -1,0 +1,27 @@
+<!-- 
+<title>Add an event manager</title>
+-->
+
+
+
+<div class=section>
+
+Enter some search criteria to identify the event manager:
+<? form_start(); form_end() ?>
+</div>
+
+<? if ($search_result): ?>
+<hr/>
+<div class=section>
+
+
+Possible matches below; click on one to make them an event manager.
+<ul>
+<? foreach ($search_result as $s): ?>
+<li><%= a_href('manager-add-2.html', 'eid', $_GET['eid'], 'uid', $s['user_id']) %>><%= " $s[first_name] $s[last_name] ($s[email]) "%></a>
+<? endforeach ?>
+
+</ul>
+</div>
+
+<? endif ?>

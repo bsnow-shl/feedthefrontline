@@ -1,0 +1,20 @@
+
+require_once 'i18n.h';
+
+$pid = 0+$_GET['pid'];
+
+db_send('begin');
+$page = db_row('select * from survey_pages where page_id=?', $pid);
+$responses = db_array('select  response_id from survey_invitation_responses where page_id=?', $pid);
+foreach ($responses as $rid) {
+	i18n_delete($page['class_id'], $rid);
+}
+db_send('delete from survey_invitation_responses where page_id=?', $pid);
+db_send('delete from survey_pages where page_id=?', $pid);
+db_send('delete from i18n_fields where class_id=?', $page['class_id']);
+db_send('delete from i18n_classes where class_id=?', $page['class_id']);
+db_send('commit');
+
+
+redirect(href('multipage-edit.html', 'sid', $_GET['sid']));
+

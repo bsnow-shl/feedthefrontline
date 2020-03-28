@@ -1,0 +1,30 @@
+
+require_once 'form.h';
+
+$iid = 0+$_GET['invoice'];
+$due_date = db_value('select due_date from contract_invoices where invoice_id=?', $iid);
+$original_amount = db_value('select cached_amount from contract_invoices where invoice_id=?', $iid);
+
+$row = db_row('select * from contract_invoices where invoice_id=?', $iid);
+
+$overdue = strtotime($due_date) < time();
+if (strtotime($due_date) < time()) {
+    $due_days_ago = floor((time() - strtotime($due_date)) / 86400);
+    $rate = 0.02;
+    if ($_POST['rate']) {
+        $rate = 0+$_POST['rate'];
+    }
+    $owing = $original_amount/100.0 * pow((1+$rate), floor($due_days_ago/30.0)) - ($original_amount / 100.0);
+}
+
+form_set(array(
+    'rate' => array('type'=>'float','default'=>'.02'),
+));
+
+form_set('charge', array(
+    'owing' => array('type'=>'dollars', 'value' => $owing),
+    'description'=>'text,required'
+));
+if (form_valid('charge')) {
+    print 'chaaarge';
+}

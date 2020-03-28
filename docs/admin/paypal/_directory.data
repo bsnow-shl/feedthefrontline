@@ -1,0 +1,6 @@
+require_once 'paypal.h';
+require_once 'users.h';
+
+user_require ('paypal_admin');
+
+

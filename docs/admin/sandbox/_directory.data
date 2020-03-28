@@ -1,0 +1,1 @@
+if ($_ENV['PROD']) { trigger_error("Sorry, dude. Production site.", E_USER_ERROR); exit(); }

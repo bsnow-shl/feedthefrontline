@@ -1,0 +1,125 @@
+<!--
+<title>Shopcart #<%= $sid %> (<%= $summary['strong_shopcart_id'] %>)</title>
+-->
+
+<? form_start();  ?>
+
+<h3>Summary</h3>
+<ul>
+<li>Total: <%= sprintf('$%.02f', $summary['total']/100.0) %>
+<? if ($invoices): ?>
+; PayPal invoice: <? foreach ($invoices as $invoice): ?><a href="<%= href('/admin/paypal/txn-detail.html', 'txnid', $invoice['paypal_transaction_id']) %>">#<%= $invoice['paypal_transaction_id'] %> (<%= $invoice['transaction_status'] %>)</a> <?endforeach?></li>
+<? endif ?>
+</li>
+<li>Status: <%= $summary['status'] %> @@new_status@@ </li>
+
+<? if ($accept_payment): ?>
+    <li>Paid: @@new_paid@@ </li>
+<? endif ?>
+
+<li>Buyer: <%= $summary['buyer_email'].' '.$summary['buyer_name'].' '.$summary['buyer_phone'] %>
+  <? if ($summary['user_id']) { 
+	  printf('<a href="%s">user account &raquo;</a>', href('/admin/users/edit.html', 'edit_user', $summary['user_id']));
+  } ?>
+  </li>
+
+<? if ($summary['buyer_company']): ?>
+    <li>Company: <%= $summary['buyer_company'] %></li>
+<? endif ?>
+
+<? if ($summary['buyer_use_card_on_file'] !== null): ?>
+    <li>Use card on file: <%= $summary['buyer_use_card_on_file']? 'yes':'no' %></li>
+<? endif ?>
+
+
+<li>Recipient: <?
+if ($show_recipient) {
+	print "see below</li>";
+    if ($summary['buyer_billing_address']) {
+        print '<li>Billing address:<blockquote>'.nl2br($summary['buyer_billing_address']).'</blockquote></li>';
+    }
+
+} else {
+	printf('hidden; (<a href="%s">reveal</a>; this is logged)', href('detail.html', 'sid', $sid, 'reveal', 1));
+}
+?>
+    
+
+<? 
+if ($summary['buyer_po']) {
+    print '<li>PO #: '.$summary['buyer_po'].'</li>';
+}
+?>
+</ul>
+
+@@save_changes@@
+
+<h3>Items</h3>
+<table class="padded">
+<tr><th align=center>Entry #</th><th align=center>Item</th><th align=center>Qty</th><th align=center>@</th><th align=center>Price</th><th align=center>Recipient</th><th align=center>Options</th></tr>
+<? foreach ($details as $d): ?>
+<tr>
+<td><%= $d['shopcart_entry_id'] %></td>
+<td><? $prefix = $d['dropped'] ? 'strike' : 'span'; ?>
+	<<%= $prefix %>>
+	<%= $d['sku'] %> &mdash; 
+	<%= $d['title'] %>
+	</<%= $prefix %>>
+</td>
+<td align=center><%= $d['qty'] %></td>
+<td align=right><%= sprintf('%.02f', $d['price']/100.0) %></td>
+<td align=right><%= sprintf('%.02f', $d['qty'] * $d['price']/100.0) %></td>
+<td nowrap><? if ($show_recipient) {
+	$addr = $d['recipient']['actual_address'];
+    if (!$addr) {
+        print  nl2br($summary['buyer_address']);
+    } else {
+        $quality_map = array('J'=>'Junk', 'F'=>'Failed', 'U'=>'Uncertain','G'=>'Good');
+        printf("%s %s<br/>%s %s, %s<br/>%s<br/><i>address <a href=\"%s\">quality</a>: %s<br/><i>phone:</i> %s<br/><i>delivery instructions:</i> %s<br/><i>email:</i> <a href=\"mailto:%s\">%s</a>", $addr['street'],$addr['apartment'],
+                    $addr['city'],
+                    $addr['province'],
+                    $addr['postal_code'],
+                    $addr['country'],
+                    href('change-quality.html', 'shopcart_entry_id', $d['shopcart_entry_id']),
+                    $quality_map[$addr['quality']],
+                    $addr['phone'],
+                    $addr['delivery_instructions'],
+                    $addr['email'], $addr['email']
+                    );
+    }
+
+} else {
+  if ($d['recipient']['pretty_description']) {
+      printf('%s c/o %s', $d['recipient']['pretty_description'], $d['recipient']['via_description']);
+  } else {
+    print '(hidden)';
+  }
+} ?></td>
+<td><? foreach ($d['options'] as $o) {
+	echo '<em>',$o['option_name'],'</em>: ',$d['option_values'][$o['option_name']],'<br/>';
+}?>
+</td>
+</tr>
+<? endforeach ?>
+</table>
+<? form_end(); ?>
+
+<h3>Diary</h3>
+
+<? form_start('diary'); ?>
+
+<p>
+Created: <%= humanize_timestamp($summary['created_tstamp']) %></li>
+<Br/>
+Last update: <%= humanize_timestamp( $summary['last_update'] ) %></li>
+</p>
+
+<ul>
+<? foreach ($diary as $d): ?>
+    <li><%= humanize_timestamp( $d['tstamp']) %> &mdash; <%= nl2br($d['message']) %></li>
+<? endforeach ?>
+<li>New comment: @@new_comment@@ ##new_comment##<br/>@@save_diary_entry@@</li>
+</ul>
+
+<? form_end(); ?>
+

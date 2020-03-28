@@ -1,0 +1,39 @@
+require_once 'form.h';
+require_once 'photos.h';
+
+form_set(array(
+	'album_id' => array('type'=>hidden, value=>db_newid('photo_albums')),
+	'album_uri' => 'text,required',
+	'parent_album' => array('type'=>'menu', 'sql' => 'select album_id as key, album_uri as value from photo_albums')
+));
+
+if (form_valid()) {
+	if (substr($album_uri, -1) != '/') {
+		$album_uri .= "/";
+	}
+	
+	chdir($_SERVER['DOCUMENT_ROOT'].$album_uri);
+	$server_directory = getcwd();
+
+	if (!is_dir($server_directory)) {
+		form_error('album_uri', "That doesn't look like a directory to me.");
+	} else {
+		if (!$parent_album) {
+			$parent_album=null;
+		}
+		db_insert_or_update('photo_albums', 'album_id', $album_id, 
+					array('album_uri' => $album_uri,
+						'parent_album_id' => $parent_album
+		));
+		photos_make_thumbnails($album_id);
+		$scanned = photo_album_rescan($album_id);
+	}	
+}
+
+$albums = db_multirow('SELECT album_id,album_uri AS title, count(photo_id) as photo_count 
+			FROM photo_albums LEFT OUTER JOIN photos USING(album_id) 
+			GROUP BY album_uri,album_id
+			ORDER BY album_uri');
+
+
+$count = db_value('select count(*) from photos');

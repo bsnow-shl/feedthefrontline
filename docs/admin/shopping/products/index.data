@@ -1,0 +1,44 @@
+
+require_once 'form.h';
+
+
+form_set(array(
+	'sku_search' => 'text'
+));
+if (form_valid()) {
+  $search_results = db_multirow('select * from shopping_products where lower(sku) like ? order by sku', strtolower($sku_search).'%');
+  $search_message = "Search results on sku";
+  $show_count = true;
+} else {
+  if ($_GET['where']) {
+    $clauses = array();
+    while ($_GET['where']) {
+       $that = array_shift($_GET['where']);
+       $op   = array_shift($_GET['where']);
+       $shouldbe = array_shift($_GET['where']);
+       $clauses[] = " $that $op";
+       $fields[] = $that;
+       if ($shouldbe !== '') { $params[] = $shouldbe; }
+    }
+    $where = join(' AND ', $clauses);
+    $search_results = db_multirow("select * from shopping_products where ".$where.' order by sku', $params);
+    $search_message = "Search results filtered by ".join(', ', $fields);;
+  }
+}
+
+if (!$search_results) {
+  $search_results = db_multirow('select * from shopping_products where visible_admin=1 order by create_date desc limit 25');
+  $count = db_value('select count(*) from shopping_products where visible_admin=1');
+  if ($count == $search_results) {
+	  $search_message =  "Showing all products";
+  } else {
+	  $search_message = sprintf("Showing %s most recent out of %s products.", sizeof($search_results), $count);
+  }
+}
+
+for ($i=0; $i<sizeof($search_results); $i++) {
+  $product_id[] = $search_results[$i]['product_id'];
+  $product_id_sql = ' where product_id in ('.join(',', $product_id).') ';
+}
+$types = db_hash_multirow('product_type_id', 'select product_type_id,short_name from shopping_product_types join shopping_products using (product_type_id) '.$product_id_sql);
+$suppliers = db_hash_multirow('supplier_id', 'select supplier_id,short_name from shopping_suppliers join shopping_products using (supplier_id) '.$product_id_sql);

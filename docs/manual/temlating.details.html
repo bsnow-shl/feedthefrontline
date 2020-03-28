@@ -1,0 +1,63 @@
+<!--
+<title>Templating system details</title>
+-->
+
+<p/>
+For instance, it is common to define &lt;meta> tags with KEYWORDS and DESCRIPTION for the benefit of search engines. It makes sense to have the contents of the &lt;meta> tag change depending on the contents of the page, that is, on the contents of the part. So let's do that:
+
+<pre class=screen>
+/* part.php */
+
+&lt;-- 
+&lt;title>Foobars R Us&lt;/title>
+&lt;description>>Foobars R Us is a famous manufacturer of foobars.&lt;/description>
+&lt;keywords>foobars, manufacturer, maker, distributors, sex&lt;/keywords>
+-->
+
+... content goes here ...
+</pre>
+
+And the template would look like this:
+
+<pre class=screen>
+/* _template.html */
+
+&lt;html>&lt;head>
+ &lt;title>&#64;@TITLE@@&lt;/title>
+ &lt;meta type="keywords" content="&#64;@KEYWORDS@@" />
+ &lt;meta type="description" content="&#64;@DESCRIPTION@@" />
+...
+&lt;/html>
+</pre>
+
+Keywords found in the comment (between &lt;-- and -->) are substituted into any occurrences found between @@'s in the template. There's nothing unique to title, or keywords, or description to make them work.
+
+<p/>
+Keywords are substituted into @@ tokens without regard to case. However, the treatment of the substitution is dependent on the case of @@: uppercase tokens are stripped of HTML tags, and lowercase ones are left alone. This permits you to have the same title in the browser bar and on the page, but the browser bar will have HTML tags stripped out (where they create a mess). For instance:
+
+<pre class=screen>
+/* _template.html */
+&lt;title>@&#64;TITLE@@&lt;/title>
+&lt;h1>@@title@@&lt;/h1>
+
+##PART##
+</pre>
+
+
+<pre class=screen>
+/* file.html */
+&lt;!--
+&lt;title>This may be &lt;em>slightly&lt;/em> confusing&lt;/title>
+-->
+</pre>
+
+
+<pre class=screen>
+/* output */
+&lt;title>This may be slightly confusing&lt;/title>
+&lt;h1>This may be &lt;em>slightly&lt;/em> confusing&lt;/h1>
+</pre>
+
+Because the TITLE is uppercase, the &lt;em> tags were stripped out.
+
+

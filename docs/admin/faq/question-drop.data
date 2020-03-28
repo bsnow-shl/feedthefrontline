@@ -1,0 +1,9 @@
+$qid = $_GET['question_id'];
+$fid = $_GET['faq_id'];
+
+db_send('begin');
+db_send('delete from faq_questions where faq_question_id=?', $qid);
+i18n_delete('FAQ question', $qid);
+db_send('commit');
+redirect(href('faqlist-edit.html', 'faq_id', $fid));
+

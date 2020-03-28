@@ -1,0 +1,19 @@
+
+	include 'dw.h';
+	$warehouse = dw_get_kitchen_sink();
+
+
+for ($i=0; $i<sizeof($warehouse); $i++) {
+
+	$d = &$warehouse[$i]['dimensions'];
+
+	for ($j=0; $j<sizeof($d); $j++) {	
+		$dim = &$d[$j]['dimension'];
+
+		$cnt = db_value('select count(*) from '.$dim['table_name']);
+		$dim['count'] = $cnt;
+		unset($dim);
+	}
+	unset($d);
+}
+

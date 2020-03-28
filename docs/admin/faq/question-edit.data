@@ -1,0 +1,22 @@
+
+require_once 'form.h';
+require_once 'i18n.h';
+
+$question_id = 0+$_GET['question_id'];
+if (!$question_id) { redirect('index.html'); }
+
+
+$faq_id = db_value('select faq_id from faq_questions where faq_question_id=?', $question_id);
+
+form_set(
+	i18n_form_fields('FAQ question', $question_id)
+);
+
+if (form_valid()) {
+	db_send('begin');
+	i18n_form_handle('FAQ question', $question_id);
+	db_send('commit');
+	redirect(href('faqlist-edit.html', 'faq_id', $faq_id));
+
+}
+

@@ -1,0 +1,14 @@
+
+if (!$_GET['epid'] || !$_GET['eid']) {
+	redirect('index.html');
+}
+
+
+if ($_GET['hide']) {
+	db_send('update event_pricing set show_to_public=0, pricing_availability_callback=? where event_pricing_id=?', 'itsmf_false', $_GET['epid']);
+} else {
+	db_send('delete from event_pricing where event_pricing_id=?', $_GET['epid']);
+}
+
+redirect(href('edit.html','eid',$_GET['eid']));
+

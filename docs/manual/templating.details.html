@@ -1,0 +1,122 @@
+<!--
+<title>The templating system</title>
+-->
+
+<div class="section">
+
+<h3>Request handling process</h3>
+This section will outline in complete detail which pages and parts of pages are executed while serving a request with the CPF. Imagine the following directory structure:
+
+<pre class=screen>
+site/docs/_template.html
+
+site/docs/foo/_directory.data
+site/docs/foo/page.data
+site/docs/foo/page.html
+
+site/conf/config.h
+site/conf/globals.h
+</pre>
+
+and imagine that a browser has requested <cite>/foo/page.html</cite>.
+
+
+<ol>
+
+<li>
+<cite>conf/config.h</cite> is loaded first. This should provide
+global configuration for your site. Module-specific configuration
+goes in here - site name, email address of maintainer, preferred
+country for geographic pull-downs, etc. This file is mandatory.
+
+<li>
+
+<cite>conf/globals.h</cite> is loaded next. If you need functions or any other
+libraries that should be available to every page on your site,
+include them here. This file is optional.
+
+
+<li>
+
+<cite>foo/_directory.data</cite> is run in the directory where the part is
+located. This performs a similar role as .htaccess in Apache: you
+can place directory-wide access controls (see Chapter 6), define
+directory-scoped functions or variables, and so on. This file is
+optional.
+
+
+<li>
+
+<cite>foo/page.data</cite> is run. This file is optional.
+
+
+<li>
+
+The first half of <cite>_template.html</cite>, the part before
+"##PART##", is run. This file is mandatory.
+
+
+<li>
+
+<cite>foo/page.html</cite> is run. This file is, of course, mandatory.
+
+
+<li>
+
+The second half of <cite>_template.html</cite>, the part after
+"##PART##", is run.
+
+</ol>
+
+
+<h3>Keyword subtitutions</h3>
+
+Keywords in the part are first identified by looking at the part's <em>preamble</em>. The preamble is the first HTML comment in the part, denoted with <cite>&lt;!--</cite> and <cite>--></cite> pairs.
+
+<p>
+<pre class=screen>&lt;!--
+&lt;title>    &lt;em>Respect&lt;/em> the title   &lt;/title>
+&lt;colour>   green                              &lt;/colour>
+-->
+
+... remainder of part follows
+</pre>
+
+This preamble defines two keywords, named <b>title</b> and <b>colour</b>.  These keywords can be substituted into the part, using magic tokens surrounded by &#64;@ pairs, &#64;@likethis@&#64;.
+
+<p/>The case of the keyword between the &#64;@ pairs 
+influcences how keyword substitution is done.
+If the token is lowercase, the keyword is substituted verbatim.
+If the token is uppercase, the keyword is substituted with HTML tags removed.
+
+
+Consider the following example:
+<pre class=screen>
+/* _template.html */
+&lt;html>&lt;body>
+
+&lt;pre>
+title yields: &#64;@title@@
+TITLE yields: &#64;@TITLE@@
+colour yields: &#64;@colour@@
+&lt;/pre>
+
+##PART##
+
+&lt;/body>&lt;/html>
+
+
+
+/* index.html */
+&lt;!--
+&lt;title>    &lt;em>Respect&lt;/em> the title   &lt;/title>
+&lt;colour>   green                        &lt;/colour>
+-->
+
+... remainder of part follows
+</pre>
+
+<a href="examples/templating.1/">This is the result.</a>
+As you can see, @&#64;TITLE@&#64; has been substituted without tags.
+
+</div>

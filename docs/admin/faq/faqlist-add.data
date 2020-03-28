@@ -1,0 +1,21 @@
+
+require_once 'form.h';
+require_once 'i18n.h';
+
+form_set(array(
+	'administrative_name'=>'text,required',
+	'short_name' => 'urifragment,required'
+) + i18n_form_fields('FAQ')
+);
+
+if (form_valid()) {
+	db_send('begin');
+  
+	$faq_id = db_newid('faqs');
+	db_send('insert into faqs(faq_id, short_name, faq_name) values (?,?,?)',
+			$faq_id, $short_name, $administrative_name);
+	
+	i18n_form_handle('FAQ', $faq_id);
+	db_send('commit');
+	redirect(href('faqlist-edit.html', 'faq_id', $faq_id));
+}

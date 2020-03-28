@@ -1,0 +1,29 @@
+<!--
+<title>Remove a news item </title>
+-->
+
+
+<h2>Do you wish to remove this news item?</h2>
+
+<div class="section" style="border: 3px dotted black; padding: 10px;">
+
+<? print_a($info); ?>
+<big><b><%= $info['pretty_name_en'] %></b></big>
+<br/>
+<b><%= nl2br($info['caption_en']) %></b><br/>
+<%= nl2br($info['body_en']) %>
+</div>
+    
+    <p>
+<a href="<%= $_SERVER['REQUEST_URI'] %>&confirm=1">yes</a>
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+<a href="index.html">no</a>
+</p>
+
+    

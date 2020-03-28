@@ -1,0 +1,28 @@
+
+require_once 'i18n.h';
+require_once 'form.h';
+require_once 'events.h';
+require_once 'users.h';
+
+$eid = 0+$_GET['eid'];
+$epid = 0+$_GET['epid'];
+if (!$eid) redirect("index.html");
+
+$eprow = db_row('select * from event_pricing join event_pricing_constraints on (constraint_id=pricing_constraint_id) where event_pricing_id=?', $epid);
+if ($eprow['function']!='event_magic_word') redirect('index.html');
+
+$einfo = i18n_get('Event', $eid);
+
+form_set(array(
+    'special_code' => array('type'=>'text','pretty'=>_('Special code'), 'required'=>1)
+));
+if (form_was_submitted()) {
+    $compare = unserialize($eprow['pricing_constraint_extra']);
+    if (!$compare || $compare['magic_word'] != $special_code) {
+        form_error('special_code', _('Incorrect code.'));
+    }
+}
+if (form_valid()) {
+    $_SESSION['event_magic_word'] = $special_code;
+    redirect(href('register.html','event_id', $eid));
+}

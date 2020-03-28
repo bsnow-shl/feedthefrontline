@@ -1,0 +1,34 @@
+<!--
+<title>PayPal Administration</title>
+-->
+
+<div class=section>
+<? if ($requires_attention): ?>
+	<div class=error>
+	<b>Action required:</b>
+	The following PayPal invoices need attention:
+	<? foreach ($requires_attention as $i) {
+		print '<a href="'.href('notification-detail.html', 'nid', $i)."\">#$i</a>";
+	} ?>
+	.
+	</div>
+<? endif ?>
+ 
+<h3>PayPal systems</h3>
+Overall:  <%= sprintf("\$%.02f", $summary['summary']['amount_received']) %> received in last 7 days &mdash; <a href="monthly.html">view monthly report</a>
+ or <a href="one.html">browse</a>.
+
+<p/>
+Broken down by sub-system:
+
+<ul>
+<? foreach ($paypal_systems as $p): ?>
+<li><?= $p['paypal_system_name'] %> 
+ &mdash; <%= sprintf("\$%.02f", $summary[$p['paypal_system_id']]['amount_received']) %> received in last 7 days
+ &mdash; <a href="<%= href('monthly.html', 'sid', $p['paypal_system_id']) %>">view monthly report</a>
+ or <%= a_href('one.html', 'status_filter','paid','sid', $p['paypal_system_id']) %>>browse</a>.
+<? endforeach  ?>
+</ul>
+
+</div>
+

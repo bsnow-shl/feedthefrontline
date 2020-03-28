@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+<title>Controlling the appearance of your forms</title>
+<meta name="GENERATOR" content=
+"Modular DocBook HTML Stylesheet Version 1.79">
+<link rel="HOME" title="Content Publishing Framework Manual" href=
+"index.html">
+<link rel="UP" title="Form handling" href="forms.html">
+<link rel="PREVIOUS" title="The form description language" href=
+"x609.html">
+<link rel="NEXT" title="Custom form validation" href="x639.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2005-03-11T18:12:01">
+</head>
+<body class="SECTION" bgcolor="#FFFFFF" text="#000000" link=
+"#0000FF" vlink="#840084" alink="#0000FF">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="3" align="center">Content Publishing Framework
+Manual</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="bottom"><a href="x609.html"
+accesskey="P">Prev</a></td>
+<td width="80%" align="center" valign="bottom">Chapter 5. Form
+handling</td>
+<td width="10%" align="right" valign="bottom"><a href="x639.html"
+accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="SECTION">
+<h1 class="SECTION"><a name="AEN624" id="AEN624">5.3. Controlling
+the appearance of your forms</a></h1>
+<p>When rendering a form, the CPF does a straightforward
+arrangement in a table, in the order that the form elements were
+declared. If this isn't enough for you, you can control the form
+layout yourself directly in the page.</p>
+<p>Returning to our example with name, age, and biography, the form
+was rendered with</p>
+<pre class="SCREEN">
+&lt;? form_start();
+   form_end(); ?&gt;
+</pre>
+<p>Imagine form_start() as a replacement for HTML's &lt;form&gt;,
+and form_end as replacement for &lt;/form&gt;. To lay out the form
+yourself, just use your own markup between the two:</p>
+<pre class="SCREEN">
+&lt;l? form_start(); ?&gt;
+Enter your name: &#64;&#64;name&#64;&#64;
+
+&lt;p/&gt;Enter your age: &#64;&#64;your_biography&#64;&#64;.
+
+&lt;p/&gt;Enter your biography:&lt;br/&gt;
+&#64;&#64;your_biography&#64;&#64;.
+
+&lt;p/&gt;Then click here: &#64;&#64;submit&#64;&#64;
+&lt;? form_end(); ?&gt;
+</pre>
+<p>As you can see, the form engine takes your form variable names
+between pairs of &#64;&#64; signs, and substitutes the HTML entities that
+correspond to your form widget declarations.</p>
+<p>Now I wonder, what happens if you add a new form widget, but no
+corresponding layout for it?</p>
+<pre class="SCREEN">
+        favourite_colour =&gt; array(
+                'type'=&gt;'text',
+                'menu'=&gt;array('r'=&gt;'Red','b'=&gt;'Blue')
+        ),
+</pre>
+<p>The answer is this: // screen shot</p>
+<p>What happened is that the form engine recognized you didn't
+drawn that favourite_colour widget, and so it tacked it on to the
+end of your form, for lack of a better place to put it. It's
+hideous, but maybe that's a good way to get you to properly lay it
+out. It basically forces you to keep your form definitions and page
+layout in sync.</p>
+<div class="NOTE">
+<blockquote class="NOTE">
+<p><b>Note:</b> You <span class="emphasis"><i class=
+"EMPHASIS">can</i></span> use PHP code between the start() and
+end() calls.</p>
+</blockquote>
+</div>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="x609.html"
+accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html"
+accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="x639.html"
+accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">The form description
+language</td>
+<td width="34%" align="center" valign="top"><a href="forms.html"
+accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">Custom form
+validation</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

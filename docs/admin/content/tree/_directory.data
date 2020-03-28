@@ -1,0 +1,4 @@
+require_once 'i18n.h';
+require_once 'users.h';
+user_require('content_admin');
+

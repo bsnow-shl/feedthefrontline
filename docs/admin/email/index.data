@@ -1,0 +1,12 @@
+
+require 'email.h';
+
+$accts = db_multirow('select * from email_accounts order by from_addr');
+
+$classes = array();
+for ($i=0; $i<sizeof($accts); $i++) {
+    $classes[$accts[$i]['class']][] = &$accts[$i];
+}
+
+$email_valid_classes = email_get_valid_classes();
+

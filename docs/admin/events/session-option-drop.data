@@ -1,0 +1,4 @@
+
+db_send('delete from event_session_options where session_option_id=?', $_GET['soid']);
+redirect(href('session-edit.html', 'sid', $_GET['sid']));
+

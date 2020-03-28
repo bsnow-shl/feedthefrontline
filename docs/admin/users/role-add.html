@@ -1,0 +1,20 @@
+<!--
+<title>Assign a new role</title>
+-->
+
+<h3>Assign <%= $role['role_name']  %> to <%= $edit_user_info['email'] %></h3>
+
+<div class="section">
+<? if ($optional): ?>
+    You can constrain how much access this user has.
+<? else: ?>
+    You must constrain how much access this user has.
+<? endif ?>
+
+<? form_start();
+
+   form_end(); ?>
+
+
+</div>
+

@@ -1,0 +1,16 @@
+<!--
+<title>Suppliers</title>
+-->
+
+<div class="section">
+<h2>Current suppliers</h2>
+
+<ul>
+<? foreach ($suppliers as $s): ?>
+<li><a href="<%= href('edit.html', 'sid', $s['supplier_id']) %>"><%= $s['short_name'] %></a> <%= $s['contract_id'] ? 'under contract #'.$s['contract_id']:'' %></a>
+<? endforeach ?>
+</div>
+
+
+
+

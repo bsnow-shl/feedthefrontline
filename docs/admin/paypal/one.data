@@ -1,0 +1,64 @@
+require_once 'form.h';
+
+
+form_set(array(
+	'status_filter' => array( type => 'menu', menu => array('unpaid'=>'unpaid','abandoned' => 'abandoned', 'paid'=>'paid','refunded'=>'refunded','disputed'=>'disputed'), 'default' => $status_filter, 'pretty' =>'Invoice status'  ),
+	'period' => array( 'type'=>'text', 'default'=>$_GET['period']),
+	'sid' => array('type'=>'menu', 'sql'=>'select paypal_system_id as key, paypal_system_name as value from paypal_systems', 'default' => $sid, 'pretty'=> 'Payment system'),
+	'system_reference' => 'text',
+	'include_tax_details' => 'flag',
+	'show_wierd_transactions_only' => 'flag',
+));
+
+$tax_columns = db_array('select distinct sql_column from tax_collection');
+
+$params = array();
+
+# deal with system ID filter
+if (!$sid) { $sid = $_GET['sid']; }
+if ($sid) {
+	$system_name = db_value('select paypal_system_name from paypal_systems where paypal_system_id=?', $sid);
+	$where_clause .= ' paypal_system_id=? and';
+	array_push($params,$sid);
+} else {
+	$system_name = "all invoices";
+}
+
+if ($system_reference) {
+	$where_clause .= ' system_reference=? and';
+	array_push($params,$system_reference);
+}
+
+
+
+# deal with status filter
+if ($status_filter) {
+	$where_clause .= ' transaction_status=? and ';
+	array_push($params, $status_filter);
+}
+
+
+# deal with time period filter
+if (!$period) { $period = $_GET['period']; }
+if ($period) {
+	$period_start = strtotime('1 '.$period);
+	$period_end = strtotime('+1 month', $period_start);
+
+	$where_clause .= " create_datetime > '".date('Y-M-d', $period_start)."' AND create_datetime < '".date('Y-M-d', $period_end)."' AND ";
+}
+
+
+$where_clause .= ' TRUE';
+
+
+$payments = db_hash_multirow('paypal_transaction_id',"select *,date_part('epoch', create_datetime) as date from paypal_transactions where $where_clause order by create_datetime",$params);
+
+$id_array = array_keys($payments);
+if ($id_array)  {
+	$ids = join(',',$id_array);
+	$funds = db_hash_multirow('paypal_transaction_id', 'select paypal_transaction_id,sum(amount_received) as sum from paypal_notifications where paypal_transaction_id in ('.$ids.') group by paypal_transaction_id');
+	foreach ($funds as $k=>$v) {
+		$payments[$k]['amount_received'] = $v['sum'];
+	}
+}
+

@@ -1,0 +1,24 @@
+<!--
+<title>Ticket components</title>
+-->
+<div class="section">
+
+<table class="padded">
+<tr><th>Component</th><th>Responsible</th><th>Status</th><th>Actions</th></tr>
+
+<? foreach ($components as $c): ?>
+    <tr>
+    <td><%= $c['component'] %></td>
+    <td><%= $c['responsible'] %></td>
+    <td><%= $c['active'] ? 'active' : 'inactive' %></td>
+    <td><a href="<%= href('component-edit.html', 'cid', $c['ticket_component_id']) %>">edit</a> </td>
+    </tr>
+<? endforeach ?>
+</table>
+
+<hr/>
+
+<h4>Add a component</h4>
+<? form_start(); form_end(); ?>
+
+</div>

@@ -1,0 +1,15 @@
+<!--
+<title>Drafts</title>
+-->
+
+<div class="section">
+
+<p>The following items have draft or unpublished versions available.
+</p>
+
+<ul>
+<? foreach ($items as $i): ?>
+<li><a href="<%= href('tree/edit-item.html', 'content_id', $i['content_id']) %>"><%= $i['short_name'] %> &mdash; <%= $i['title'] %></a>
+<? endforeach ?>
+</ul>
+</div>

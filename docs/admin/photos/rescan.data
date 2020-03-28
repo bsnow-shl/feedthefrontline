@@ -1,0 +1,9 @@
+include_once 'photos.h';
+
+
+$id = $_REQUEST['id'];
+
+$before = db_value('select count(*) from photos where album_id=?', $id);
+$new_thumbs = photos_make_thumbnails($id);
+$scanned = photo_album_rescan($id);
+

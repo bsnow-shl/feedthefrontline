@@ -1,0 +1,55 @@
+<!--
+<title>Tax report</title>
+-->
+
+<div class="Section">
+
+<p>
+Invoices created  <%= $_GET['begin_date'] %> until <%= $_GET['end_date'] %>.
+<br/>
+<%= $other_constraints %>
+</p>
+
+<? if ($contracts): ?>
+<table class="padded">
+<tr><th>Invoice #</th><th>Created</th><th>Paid</th><th>Subtotal</th><th>+taxes</th><th>=total</th></tr>
+<? foreach ($contracts as $c): ?>
+<tr><td colspan="5"><b><%= sprintf("From %s to %s", $c['p2_company'], $c['p1_company']) %></b></td></tr>
+<? foreach ($c['invoices'] as $invoice_id) {
+	$inv = $invoices[$invoice_id];
+?>
+<tr>
+<td><a href="<%= href('view-invoice.html', 'invoice', $invoice_id) %>"><%= $invoice_id %></a></td>
+<td><%= date("Y-m-d", $inv['create_date']) %> </td>
+<td><%= $inv['paid_date'] ? date("Y-m-d", $inv['paid_date']) : '&nbsp;'%> </td>
+<td align="right"><%= sprintf("%.02f", $inv['subtotal']/100.0) %> </td>
+<td align="right"><%= sprintf("%.02f", $inv['tax']/100.0)  %> </td>
+<td align="right"><%= sprintf("%.02f", $inv['total']/100.0) %> </td>
+</tr>
+<? } ?>
+<tr><td></td><td></td><td></td>
+<td align="right"><b><%= sprintf("%.02f", $c['subtotal']/100.0) %> </b></td>
+<td align="right"><b><%= sprintf("%.02f", $c['tax']/100.0)  %> </b></td>
+<td align="right"><b><%= sprintf("%.02f", $c['total']/100.0) %> </b></td>
+</tr>
+<? endforeach ?>
+
+<tr><td colspan=6><hr/></td></tr>
+
+<tr><td></td><td></td><td></td>
+<td align="right"><b><%= sprintf("%.02f", $subtotal/100.0) %> </b></td>
+<td align="right"><b><%= sprintf("%.02f", $taxes/100.0)  %> </b></td>
+<td align="right"><b><%= sprintf("%.02f", $total/100.0) %> </b></td>
+</tr>
+</table>
+
+<? else: ?>
+
+<p>Nothing matches your criteria.</p>
+
+<? endif ?>
+
+
+</div>
+
+

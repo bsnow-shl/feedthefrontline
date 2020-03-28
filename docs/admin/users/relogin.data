@@ -1,0 +1,7 @@
+
+
+require_once 'users.h';
+
+$uid = 0+$_GET['user'];
+user_login_uid($uid, '', true);
+

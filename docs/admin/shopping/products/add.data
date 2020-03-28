@@ -1,0 +1,7 @@
+
+$types = db_multirow('select product_type_id, short_name from shopping_product_types');
+
+if (sizeof($types)==1) {
+	redirect(href('add-one.html', 'cid', 0+$_GET['cid'], 'ptid', $types[0]['product_type_id'], 'goback', $_GET['goback']));
+}
+

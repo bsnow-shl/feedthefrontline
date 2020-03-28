@@ -1,0 +1,13 @@
+
+<div class="links">
+<h3><a href="/admin/newsletter/">Newsletter admin</a></h3>
+<p>
+<a href="/admin/newsletter/special/handle-bounces.html">Handle bounces</a>
+<? if ($_GET['newsletter_id']): ?>
+<a href="<%= href('/newsletter/subscribe.html', 'newsletter_id', $_GET['newsletter_id']) %>">Subscribe someone...</a>
+<? endif ?>
+<a href="/admin/newsletter/sub.html?uid=0">Subscribe a batch of people...</a>
+<a href="/admin/content/edit-picker.html?pagerole=mailcss">Edit email CSS</a>
+</p>
+</div>
+

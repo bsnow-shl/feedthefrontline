@@ -1,0 +1,34 @@
+
+require_once 'form.h';
+
+form_set(array(
+  'hospital_name' => 'text,required',
+  'unit_name' => 'text,required',
+  'city' => 'text,required',
+  'country' => 'text,required',
+  'contact_email' => 'email',
+  'contact_phone' => array('type'=>'text','hint'=>'include country code'),
+  'delivery_instructions' => 'text,required',
+  'food_allergies' => 'text'
+));
+if (form_valid()) {
+  $pkey = db_newid('hospital_units');
+  db_insert_hash('hospital_units', array(
+    'unit_id' => $pkey,
+    'unit_name' => $unit_name,
+    'hospital_name' => $hospital_name,
+    'city' => $city,
+    'country' => $country,
+    'contact_email' => $contact_email,
+    'contact_phone' => $contact_phone,
+    'delivery_instructions' => $delivery_instructions,
+    'food_allergies' => $food_allergies,
+  ));
+  redirect(href('edit.html','id', $pkey));
+}
+
+$query = db_multirow('select * from hospital_units');
+foreach ($query as $r) {
+  $status[$r['status']][] = $r;
+}
+

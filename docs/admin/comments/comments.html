@@ -1,0 +1,41 @@
+<!--
+<title>Comments</title>
+-->
+
+<h3>filtering</h3>
+You can narrow the comments displayed below using this form.
+
+<div class="section">
+<? form_start();
+   form_end();
+?>
+</div>
+
+<h3><%= sizeof($comments) %> matching comments</h3>
+
+<table>
+<? foreach ($commented_things as $t): ?>
+	<tr><td valign=top>
+	<? $r=$t[0]; 
+	   if ($r['singular']=='photograph' && !$seen[$r['commented_thing']]) {
+		echo '<br clear=left>';
+		photo($r['commented_thing'],'left');
+		$seen[$r['commented_thing']]++;
+	}
+	if ($r['singular']=='web page') {
+		$content = db_row('select * from static_content where page_id=?', $r['commented_thing']);
+
+		$r['commented_thing'] = '<a href="'.$content['uri'].'">'.$content['title'].'</a>';
+	} ?>
+	</td><td valign=top><br><ul>
+	<? foreach ($t as $r) {
+		$txt = strip_tags($r['comment']);
+		$r['comment'] = substr($txt,0,200).'...'; ?>
+	<li>Comment <a href="comment-edit.html?id=<%= $r['comment_id'] %>">#<%= $r['comment_id'] %></a> on <%= $csys[$r['comment_system_id']] %> <%= $r['commented_thing'] %>:
+	<%= format_comment($r) %>
+	<? } ?>
+	</ul>
+	</td></tr>
+
+<? endforeach ?>
+</table>

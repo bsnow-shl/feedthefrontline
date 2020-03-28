@@ -1,0 +1,35 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+$content_id = 0+$_GET['content_id'];
+
+if (0==db_value('select count(*) from i18n_content_hierarchy where parent_content_id=?', $content_id)) {
+	redirect(href('edit-item.html', 'content_id', $_GET['content_id']));
+}
+
+// now the item's sub-items
+$_SESSION['content_last_content_id'] = $content_id;
+
+
+if ($_REQUEST['name_filter']) {
+        $sql = "short_name like '%{$_REQUEST['name_filter']}%' ";
+} else {
+        $sql = "true";
+}
+
+
+$item_contents = db_multirow('
+         select class_name, kids.content_id, short_name, kids.display_order,count(grandkids.content_id) as grandchild_count 
+         from i18n_content_hierarchy kids 
+            join i18n_content using (content_id) 
+            join i18n_classes using (class_id) 
+            left join i18n_content_hierarchy grandkids on (grandkids.parent_content_id=kids.content_id) 
+         where kids.parent_content_id=? 
+         group by class_name, kids.content_id, short_name, kids.display_order
+         order by kids.display_order', $content_id);
+
+$item_name = db_value('select short_name from i18n_content where content_id=?', $content_id);
+if (!$item_name) { redirect("index.html"); } 
+$item_details = i18n_get('Content item', $content_id);
+$item_title = $item_details['title'];
+

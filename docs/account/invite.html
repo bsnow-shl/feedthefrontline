@@ -1,0 +1,18 @@
+
+<? if ($_REQUEST['content']=='waitinglist') : ?>
+
+    <? addEmailToTheWaitingList(); ?>
+
+    <P>We have added your email address &lt;<%=$_REQUEST['email']%>&gt; to our list,
+      and we will contact you either<br/>
+      1. When we can issue you an invite directly, or <br/>
+      2. When we open the system to the public, and you can sign up without an invite.
+
+    <P>Please continue to enjoy the public sections of the site.
+
+<? else : // ($_REQUEST['content']=='noinvite') ?>
+
+    Sorry, registration is currently invite-only.
+    <P>Click <a href='invite.html?content=waitinglist&email=<%=urlencode($_REQUEST['email'])%>'>here</a> to get on the waiting list.
+
+<? endif ?>

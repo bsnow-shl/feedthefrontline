@@ -1,0 +1,27 @@
+<!--
+<title><%= $category['name'] %></title>
+<subtitle>... one category in our <A href="/documents/">document repository</a></subtitle>
+-->
+
+<Div class="main">
+<%= $category['description'] %>
+
+
+<div class="section">
+<dl>
+<? foreach ($documents as $d): ?>
+	<dt><a href="/documents/show.php/<%= $d['document_id'] %>/<%= $d['attachment_name'] %>"><%= $d['name'] %></a> <%= $d['pretty_mimetype'] %> (<%= ceil($d['size']/1024) %>k)</dt>
+	<dd><%= $d['description'] %></dd>
+	<dd>
+	<? if ($comments_allowed) {
+            require_once 'comments.h';
+           comments_on('documents', $d['document_id'], 'brief' ); 
+    } ?>
+	</dd>
+<? endforeach ?>
+
+</dl>
+
+</div>
+
+</div>

@@ -1,0 +1,46 @@
+require_once 'form.h';
+require_once 'email.h';
+require_once 'newsletter.h';
+
+form_set(array(
+	'newsletter' => array('type'=>'menu','sql'=>'select newsletter_id as key, name as value from newsletters', 'required'=>1),
+	'edition' => array('type'=>'menu','required'=>1, 'menu'=>newsletter_editions()),
+));
+if (form_valid()) {
+	unset ($_GET[count]);
+	unset($_GET[sqldebug]);
+	$where = unserialize($_GET['where']);
+	unset($_GET[where]);
+
+	foreach ($_GET as $k=>$v) {
+		$where[] = " $k = ? ";
+		if ($v=='') {
+		    $params[] = null;
+		} else {
+		    $params[] = $v;
+		}
+	}
+
+	if (!$where) {
+		$where[] = 'true';
+	}
+
+	$subscribers = db_hash_multirow('user_id', 'select user_id from newsletter_subscriptions where newsletter_id=? and parameter=?', $newsletter, $edition);
+
+	$sql = 'select user_id from user_reporting_view where '.join(' and ', $where);
+	$uids = db_array($sql,$params);
+
+	foreach ($uids as $uid) {
+		if (!$subscribers[$uid]) {
+			db_insert_hash('newsletter_subscriptions', array(
+				'user_id' => $uid,
+				'newsletter_id' => $newsletter,
+				'parameter' => $edition
+			));
+		}
+	}
+	redirect('/admin/newsletter/');
+}
+
+
+

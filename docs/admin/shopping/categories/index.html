@@ -1,0 +1,37 @@
+<!--
+<title>Shopping categories</title>
+-->
+
+
+<? 
+function render_category($which) {
+	global $categories;
+	if ($categories[$which]) {
+		if ($which) {
+			echo '<ul>';
+			echo '<li><a href="',href('edit.html', 'cid', $which),'">', $categories[$which][short_name],'</a> -- '.$categories[$which][count].' products';
+		}
+		if ($categories[$which]['subcategories']) {
+			foreach ($categories[$which]['subcategories'] as $k ) {
+				render_category($k);
+			}
+		}
+		if ($which) {
+			echo '</li>';
+			echo '</ul>';
+		}
+	}
+}
+
+?>
+
+<? if (sizeof($categories)): ?>
+<div class=section>
+<h3>Category tree</h3>
+
+<? render_category(null); ?>
+
+</div>
+<? endif ?>
+
+

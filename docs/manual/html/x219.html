@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+<title>Understanding parts</title>
+<meta name="GENERATOR" content=
+"Modular DocBook HTML Stylesheet Version 1.79">
+<link rel="HOME" title="Content Publishing Framework Manual" href=
+"index.html">
+<link rel="UP" title="The Templating System" href=
+"templating.html">
+<link rel="PREVIOUS" title="An example" href=
+"templating-tutorial.html">
+<link rel="NEXT" title="Request handling process" href=
+"templating-process.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2005-03-11T18:12:01">
+</head>
+<body class="SECTION" bgcolor="#FFFFFF" text="#000000" link=
+"#0000FF" vlink="#840084" alink="#0000FF">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="3" align="center">Content Publishing Framework
+Manual</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="bottom"><a href=
+"templating-tutorial.html" accesskey="P">Prev</a></td>
+<td width="80%" align="center" valign="bottom">Chapter 3. The
+Templating System</td>
+<td width="10%" align="right" valign="bottom"><a href=
+"templating-process.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="SECTION">
+<h1 class="SECTION"><a name="AEN219" id="AEN219">3.3. Understanding
+parts</a></h1>
+<p>Many templating systems go to some effort to distinguish between
+functional behaviour and graphical appearance. This, in principle,
+permits a "separation of concerns" between programmers and
+graphical designers, who, it is thought, will work on disjoint
+parts of the code base. Although perhaps overly idealistic, this is
+a worthwhile idea to aim for. At the very least, designers and
+programmers can avoid stomping on each other's code and use tools
+they prefer.</p>
+<p>The CPF takes a stab at such a separation by splitting parts
+into two separate files: the functional behaviour is specified in a
+file with a .data extension, and the user-visible HTML is in a file
+with a .php or .html extension suitable for use by Dreamweaver.</p>
+<p>A simple example will illustrate this separation. Imagine you
+have a system that has to display the contents of an address book,
+and display it in an HTML table, with one entry per table row.
+We'll build a data structure that has two address book entries,
+then design a page to display them. These will be in <span class=
+"emphasis"><i class="EMPHASIS">two separate files</i></span>.</p>
+<p></p>
+<pre class="SCREEN">
+/* show-addressbook.data */
+
+// this would usually by fetched with SQL, but we're not there yet
+$book = array(
+        array('name' =&gt; 'Steve',
+              'address' =&gt; '78 Rhodes',
+              'phone number' =&gt; '416 555 1212'
+              ),
+        array('name' =&gt; 'Shar',
+              'address' =&gt; '78 Rhodes',
+              'phone number' =&gt; '416 555 1212'
+              )
+);
+</pre>
+<pre class="SCREEN">
+/* show-addressbook.php */
+&lt;-- 
+&lt;title&gt;Address book example&lt;/title&gt;
+--&gt;
+
+&lt;table&gt;
+&lt;tr&gt;
+ &lt;th&gt;name&lt;/th&gt;
+ &lt;th&gt;address&lt;/th&gt;
+ &lt;th&gt;phone number&lt;/th&gt;
+&lt;/tr&gt;
+&lt;? foreach ($book as $row): ?&gt;
+    &lt;tr&gt;
+     &lt;td&gt;&lt;%= $row['name'] %&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;? endforeach ?&gt;
+&lt;/table&gt;
+</pre>
+<p>There's a few things to note about the .data file, and a few
+practices to keep in mind.</p>
+<ul>
+<li>
+<p>The .data file is parsed and run before the .php file.</p>
+</li>
+<li>
+<p>The .data file is run at PHP's top level, so the variables are
+actually globals.</p>
+</li>
+<li>
+<p>The .data file should almost never generate output directly
+aside from HTTP headers. It makes sense to have it prepare things
+that will be output by the .php file, though.</p>
+</li>
+<li>
+<p>The .data file plays an essential role in <a href=
+"forms.html">the CPF's form handling</a>. The precise details are
+discussed in the chapter on forms.</p>
+</li>
+</ul>
+<div class="SECTION">
+<h2 class="SECTION"><a name="TEMPLATING-KEYWORDS" id=
+"TEMPLATING-KEYWORDS">3.3.1. Controlling the template with
+keywords</a></h2>
+<p>You might recall from <a href="templating-tutorial.html">Section
+3.2</a> that keywords in the part, such as TITLE, can be
+substituted into the template. It turns out that any number of
+keywords can be substituted.</p>
+<p>For instance, it is common to define &lt;meta&gt; tags with
+KEYWORDS and DESCRIPTION for the benefit of search engines. It
+makes sense to have the contents of the &lt;meta&gt; tag change
+depending on the contents of the page, that is, on the contents of
+the part. So let's do that:</p>
+<pre class="SCREEN">
+/* part.php */
+
+&lt;-- 
+&lt;title&gt;Foobars R Us&lt;/title&gt;
+&lt;description&gt;&gt;Foobars R Us is a famous manufacturer of foobars.&lt;/description&gt;
+&lt;keywords&gt;foobars, manufacturer, maker, distributors, sex&lt;/keywords&gt;
+--&gt;
+
+... content goes here ...
+</pre>
+And the template would look like this:
+<pre class="SCREEN">
+/* _template.html */
+
+&lt;html&gt;&lt;head&gt;
+ &lt;title&gt;&#64;&#64;TITLE&#64;&#64;&lt;/title&gt;
+ &lt;meta type="keywords" content="&#64;&#64;KEYWORDS&#64;&#64;" /&gt;
+ &lt;meta type="description" content="&#64;&#64;DESCRIPTION&#64;&#64;" /&gt;
+...
+&lt;/html&gt;
+</pre>
+Keywords found in the comment (between &lt;-- and --&gt;) are
+substituted into any occurrences found between &#64;&#64;'s in the
+template. There's nothing unique to title, or keywords, or
+description to make them work.
+<p>Keywords are substituted into &#64;&#64; tokens without regard to case.
+However, the treatment of the substitution is dependent on the case
+of &#64;&#64;: uppercase tokens are stripped of HTML tags, and lowercase
+ones are left alone. This permits you to have the same title in the
+browser bar and on the page, but the browser bar will have HTML
+tags stripped out (where they create a mess). For instance:</p>
+<pre class="SCREEN">
+/* _template.html */
+&lt;title&gt;&#64;&#64;TITLE&#64;&#64;&lt;/title&gt;
+&lt;h1&gt;&#64;&#64;title&#64;&#64;&lt;/h1&gt;
+
+##PART##
+
+
+/* file.html */
+&lt;!--
+&lt;title&gt;This may be &lt;em&gt;slightly&lt;/em&gt; confusing&lt;/title&gt;
+--&gt;
+
+
+/* output */
+&lt;title&gt;This may be slightly confusing&lt;/title&gt;
+&lt;h1&gt;This may be &lt;em&gt;slightly&lt;/em&gt; confusing&lt;/h1&gt;
+</pre>
+<p>Because the TITLE is uppercase, the &lt;em&gt; tags were
+stripped out.</p>
+</div>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href=
+"templating-tutorial.html" accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html"
+accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href=
+"templating-process.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">An example</td>
+<td width="34%" align="center" valign="top"><a href=
+"templating.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">Request handling
+process</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

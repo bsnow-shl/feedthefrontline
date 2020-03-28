@@ -1,0 +1,104 @@
+
+db_send('begin');
+if (!$_GET['id']) {
+	$job_queue = db_multirow('select newsletter_queue_id,sender_name,sender_email,subject,email, path, users.user_id,newsletter_mailings.newsletter_mailing_id, smtp_sender_override, callback_header, xmit_callback , open_callback , clickthrough_callback , unsubscribe_callback, extra_info
+		from newsletter_mailings 
+            join newsletter_queue using (newsletter_mailing_id) 
+            join newsletter_subscriptions using (newsletter_subscription_id) 
+            join newsletters on (newsletters.newsletter_id=newsletter_subscriptions.newsletter_id) 
+            join users using (user_id) 
+			where sent=0 limit 10');
+} else {
+	$job_queue = db_multirow('select newsletter_queue_id,sender_name,sender_email,subject,email, path, users.user_id,newsletter_mailings.newsletter_mailing_id , smtp_sender_override, callback_header, xmit_callback, open_callback, clickthrough_callback, unsubscribe_callback, extra_info
+		from newsletter_mailings 
+            join newsletter_queue using (newsletter_mailing_id) 
+            join newsletter_subscriptions using (newsletter_subscription_id) 
+            join newsletters on (newsletters.newsletter_id=newsletter_subscriptions.newsletter_id) 
+            join users using (user_id) 
+			where sent=0 and newsletter_mailing_id=? limit 10', $_GET['id']);
+}
+
+require_once('Rmail/Rmail.php');
+
+$search  = array('@@unsubscribe_link@@', '@@tracking_image@@', '@@http@@');
+$search2 = array('%%unsubscribe_link%%', '%%tracking_image%%', '%%http%%');
+$project = config_get('site', 'short_name');
+
+$descriptors = array(
+   0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
+   1 => array("pipe", "w"),  // stdout is a pipe that the child will write to
+   2 => array("file", "/dev/null", "a") // stderr is a file to write to
+);
+
+foreach ($job_queue as $task) {
+	$mail = new Rmail();
+	$recipient = $task['email'];
+	$nqid =  trim($task['newsletter_queue_id']);
+	$encoded_email = str_replace('@', '=', $recipient);
+
+	$path = $_SERVER['DOCUMENT_ROOT'].$task['path'];
+	$file = $path.'index.html';
+	$html = read_whole_file($file);
+
+	$unsubscribe_link = config_get('site','home').'un/'.$nqid;
+	$tracking_image = config_get('site','home').'tr/'.$nqid;
+	$clickthrough = config_get('site','home').'ct/'.$nqid.'/';
+	$replace = array($unsubscribe_link, $tracking_image, $clickthrough);
+	$html = str_replace($search, $replace, $html);
+	$html = str_replace($search2, $replace, $html);
+    
+    if ($task['xmit_callback']) {
+      if ($task['callback_header']) {
+        require_once($task['callback_header']);
+        list ($search3, $replace3) = call_user_func($task['xmit_callback'], $task['extra_info']);
+        if ($search3 && $replace3)  {
+          $html = str_replace($search3, $replace3, $html);
+        }
+      }
+    }
+
+
+    $user_data = db_row('select * from user_reporting_view where user_id=?', $task['user_id']);
+    $html = preg_replace('/%%(\w+)%%/em', "\$user_data['\\1']", $html);
+	
+	# possibly rewrite the subject to deal with accents
+	$subject = $task['subject'];
+	preg_match_all('/(\w*[\x80-\xFF]+\w*)/', $subject, $matches);
+	if ($matches[1]) {
+		$subject = '=?UTF-8?Q?'. preg_replace('/([\x80-\xFF])/e', ' "=".strtoupper(dechex(ord(\1)));', $subject).'?=';
+	}
+
+	# same for sender name
+	$sender_name = $task['sender_name'];
+	preg_match_all('/(\w*[\x80-\xFF]+\w*)/', $sender_name, $matches);
+	if ($matches[1]) {
+		$sender_name = '=?UTF-8?Q?'. preg_replace('/([\x80-\xFF])/e', ' "=".strtoupper(dechex(ord(\1)));', $sender_name).'?=';
+	}
+	$from_line = "$sender_name <".$task['sender_email'].">";
+
+    $fh = proc_open('/usr/bin/lynx -dump -stdin', $descriptors, $pipes);
+    fwrite($pipes[0], $html);
+    fclose($pipes[0]);
+    $txt = fread($pipes[1], 65536);
+    fclose($pipes[1]);
+    proc_close($fh);
+
+    
+    $mail->setTextCharset("UTF-8");
+    $mail->setText($txt);
+
+	$mail->setHtmlCharset("UTF-8");
+	$mail->setHtml($html, null, $path);
+    
+	$mail->setReturnPath($task['smtp_sender_override'] ? 
+			$task['smtp_sender_override'] :
+			sprintf("bounce-%s-%s@tinyplanet.ca", $project, $nqid));
+	$mail->setFrom($from_line);
+	$mail->setSubject($subject);
+
+	$result = $mail->send(array($recipient));
+	db_send('update newsletter_queue set sent=1 where newsletter_queue_id=?', $task['newsletter_queue_id']);
+	$num_sent++;
+}
+
+db_send('commit');

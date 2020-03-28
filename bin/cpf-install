@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+use strict;
+
+my $root;
+my $where;
+
+BEGIN {
+    $where = shift @ARGV;
+    die "you must provide a directory name\n" if not -d $where;
+    my $old = `pwd`;
+    chop $old;
+
+    chdir $where;
+    $where = `pwd`;
+    chop $where;
+    chdir $old;
+
+    $root = `dirname $0`;
+    chomp $root;
+
+    if ( $root !~ m#^/# ) {
+        chdir $root;
+        my $pwd = `pwd`;
+        chomp $pwd;
+        $root = $pwd;
+        $root =~ s/\n//g;
+        $root =~ s/\/$//g;
+    }
+
+    $root =~ s#/[^/]*$##g;
+
+    chdir $root;
+}
+
+system("cp -ipr bin docs includes logs tests $where");

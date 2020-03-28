@@ -1,0 +1,29 @@
+
+require_once 'form.h';
+
+
+form_set( array(
+    'date_range_start' => array('type'=>'date', 'required' => 1, 'default' => 'January 1'),
+    'date_range_end' => array('type'=>'date', 'required' => 1, 'default' => 'tomorrow'),
+    'product_id' => array('type'=>'menu', 'multiple'=>1, 'required'=>0, 'sql'=> 'select product_id as key,sku as value from shopping_products where visible_public=1 order by sku desc'),
+    'order_by' => array('type'=>'menu', 'default' => 'created_tstamp,sku', 'menu'=>array( 'created_tstamp,sku' => 'date then sku', 'sku,created_tstamp' => 'sku then date'))
+));
+
+
+if (form_valid()) {
+    $params = array(
+        $date_range_start, $date_range_end
+    );
+
+    if ($product_id) {
+        foreach ($product_id as $p) {
+            $qmarks[] = '?';
+            $params[] = $p;
+        }
+        $where_extra = ' and shopping_products.product_id in ('.join(',', $qmarks) .')';
+    }
+    $results = db_multirow("select * from shopping_shopcarts join shopping_shopcart_entries using (shopcart_id) join shopping_products using (product_id) left outer join user_reporting_view using (user_id) where paid=1 and dropped=0 and created_tstamp > ? and created_tstamp < ?  $where_extra order by $order_by", $params);
+}
+
+$extra_columns = config_get('shopping', 'admin_sales_report_columns');
+if (!$extra_columns) { $extra_columns = array(); }

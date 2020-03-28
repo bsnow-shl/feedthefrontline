@@ -1,0 +1,37 @@
+require_once 'shopping.h';
+require_once 'shopping-local.h';
+require_once 'paypal.h';
+
+if ($_GET['startover']) { 
+	shopping_clear_shopcart();
+	redirect('/shopping/');
+}
+
+list ($details, $summary) = shopping_get_shopcart_contents($_GET['id']);
+if ($details===FALSE) {
+	print("Bad ID provided to order status. Are you snooping? This has been reported. ");
+	trigger_error("Bad ID provided to order status. Are you snooping? This has been reported.", E_USER_ERROR);
+	exit();
+}
+
+$status_list = shopping_get_status_list();
+$pretty_status = $status_list[$summary['status']];
+if (!$pretty_status) { 
+	$pretty_status = $summary['status'];
+	error_log("Ugly status shown: $pretty_status");
+}
+
+if ($summary['paid']) { $paid = 1; }
+
+if (($summary['status']=='abandoned' || $summary['status']=='finalized') && $summary['total']) {
+	$pretty_status .= sprintf(' &nbsp; &raquo; <a href="%s">%s</a>', href($_SERVER['REQUEST_URI'], 'go_pay',1),  _('pay now'));
+	if ($_GET['go_pay']) {
+		shopping_add_diary("Rejoined payment through order status page", $summary['shopcart_id']);
+		db_send('update shopping_shopcarts  set finalized_reminder_count=0, next_finalized_reminder=null, status=? where shopcart_id=?', 'finalized',$summary['shopcart_id']);
+		paypal_redirect(2, $summary['shopcart_id'], $summary['total'], array(
+				'return' => config_get('site','secure_home').'shopping/checkout/thanks.html'
+		));
+	}
+
+}
+

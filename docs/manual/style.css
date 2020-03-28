@@ -1,0 +1,59 @@
+.frontispiece {
+	text-align: center;
+}
+
+.fullwidth {
+	width: 100%;
+}
+
+
+table.toc {
+	width: 100%;
+	margin-left: 20px;
+	margin-right: 20px;
+}
+	table.toc td.toctable {
+		border: 1px dotted;
+	}
+
+	table.toc td.toctable ol {
+		margin: 5px;
+		padding-left: 2em;
+		padding-right: 1em;
+	}
+
+	table.toc td.toctable li + li {
+		margin-top: 10px;
+	}
+
+	table.toc td.toctable li>a:first-child {
+		font-size: 115%;
+	}
+
+
+.note {
+	margin: 10px;
+	margin-left: 0;
+	padding-left: 2em;
+	border-left: 1px dashed;
+}
+
+.replaceable {
+	font-style: italic;
+	}
+dl.functions dt {
+	font-weight: bold;
+	font-size: 150%;
+	margin-top: 2em;
+	border-top: 1px dashed;
+}
+dl.functions dd.intro {
+	font-weight: bold;
+	font-size: 110%;
+	padding-bottom: 0.25em;
+}
+dl.functions dd.synopsis {
+	font-family: monospace;
+	padding: 1em;
+}
+

@@ -1,0 +1,20 @@
+require_once 'form.h';
+
+form_set(array(
+	'payable_to' => array('type'=>'menu','sql' =>
+				'select  distinct(party_1) as key,email as value from contracts ,users where (party_1=user_id)'),
+	'payable_from'=> array('type'=>'menu','sql'=>
+				'select  distinct(party_2) as key,email as value from contracts ,users where (party_2=user_id)'),
+	'report_style' => array('type'=>'menu', 'required'=>1, 'menu' =>array('1'=>'Grouped by invoicee, ordered by date', '2'=>'Ordered by date')),
+	'begin_date' => array('type'=>'date','required'=>1,'default'=>'january 1'),
+	'end_date' => array('type'=>'date','required'=>1,'default'=>'tomorrow'),
+));
+if(form_valid()) {
+	if ($report_style==1) {
+		redirect(href('taxes.html','party_1', 0+$payable_to, 'party_2', 0+$payable_from, 'begin_date', $begin_date, 'end_date', $end_date));
+	} else {
+		redirect(href('taxes-2.html','party_1', 0+$payable_to, 'party_2', 0+$payable_from, 'begin_date', $begin_date, 'end_date', $end_date));
+	}
+
+}
+

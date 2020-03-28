@@ -1,0 +1,4 @@
+require_once 'users.h';
+
+user_require('tickets_admin');
+

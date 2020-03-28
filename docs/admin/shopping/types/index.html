@@ -1,0 +1,15 @@
+<!--
+<title>Product types admin</title>
+-->
+
+
+<div class="section">
+<h2>Product types</h2>
+<ul>
+<? foreach ($types as $t): ?>
+<li><a href="<%= href('edit.html', 'ptid', $t['product_type_id']) %>"><%= $t['short_name'] %></a>
+<? endforeach ?>
+</ul>
+
+</div>
+

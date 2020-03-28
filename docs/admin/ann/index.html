@@ -1,0 +1,62 @@
+<!--
+<title>Announcement Admin</title>
+-->
+
+
+<div class="section">
+<p>
+    There are <%= sizeof($anns) %> announcement(s) that match these filters:
+    <ul>
+    <li><b>Posting status</b>: 
+    <? if ($_GET['include_past']): ?>
+    	Showing all (expired & current & to-be-posted) announcements.
+    	<a href="<%= href('index-mode.html','include_past',0) %>">Exclude expired announcements.</a>
+    <? else: ?>
+    	Showing only current and yet-to-be-released announcements. <a href="<%= href('index-mode.html','include_past',1) %>">Show all.</a>
+    <? endif ?>
+    </li>
+
+    <? if (sizeof($categories)>1): ?>
+     <li><b>Filter by category</b>:
+
+         <? if ($filter_category_name): ?>
+         Restricting to <b><%= $filter_category_name %></b>.
+         <? endif ?>
+
+        <? foreach ($categories as $a): ?>
+            <a href="<%= href('index-mode.html','category_id', $a['announcement_category_id']) %>"><%= $a['short_name'] %></a> | 
+        <? endforeach ?>
+            <a href="<%= href('index-mode.html','category_id', '') %>">All</a>
+        </li>
+    <? endif ?>
+</ul>
+</p>
+
+<table class="padded">
+<Tr>
+<th>Event date</th>
+<th>Posting date</th>
+<th>Takedown date</th>
+<th>Action</th>
+<th>Event</th>
+</tr>
+<?foreach ($anns as $e) {
+    $bg = $counter++ % 2 ? "odd" : "even";
+    print '<tr>';
+    print "<td class=$bg>".$e['start_date'];
+    print "</td><td class=$bg>".$e['posting_date'];
+    print "</td><td class=$bg>".$e['takedown_date'];
+        print '</td><td class="nowrap '.$bg.'"><a href="announce-remove.html?id='.$e['announcement_id'].'">remove</a> ';
+        print ' | <a href="announce-edit.html?id='.$e['announcement_id'].'">edit</a><br>';
+        if ($counter>1) {
+            printf('move  <a href="%s">up</a> | ',href('move.html','sqldebug', 1, 'aid', $e['announcement_id'], 'moveup', 1));
+        }
+        printf(' move  <a href="%s">down</a> ',href('move.html','sqldebug', 1, 'aid', $e['announcement_id'], 'movedown', 1));
+        printf('</td><td class="%s"><a name="item%d" />', $bg, $e['announcement_id']);
+    ann_render($e);
+    print '</tr>';
+   }
+?>
+</table>
+</div>
+

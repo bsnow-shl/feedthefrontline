@@ -1,0 +1,167 @@
+#!/usr/bin/perl -s
+
+my $open = $open;
+$OUTPUT_AUTOFLUSH = 0;
+
+# httpdup - Kick off lighttpd on a private port
+# Use httpdup -kill to kill lighttpd
+# Use httpdup -debug to run lighttpd single-threaded
+
+use strict;
+
+# Move us into the directory above conf/ and bin/
+my $root;
+my $pwd;
+
+BEGIN {
+    $root = `dirname $0`;
+    chomp $root;
+
+    if ( $root !~ m#^/# ) {
+        chdir $root;
+        $pwd = `pwd`;
+        chomp $pwd;
+        $root = $pwd;
+        $root =~ s/\n//g;
+        $root =~ s/\/$//g;
+    }
+
+    $root =~ s#/[^/]*$##g;
+
+    chdir $root;
+}
+
+# Perform sanity checks
+print("You shouldn't run this as root.\n") && exit
+  if $< == 0;
+
+if ( !-e 'conf/config.h' ) {
+    print("No.  You need to either:\n1. cp includes/config.h conf/ && vi vi conf/config.h\n2. run bin/build-databases\n\n");
+    exit;
+}
+
+if ( !-e 'docs/.ckeditor' && -e 'bin/dist/ckeditor.tgz') { 
+	# unzip the ckeditor for the first time
+    print("NOTE: Run the following if you want the ckeditor.\n");
+	print("\tcd docs && tar xf ../bin/dist/ckeditor.tgz\n");
+}
+
+
+# Parse command line
+my $kill  = '';
+my $debug = '';
+if ( $ARGV[0] eq 'kill' or $ARGV[0] eq 'stop' ) {
+    $kill = 1;
+}
+if ( $ARGV[0] eq 'debug' ) {
+    $debug = " -D ";
+}
+
+# kill the running webserver
+my $pid;
+$pid = `cat logs/lighttpd.pid` if -f "logs/lighttpd.pid";
+if ($pid) {
+    chomp $pid;
+    print "Killing $pid";
+    my $killcmd = "kill $pid";
+
+    while ( $pid and -f "logs/lighttpd.pid" and !system("kill -0 $pid") ) {
+        system("$killcmd >/dev/null 2>&1");
+        print '.';
+        sleep 1;
+    }
+    print "\n";
+}
+
+exit 0 if $kill;
+
+# start webserver: first find it
+my $webserver;
+foreach my $f (( '/opt/local/sbin/lighttpd', '/usr/bin/lighttpd', '/usr/sbin/lighttpd' )) {
+    if ( -f $f ) {
+        $webserver = $f;
+        last;
+    }
+}
+die "Um, where's the webserver?" if !$webserver;
+
+# then pick a port number
+my $port;
+warn `pwd`;
+if ( -e "conf/portnumber.conf" ) {
+    $port = `cat conf/portnumber.conf` + 0;
+}
+else {
+    $root =~ s/\/\.*$//;
+    $port = `echo "$ENV{LOGNAME} $root" |sum |awk '{print \$1}'`;
+    chomp $port;
+    $port = $port / 6 + 30000;
+    $port = int($port);
+    system("echo $port >conf/portnumber.conf");
+}
+
+# generate the conf files
+my $hostname = `hostname --fqdn 2>/dev/null`;
+chomp $hostname;
+$hostname ||= `hostname`;
+chomp $hostname;
+
+my $substitutions;
+if ($^O eq 'darwin') {
+    $substitutions = {
+     '@@SERVERROOT@@' => $root,
+     '@@SERVERPORT@@' => $port,
+     '@@PHPBIN@@' => '/opt/local/bin/php-cgi'
+    };
+} else {
+    $substitutions = {
+     '@@SERVERROOT@@' => $root,
+     '@@SERVERPORT@@' => $port,
+     '@@PHPBIN@@' => '/usr/bin/php-cgi'
+    };
+}
+
+foreach my $fn ( "lighttpd.conf","lighttpd.include", "php.ini" )  {
+    next if ! -e "conf/$fn";
+    my $config = join( "", `cat conf/$fn` );
+    while ( my ( $k, $v ) = each(%$substitutions) ) {
+        $config =~ s/$k/$v/g;
+    }
+
+    my $conffile = "/tmp/$fn.$port";
+
+    die "can't write to $conffile" if !-W $conffile and -e $conffile;;
+    open( CONF, ">$conffile" ) ;
+    print CONF $config;
+    close(CONF);
+} 
+
+
+# launch webserver (or in debug mode, tell the user how to launch it with gdb)
+my $command = "$webserver $debug -f /tmp/lighttpd.conf.$port";
+
+if ($debug) {
+    print "You'll want to run:\n$command\nin your favourite debugger.\n";
+}
+else {
+    system($command);
+    die if $?;
+    my $base = "http://$hostname:$port/";
+    print "Okay, it's running on $base\n";
+    if ($open) { system("open $base"); }
+
+
+    my $notable;
+    $notable .= "\texport CPF_HOME=http://$hostname:$port\n" unless ( $ENV{CPF_HOME} );
+    foreach ( keys %$substitutions ) {
+        my ($name) = ( $_ =~ /(\w+_SERVERNAME)/ );
+        next unless $name;
+        $notable .= "\texport $name=$substitutions->{$_}\n";
+    }
+    $notable .= "\texport DEBUG=1\n" unless defined( $ENV{DEBUG} );
+    $notable .= "\texport DEVEL=1\n" unless defined( $ENV{DEVEL} );
+    if ($notable) {
+        print "Consider running this:\n$notable\n";
+    }
+}
+

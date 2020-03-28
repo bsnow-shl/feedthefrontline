@@ -1,0 +1,21 @@
+<!--
+<title>Comments facilities admin</title>
+-->
+
+<div class="section">
+These are the commenting systems that have been set up.
+
+<ul>
+<? foreach ($systems as $r): ?>
+<li><a href="<%= href('one.html', 'id', $r['comment_system_id']) %>"><%= ucfirst($r['plural']) %></a></li>
+<? endforeach ?>
+</ul>
+
+</div>
+
+<div class="section">
+<h3>Or add a new one:</h3>
+
+<? form_start(); form_end(); ?>
+
+</div>

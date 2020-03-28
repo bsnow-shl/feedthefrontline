@@ -1,0 +1,4 @@
+db_send('delete from event_standby_registrations where standby_registration_id=?', $_GET['srid']);
+
+redirect(href('waitinglist.html', 'eid', $_GET['eid']));
+

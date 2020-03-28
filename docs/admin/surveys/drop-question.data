@@ -1,0 +1,7 @@
+$qid = $_GET['qid'];
+
+db_send('delete from survey_answers where survey_question_id=?', $qid);
+db_send('delete from survey_questions where survey_question_id=?', $qid);
+redirect(href('edit.html', 'sid', $_GET['sid']));
+
+

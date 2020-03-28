@@ -1,0 +1,11 @@
+
+$mailing_id = $_GET['mailing_id'];
+
+db_send('delete from newsletter_clickthroughs where newsletter_queue_id in (select newsletter_queue_id from newsletter_queue where newsletter_mailing_id=?)', $mailing_id);
+db_send('delete from newsletter_queue where newsletter_mailing_id=?', $mailing_id);
+db_send('delete from newsletter_mailings where newsletter_mailing_id=?', $mailing_id);
+
+redirect('index.html');
+
+
+

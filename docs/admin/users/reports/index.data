@@ -1,0 +1,5 @@
+
+$user_count = db_value('select count(*) from users');
+
+$reports = db_multirow('select * from user_reports');
+

@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+
+use strict;
+
+my $db = shift @ARGV;
+die "Grants blanket permissions on a database to a given user.\nUsage:\n\tgrant-databases \$db [user] | psql \$db\n" if !$db;
+
+my $user = shift @ARGV;
+$user = 'www-data' if !$user;
+
+my @elements = `echo "\\d" | psql --tuples-only $db | cut -f2 -d'|' `;
+foreach my $thing (@elements) {
+        chop $thing;
+        next if !$thing;
+                print "grant all on $thing to \"".$user."\";\n";
+}
+

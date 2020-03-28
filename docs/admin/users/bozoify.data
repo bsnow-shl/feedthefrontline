@@ -1,0 +1,18 @@
+$user = db_row('select * from users where user_id=?', $_REQUEST[user]);
+if (db_value("select count(*) from user_role_map as rm, roles as r 
+		WHERE rm.role_id = r.role_id AND
+				role_name='bozo'
+				and user_id=?", $_REQUEST['user'])) {
+	die ("That user is already marked as a bozo.");
+}
+		
+
+if ($_REQUEST['confirm'] == 'Yes') {
+	db_send("insert into user_role_map(user_id,role_id) values (?, (select role_id from roles where role_name='bozo'))",
+			$_REQUEST[user]);
+} 
+
+if ($_REQUEST['confirm']) {
+	redirect($_REQUEST[goback]);
+}
+

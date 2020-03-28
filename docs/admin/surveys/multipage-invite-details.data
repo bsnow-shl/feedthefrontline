@@ -1,0 +1,33 @@
+require_once 'form.h';
+
+$iid = 0+$_GET['iid'];
+$status = db_value('select invitation_status from survey_invitations where invitation_id=?',
+    $iid);
+
+form_set('status', array(
+    'status' => array('type' => 'menu', 'required'=>1,  'default' => $status, 'menu' => array(
+            'unsent' => 'unsent', 
+            'sent' => 'sent', 
+            'opened' => 'opened', 
+            'started' => 'started', 
+            'finished' => 'finished', 
+            'void' => 'void'
+        )),
+    'go' => 'submit'
+));
+if (form_valid('status')) {
+  db_send('begin');
+  db_insert_hash('survey_invitation_diary', array(
+        'invitation_id' => $iid,
+        'note' => user_name()." set status to $status"
+    ));
+  db_send('update survey_invitations set invitation_status=? where invitation_id=?', $status, $iid);
+  db_send('commit');
+}
+
+$details = db_row('select survey_invitations.*,surveys.short_name as survey_name , survey_id from survey_invitations join surveys using (survey_id) where invitation_id=?', $iid);
+$pages = db_multirow('select * from survey_pages left outer join survey_invitation_responses using (page_id) where survey_id=? order by survey_pages.display_order', $details['survey_id']);
+$diary = db_multirow('select * from survey_invitation_diary where invitation_id=? order by create_tstamp', $iid);
+
+
+

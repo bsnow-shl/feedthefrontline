@@ -1,0 +1,23 @@
+require_once 'form.h';
+require_once 'i18n.h';
+require_once 'uploads.h';
+
+$id = 0+$_REQUEST['doc_id'];
+
+
+form_set(i18n_form_fields('document', $id) + array(
+	'new_attachment' => 'file'
+));
+if (form_valid()) {
+	i18n_form_handle('document', $id);
+	if ($_FILES['new_attachment']['upload_id']) {
+		$old = db_value('select upload_id from documents where document_id=?', $id);
+        db_send('begin');
+        db_send('set constraints all deferred');
+		upload_associate($_FILES['new_attachment']['upload_id'], 'documents', $id, 'document_id');
+		upload_delete($old);
+        db_send('commit');
+	}
+    form_add_note('Your changes have been saved. <a href="one.html">Check it out.</a>');
+}
+

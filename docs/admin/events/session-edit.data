@@ -1,0 +1,23 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+$ses = db_row('select event_sessions.*, events.name from event_sessions join events using (event_id) where event_session_id=?', $_GET['sid']);
+$event_title = $ses['name'];
+
+form_set(array(
+	'room_capacity'=> array('type'=>'integer', 'min' => 0),
+) + i18n_form_fields('Event session option'));
+if (form_valid()) {
+	db_send('begin');
+	db_insert_hash('event_session_options', array(
+		'session_option_id' => ($soid = db_newid('event_session_options')),
+		'event_session_id' => $_GET['sid'],
+		'capacity' => 0+$room_capacity, 
+	));
+	i18n_form_handle('Event session option', $soid);
+	db_send('commit');
+}
+
+$sessions = db_multirow('select * from event_session_options where event_session_id=? order by session_option_id', $_GET['sid']);
+i18n_get_batch($sessions, 'Event session option', 'session_option_id');
+

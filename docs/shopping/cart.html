@@ -1,0 +1,66 @@
+<!--
+<title><%= _('Shopping cart') %></title>
+-->
+
+<h2><%= _('Shopping cart') %></h2>
+
+<form name="qtyform" method=POST>
+<input type="hidden" name="qtyform" value="1" />
+
+<table width="100%" class="shopcart padded">
+<tr><th>Item</th><th align="right">Qty.</th><th align="right">Price</th></tr>
+
+<? if ($details) foreach ($details as $d): ?>
+    <? $idx++ ?>
+
+    <tr>
+    <td><%= $d['title'] %></td>
+    <td align="right">
+        <div id="view<%= $idx %>"><%= $d['quantity'] %></div>
+        <div id="edit<%= $idx %>" style="display: none"><input type="text" size=3 name="qty[<%= $d['product_id'] %>]" onkeydown="document.getElementById('qtysubmit').style.display=''" value="<%= $d['quantity'] %>"></div>
+    </td>
+    <td align="right">
+        <? printf("\$%.02f", $d['quantity'] * $d['price']/100) ?>
+    </td>
+    <td>
+    <? if (config_get('shopping', 'drop_individual')): ?>
+    (<a href="<%= href('item-drop.html', 'itemid', $d['shopcart_entry_id']) %>">drop</a>)
+    <? else: ?>
+    (<a onclick="document.getElementById('view<%= $idx %>').style.display = 'none'; document.getElementById('edit<%= $idx %>').style.display = ''; return false;" href="#">edit qty</a>)
+
+    <? endif ?>
+    </td>
+    </tr>
+<? endforeach ?>
+
+<tr><td colspan="2"><%= _('Total') %>
+</td><td align=right>
+<? printf("\$%.02f", $summary['total']/100);
+   $final = $summary['total']/100; ?>
+</td></tr>
+
+<? if ($taxes) foreach ($taxes as $t): ?>
+<tr><td colspan="2">
+<%= $t['description'] %>
+</td><td align=right>
+<%= $t['amount'] %>
+<? $final += $t['amount']; ?>
+</td></tr>
+
+
+<? endforeach ?>
+
+<tr><td colspan="2"><b><%= _('Grand Total') %></b>
+</td><td align="right">
+$<? printf("%.02f", $final) ?>
+</td></tr>
+</table>
+
+</form>
+
+<p>
+<a class="buttonesque" href="/"><%= _('Return to catalogue') %></a>  <b><a class="buttonesque" href="/shopping/checkout/"><%= _('Finalize your order') %></a></b>
+<a id="qtysubmit" class="buttonesque" style="display:none" href="#" onclick="document.qtyform.submit()">Update quantities</a>
+</p>
+
+

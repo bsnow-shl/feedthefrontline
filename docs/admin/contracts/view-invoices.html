@@ -1,0 +1,29 @@
+<!--
+<title>Invoices for <cite><%= $contract_title %></cite></title>
+-->
+
+<table class=padded>
+<tr><th>Invoice #</th><th>Paid?</th><th>Invoice total</th><th>Paid</th><th>Owing</th></tr>
+<? foreach ($invoices as $i): ?>
+<tr>
+<td><%= $i['invoice_id'] %></td>
+<td><%= $i['paid'] ? 'yes':'' %></td>
+<td><a href="<%= href("view-invoice.html", 'invoice', $i['invoice_id']) %>"><?
+
+	if ($i['void']) {
+		printf('<strike>$%.02f</strike>', $i['cached_amount']/100.0);
+	} else {
+		printf('$%.02f', $i['cached_amount']/100.0);
+	}
+?></a></td>
+<td><? printf("$%.02f", $i['amount_paid']/100.0) ?></td>
+<td><%= $i['void'] ? 'n/a' : sprintf('$%.02f', ($i['cached_amount'] - $i['amount_paid'])/100.0) %></td>
+</tr>
+<? endforeach ?>
+</table>
+
+<? if (!$_GET['with_paid']): ?>
+<p>
+&raquo; <a href="<%= href('view-invoices.html', 'with_paid', 1, 'contract', $cid) %>">Show paid invoices</a>
+</p>
+<? endif ?>

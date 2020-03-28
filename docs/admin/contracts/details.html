@@ -1,0 +1,27 @@
+<!--
+<title>Edit <cite><%= $c['short_name'] %></cite></title>
+-->
+
+<div class=section>
+
+
+<h3>Interesting facts</h3>
+<ul>
+<li> <? printf('$%.02f', $uncharged/100.0) ?> ready to be invoiced
+<li> <%= sizeof($unpaid_invoices)== 1 ? '1 unpaid invoice' : sizeof($unpaid_invoices).' unpaid invoices' %>
+<? if ($unpaid_invoices): ?>
+<ul>
+<? foreach ($unpaid_invoices as $i): ?>
+<li><a href="<%= href('view-invoice.html', 'invoice', $i['invoice_id']) %>"><%= sprintf("invoice #%d for $%.02f", $i['invoice_id'], $i['cached_amount']/100.0) %> 
+	(<%= sprintf("%.02f", ($i['cached_amount'] - $i['amount_paid'])/100.0) %> owing)</a>
+<? endforeach ?>
+</ul>
+<? endif ?>
+<li>Terms: <%= $c['due_days'] %> days.
+<blockquote><%= $c['contract_terms'] %></blockquote>
+</li>
+</ul>
+
+
+</div>
+

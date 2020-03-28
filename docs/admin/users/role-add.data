@@ -1,0 +1,34 @@
+require_once 'users.h';
+user_require('role_admin');
+
+if (!$edit_user) {
+    redirect('/admin/users/');
+}
+    
+$role = db_row('select * from roles where role_id=?', $_GET['role_id']);
+$class = db_row('select * from classes where class_id=?', $role['role_parameter_class_id']);
+$edit_user_info = db_row('select * from users where user_id=?', $edit_user);
+
+require_once 'form.h';
+
+$optional = ($role['role_parameters'] == 'optional');
+
+$pretty = $class['table_pretty_column'];
+$pkey = $class['table_pkey_column'];
+$table = $class['table_name'];
+
+form_set(array(
+    'parameter' => array(
+        'type' => 'menu',
+        'required' => !$optional,
+        'pretty' => $class['class_name'],
+        'sql' => "select $pkey as key, $pretty as value from $table order by $pretty"
+    ),
+    'submit' => array('type'=>'submit', 'value'=>'Add the new role'),
+));
+
+if (form_valid()) {
+	user_grant_role($edit_user, $_GET['role_id'], $parameter ? $parameter : null);
+    redirect('edit.html');
+}
+

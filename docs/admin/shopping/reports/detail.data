@@ -1,0 +1,69 @@
+require_once 'shopping.h';
+require_once 'shopping-local.h';
+require_once 'form.h';
+
+$sid = 0+$_GET['sid'];
+
+if (!$sid) redirect("../index.html");
+
+
+# first the diary. that's easy.
+form_set('diary', array('new_comment'=>array('type'=>'bigtext', 'rows'=>2, 'cols'=>50, 'required'=>1),
+    'save_diary_entry' => 'submit'
+));
+if (form_valid('diary')) {
+    shopping_add_diary($new_comment, $sid);
+    db_send('update shopping_shopcarts set last_update=CURRENT_TIMESTAMP where shopcart_id=?', $sid);
+}
+
+$diary = db_multirow('select * from shopping_shopcart_diary where shopcart_id=? order by tstamp', $sid);
+
+
+# now the rest
+
+$strong_id = db_value('select strong_shopcart_id from shopping_shopcarts where shopcart_id=?', $sid);
+list ($details_in, $summary) = shopping_get_shopcart_contents($strong_id);
+
+# compute quantities
+$counter = 0;
+foreach ($details_in as $s) {
+    if (!isset($seen[$s['sku']])) {
+        $seen[ $s['sku'] ] = $counter++;
+        $details [ $seen[ $s['sku'] ] ]= $s;
+    }
+    $details[ $seen[$s['sku']] ] ['qty']++;
+}
+
+$invoices = db_multirow("select paypal_transaction_id,transaction_status from paypal_systems join paypal_transactions using (paypal_system_id) where paypal_system_name='shopping' and system_reference=?", $sid);
+
+$show_recipient = $_GET['reveal'];
+if ($show_recipient) {
+	for ($i=0; $i<sizeof($details); $i++) {
+		$details[$i]['recipient']['actual_address'] = db_row('select * from user_addresses where address_id=?', $details[$i]['address_id']);
+	}
+	shopping_add_diary('Recipient address(es) shown to '.user_name(), $sid);
+}
+
+$psid = config_get('shopping', 'paypal_system_id');
+$accept_payment = ($psid>0);
+
+$status_list = shopping_get_status_list();
+
+$form = array(
+	'new_status'=>array('type'=>'menu', 'menu'=>$status_list, 'default'=>$summary['status'], 'required'=>1),
+	'new_paid'  =>array('type'=>$accept_payment ? 'flag' : 'hidden', 'default'=>$summary['paid']),
+	'save_changes'=> 'submit'
+);
+
+form_set($form);
+if (form_valid()) {
+	if($new_status != $summary['status']) {
+		shopping_add_diary(user_name()." set status from ${summary['status']} to {$new_status}", $sid);
+	}
+	if($new_paid != $summary['paid']) {
+		shopping_add_diary(user_name()." set paid  to {$new_paid}", $sid);
+	}
+	db_send('update shopping_shopcarts set status=?,paid=? where shopcart_id=?', $new_status, $new_paid, $sid);
+}
+
+

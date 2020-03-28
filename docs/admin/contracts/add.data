@@ -1,0 +1,22 @@
+require_once 'form.h';
+
+form_set(array(
+	'name' => 'text,required',
+	'first_party' => user_menu_byname()+array("required"=>1, "pretty"=>"Bill from"),
+	'second_party' => user_menu_byname() + array("required"=>1, "pretty"=>"Bill to"),
+	'invoices_due_days' => array('type'=>'integer', 'positive' => 1, 'required' => 1),
+	'contract_terms' => 'bigtext',
+	'contract_id' => array('type'=>'hidden', 'value'=>db_newid('contracts'))
+));
+if (form_valid()) {
+	db_insert_or_update('contracts', 'contract_id', $contract_id,  array(
+		'short_name' => $name,
+		'party_1' => $first_party,
+		'party_2' => $second_party,
+		'due_days' => $invoices_due_days,
+		'contract_terms' => $contract_terms
+	));
+	redirect("index.html");
+}
+
+

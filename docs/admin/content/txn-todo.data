@@ -1,0 +1,49 @@
+
+require_once 'form.h';
+
+$txn_type = 0+$_GET['txn_type'];
+if ($txn_type) {
+	$txn_type_row = db_row('select * from i18n_txn_types where i18n_txn_type_id=?', $txn_type);
+}
+$types = db_multirow('select * from i18n_txn_types');
+if (!$txn_type_row) {
+	$txn_type_row = $types[0];
+	$txn_type = $txn_type_row['i18n_txn_type_id'];
+}
+
+# okay we have a translation type, get translations that are pending for that type
+
+$common  = db_multirow('select content,count(*) from i18n a , i18n_txn_todo b where i18n_txn_type_id=? and a.object_id = b.object_id and a.field_id = b.field_id and char_length(content)<90000 group by content having count(*)>1 order by count desc', $txn_type);
+#$todo = db_multirow('select a.object_id,a.field_id,content from i18n a , i18n_txn_todo b where a.object_id = b.object_id and a.field_id = b.field_id group by a.object_id,a.field_id,content');
+
+$form = array();
+foreach ($common as $c) {
+	$md5 = md5($c['content']);
+	$form["in$md5"] = array('type'=>'text','default'=>$c['content']);
+	$form["ok$md5"] = 'flag';
+}
+form_set('common', $form);
+if (form_valid('common')) {
+	foreach ($common as $c) {
+		$md5 = md5($c['content']);
+		$var = "ok$md5";
+		if ($$var) {
+			$var = "in$md5";
+			# todo store the translation
+			$matching = db_multirow('select a.object_id, a.field_id from i18n a, i18n_txn_todo b where a.object_id = b.object_id and a.field_id = b.field_id
+						AND i18n_txn_type_id=? AND md5(content)=?', $txn_type, $md5);
+			db_send('begin');
+			foreach ($matching as $m) {
+				db_send('delete from i18n where object_id=? and field_id=? and language_key=?', $m['object_id'], $m['field_id'], $txn_type_row['to_language']);
+				db_send('insert into i18n(object_id,field_id,language_key,content) values (?,?,?,?)',
+					$m['object_id'], $m['field_id'], $txn_type_row['to_language'], $$var);
+				db_send('delete from i18n_txn_todo where object_id=? and field_id=? and i18n_txn_type_id=?', 
+					$m['object_id'], $m['field_id'], $txn_type);
+			} 
+			db_send('commit');
+		}
+	}
+	$common  = db_multirow('select content,count(*) from i18n a , i18n_txn_todo b where i18n_txn_type_id=? and a.object_id = b.object_id and a.field_id = b.field_id and char_length(content)<15 group by content having count(*)>2 order by count desc', $txn_type);
+
+}
+

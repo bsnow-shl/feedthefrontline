@@ -1,0 +1,85 @@
+//<?
+require_once 'form.h';
+
+$eid = 0+$_GET['eid'];
+if (!$eid) {
+	redirect('index.html');
+}
+
+require_once 'i18n.h';
+require_once 'form.h';
+
+$event = db_row('select * from events where event_id=?', $eid);
+$event += i18n_get('Event', $eid);
+$event['attendees'] = event_count_attendees($eid);
+
+
+
+# adding content pages
+form_set('new_content', array(
+	'add' => array('type'=>'submit'),
+	'short_name' => 'text,required'
+));
+if (form_valid('new_content')) {
+	$eacid = db_newid('event_additional_content');
+	db_send('insert into event_additional_content values (?,?,?)', 
+		$eacid, $eid, $short_name);
+	redirect(href('edit-content.html', 'eacid', $eacid));
+}
+$additional_content = db_multirow('select * from event_additional_content where event_id=?', $eid);
+
+
+# price points
+
+$criteria = db_multirow('select * from event_pricing_constraints');
+$menu = array();
+if ($criteria) foreach ($criteria as $c) {
+	$menu[$c['constraint_id']]=$c['title'];
+}
+
+$form = array(
+	'price' => 'dollars,required',
+	'administrative_name' => 'text,required',
+	'external_sku' => array('type'=>'text', 'hint'=>'For external credit card processing systems'),
+	'availability_criteria' => array('type'=>'menu', 'menu'=>$menu)
+);
+$form += i18n_form_fields('Event pricing');
+form_set('pricing', $form);
+if (form_was_submitted('pricing')) {
+    if (config_get('events','no_free_events') && $price==0) {
+        form_error('price', 'You cannot publish a $0 price point.');
+    }
+}
+if (form_valid('pricing')) {
+	$pid = db_newid('event_pricing');
+
+	db_insert_hash('event_pricing', array(
+		'event_pricing_id' => $pid,
+		'event_id' => $eid,
+		'name' => $administrative_name,
+		'price' => $price,
+		'external_sku' => $external_sku,
+		'pricing_constraint_id' => $availability_criteria
+	));
+	i18n_form_handle('Event pricing', $pid);
+	
+	if ($availability_criteria) {
+		$editing_page = db_value('select editing_page from event_pricing_constraints where constraint_id=?', $availability_criteria);
+		if ($editing_page) redirect(href($editing_page, 'pid', $pid));
+	}
+}
+$price_point = db_multirow('select price,ep.event_pricing_id,ep.name,editing_page,count(event_registration_id) as not_droppable, pricing_availability_callback 
+                from event_pricing as ep left outer join event_registrations as er using (event_pricing_id) left outer join event_pricing_constraints on (constraint_id=pricing_constraint_id)
+				where event_id=? group by ep.event_pricing_id,ep.name,price,pricing_availability_callback,editing_page', $eid);
+
+$tax_model = db_value('select tax_scheme_name from tax_schemes where tax_scheme_id=?', $event['tax_scheme_id']);
+
+
+
+$managers = users_with_role('event_manager', $eid);
+
+$extra_fields = db_multirow('select field_name from i18n_classes join i18n_fields using (class_id) where class_name=?', 'Event '.$eid.' fields');
+$sessions = db_multirow("select event_session_id, date_part('epoch', session_start) as session_start_unix, count(session_option_id) as count from event_sessions left outer join event_session_options using (event_session_id) where event_id=? 
+ 		group by event_session_id, session_start_unix
+ 		order by session_start_unix", $eid);
+

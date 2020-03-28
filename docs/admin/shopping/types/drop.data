@@ -1,0 +1,6 @@
+$ptid = 0+$_GET['ptid'];
+if (!$ptid) { redirect("index.html"); }
+
+db_send('delete from shopping_product_types where product_type_id=?', $ptid);
+redirect("index.html");
+

@@ -1,0 +1,14 @@
+template_disable();
+
+
+$short_name = substr($_SERVER['PATH_INFO'], 1);
+
+$id = db_value('select whatsnew_id from whatsnew where short_name=?', $short_name);
+if (!$id) { exit("No such RSS feed."); }
+
+require_once 'whatsnew.h';
+$what = whatsnew_get($id);
+$rss = whatsnew_rss($what);
+header("Content-type: application/rss+xml");
+print $rss;
+exit;

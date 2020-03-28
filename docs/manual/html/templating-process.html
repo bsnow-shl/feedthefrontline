@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+<title>Request handling process</title>
+<meta name="GENERATOR" content=
+"Modular DocBook HTML Stylesheet Version 1.79">
+<link rel="HOME" title="Content Publishing Framework Manual" href=
+"index.html">
+<link rel="UP" title="The Templating System" href=
+"templating.html">
+<link rel="PREVIOUS" title="Understanding parts" href="x219.html">
+<link rel="NEXT" title="Function reference" href=
+"templating-funcreference.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2005-03-11T18:12:01">
+</head>
+<body class="SECTION" bgcolor="#FFFFFF" text="#000000" link=
+"#0000FF" vlink="#840084" alink="#0000FF">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="3" align="center">Content Publishing Framework
+Manual</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="bottom"><a href="x219.html"
+accesskey="P">Prev</a></td>
+<td width="80%" align="center" valign="bottom">Chapter 3. The
+Templating System</td>
+<td width="10%" align="right" valign="bottom"><a href=
+"templating-funcreference.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="SECTION">
+<h1 class="SECTION"><a name="TEMPLATING-PROCESS" id=
+"TEMPLATING-PROCESS">3.4. Request handling process</a></h1>
+<p>This section will outline in complete detail which pages and
+parts of pages are executed while serving a request with the CPF.
+Imagine the following directory structure:</p>
+<pre class="SCREEN">
+site/docs/_template.html
+
+site/docs/foo/_directory.data
+site/docs/foo/page.data
+site/docs/foo/page.html
+
+site/conf/config.h
+site/conf/globals.h
+</pre>
+and imagine that the browser has requested <tt class=
+"LITERAL">/foo/page.html</tt>
+<div class="PROCEDURE">
+<ol type="1">
+<li class="STEP">
+<p><tt class="FILENAME">conf/config.h</tt> is loaded first. This
+should provide global configuration for your site. Module-specific
+configuration goes in here - site name, email address of
+maintainer, preferred country for geographic pull-downs, etc. This
+file is mandatory.</p>
+</li>
+<li class="STEP">
+<p><tt class="FILENAME">conf/globals.h</tt> is loaded next. If you
+need functions or any other libraries that should be available to
+every page on your site, include them here. This file is
+optional.</p>
+</li>
+<li class="STEP">
+<p><tt class="FILENAME">foo/_directory.data</tt> is run in the
+directory where the part is located. This performs a similar role
+as .htaccess in Apache: you can place directory-wide access
+controls (see <a href="users.html">Chapter 6</a>), define
+directory-scoped functions or variables, and so on. This file is
+optional.</p>
+</li>
+<li class="STEP">
+<p><tt class="FILENAME">foo/page.data</tt> is run. This file is
+optional.</p>
+</li>
+<li class="STEP">
+<p>The first half of <tt class="FILENAME">_template.html</tt>, the
+part before "##PART##", is run. This file is mandatory.</p>
+</li>
+<li class="STEP">
+<p><tt class="FILENAME">foo/page.html</tt> is run. This file is, of
+course, mandatory.</p>
+</li>
+<li class="STEP">
+<p>The second half of <tt class="FILENAME">_template.html</tt>, the
+part after "##PART##", is run.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="x219.html"
+accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html"
+accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href=
+"templating-funcreference.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">Understanding parts</td>
+<td width="34%" align="center" valign="top"><a href=
+"templating.html" accesskey="U">Up</a></td>
+<td width="33%" align="right" valign="top">Function reference</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

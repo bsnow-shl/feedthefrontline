@@ -1,0 +1,15 @@
+$possible_forums = db_multirow("select bboard_id,short_name,pretty_name,blurb,restrict_to_special FROM bboards WHERE restrict_to_permission is null or restrict_to_permission = ''
+	UNION ALL
+			select bboard_id,short_name,pretty_name,blurb,restrict_to_special FROM bboards,roles WHERE restrict_to_permission=role_name AND role_name IN (select role_name from roles,user_role_map where roles.role_id = user_role_map.role_id and  user_id=?)", $_SESSION[user_id]);
+
+$forums = array();
+foreach ($possible_forums as $f) {
+    if (!$f['restrict_to_special']) {
+        $forums[] = $f;
+    } else {
+        $func = $f['restrict_to_special'];
+        if ($func()) {
+            $forums[] = $f;
+        }
+    }
+}

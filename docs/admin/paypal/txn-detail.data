@@ -1,0 +1,51 @@
+$txn_id = 0+$_GET['txnid'];
+if ($txn_id=='\N') { $txn_id=null; }
+
+
+require_once 'form.h';
+
+$old_amount_expected = db_value('select amount_expected from paypal_transactions where paypal_transaction_id=?', $txn_id);
+form_set('txndetail', array(
+	'amended_amount_expected' => array('type'=>'dollars', 'default'=>$old_amount_expected),
+	'new_transaction_status' => 'text'
+));
+if (form_valid('txndetail')) {
+	if ($amended_amount_expected != $old_amount_expected) {
+		$old_amount_expected = db_value('select amount_expected from paypal_transactions where paypal_transaction_id=?', $txn_id);
+		paypal_add_diary_note($txn_id, sprintf("%s (%s) amended the amount expected to %s from %s", user_name(), user_email(), $amended_amount_expected, $old_amount_expected));
+		db_send('update paypal_transactions set amount_expected=? where paypal_transaction_id=?', $amended_amount_expected, $txn_id);
+	}
+
+	if ($new_transaction_status) {
+		db_send('update paypal_transactions set transaction_status=? where paypal_transaction_id=?', $new_transaction_status, $txn_id);
+		paypal_add_diary_note($txn_id, sprintf("%s (%s) set status to %s", user_name(), user_email(), $new_transaction_status));
+	}
+}
+
+
+form_set(array('add_a_note'=>'text,required'));
+if (form_valid()) { 
+	paypal_add_diary_note($txn_id, '('.user_name().') '.$add_a_note);
+}
+
+
+
+
+$info = db_row('select *,date_part(\'epoch\', create_datetime) as create_datetime from paypal_transactions where paypal_transaction_id = ?', $txn_id);
+$system_ref = db_value('select paypal_system_name from paypal_systems where paypal_system_id=?', $info['paypal_system_id']);
+if ($system_ref == 'Ecommerce') {
+    $regarding = sprintf('<a href="%s">Ecommerce purchase #%d</a>', href('/admin/shopping/reports/detail.html','sid',$info['system_reference']), $info['system_reference']);
+} else {
+    $regarding = sprintf("%s item #%d", $system_ref, $info['system_reference']);
+}
+$user_ref = user_name($info['user_id']);
+
+
+$notify_id = db_value('select min(paypal_notification_id) from paypal_notifications where paypal_transaction_id=? and requires_action=1', $txn_id);
+
+$combined = db_multirow("select date_part('epoch',notification_timestamp) as timestamp, paypal_txnid, requires_action, is_authentic, amount_received, null as note, paypal_notification_id  from paypal_notifications where paypal_transaction_id=? 
+	UNION ALL
+			select date_part('epoch', diary_timestamp) as timestamp, null as paypal_txnid, null as requires_action, null as is_authentic, null as amount_recieved, note, null as paypal_notification_id from paypal_transaction_diary where paypal_transaction_id = ? 
+	ORDER BY timestamp", $txn_id, $txn_id);
+
+

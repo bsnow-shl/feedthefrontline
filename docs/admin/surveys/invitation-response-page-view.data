@@ -1,0 +1,16 @@
+
+require_once 'users.h';
+require_once 'i18n.h';
+
+$rid = 0+$_GET['rid'];
+$pid = 0+$_GET['pid'];
+
+
+$response = db_row('select * from survey_invitation_responses join survey_invitations using (invitation_id) join survey_pages using (page_id)  where response_id=?', $rid);
+
+$user_name = user_name($response['user_id']);
+
+$fields = db_multirow('select field_id,field_name,field_type, pretty_name_en from i18n_fields where class_id=? order by precedence', $response['class_id']);
+
+$response = i18n_get( $response['class_id'], $rid);
+

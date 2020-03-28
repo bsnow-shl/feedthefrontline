@@ -1,0 +1,81 @@
+require_once 'shopping.h';
+require_once 'shopping-local.h';
+require_once 'paypal.h';
+
+
+
+# fetch shopcart
+list ($details, $summary) = shopping_get_shopcart_contents($_GET['shopcart_id']);
+if ($details===FALSE) {
+	print("Bad ID provided to order status. Are you snooping? This has been reported. ");
+	trigger_error("Bad ID provided to order status. Are you snooping? This has been reported.", E_USER_ERROR);
+	exit();
+}
+
+# fetch entry
+$item = $details[ $_GET['idx']-1 ];
+
+# complain if it's not there
+if (!$item) { 
+		trigger_error("Bad shopcart entry reference provided", E_USER_ERROR);
+		exit;
+}
+
+# log the view
+shopping_add_diary("Viewed delivery page", $summary['shopcart_id']);
+
+# needs to be owned by mat
+if (!config_get('shopping', 'anonymous_ok')) {
+	user_require();
+	if (!$summary['user_id']) {
+		trigger_error("How did a user_id=null shopcart show up here?", E_USER_ERROR);
+	}
+}
+
+if ($summary['user_id']) {
+	if (user_id() !== $summary['user_id']) {
+		trigger_error("UserID mismatch: ${summary['user_id']} vs. ".user_id(), E_USER_ERROR);
+	}
+}
+
+# shopcart must be status=delivered and paid=1
+if (!$summary['paid'] && $summary['status'] != 'delivered') {
+	trigger_error('Viewed fulfillment page, but item is not bought', E_USER_ERROR);
+
+}
+
+
+$type_name = db_value('select short_name from shopping_product_types where product_type_id=?', $item['product_type_id']);
+
+if ($type_name == 'Video(s)') {
+	global $_cpf_head_magic;
+	$_cpf_head_magic .= '<script type="text/javascript" src="/images/Media/swfobject.js"></script>';
+
+	$raw_videos = split("\n", $item['video_files']);
+	global $_cpf_foot_magic;
+	$counter = 0;
+	foreach ($raw_videos as $v) {
+		list ($title, $video) = split('\|', $v);
+		$title = trim($title);
+		$video = trim($video);
+		if (!$video) { $video = $title; $title = ""; }
+		
+		$videos[$counter] = $title;
+
+		$video = substr($video, 1);
+		if (!$video) { continue; }
+
+		$_cpf_foot_magic .= "
+		<script type=\"text/javascript\">
+			var so = new SWFObject('/images/Media/FlowPlayer.swf', 'movietag$counter', '320', '266', '7', '#ffffff');
+		so.addParam('flashvars', \"config={streamingServer: 'fms', streamingServerURL: 'rtmp://csic.fcod.llnwd.net/a1622/o15/', loop: false, hideControls: false, showMenu: false, showLoopButton: false, showPlayListButtons: false, showFullScreenButton: true, controlsWidth: 400, fullScreenScriptURL: '/images/Media/fullscreen.js', autoPlay: false, splashImageFile: '/template/images/video.icon.320x240.jpg' , videoFile: '$video'} \");
+			so.write('movie$counter');
+		</script>
+		";
+		$counter++;
+
+
+	}
+
+	$video_count = sizeof($videos);
+}

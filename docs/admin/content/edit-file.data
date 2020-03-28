@@ -1,0 +1,24 @@
+require_once 'form.h';
+
+$file_to_edit = $_GET['file'];
+if (!file_exists($file_to_edit)) {
+	exit("No such file.");
+}
+if (!is_writeable($file_to_edit)) {
+	exit("$file_to_edit is not writable.");
+}
+
+
+$file_contents = str_replace("@@", "%%", read_whole_file($file_to_edit));
+
+form_set(array(
+	'file_contents' => array('type'=>'bigtext', 'rows'=>30, 'cols'=>120,'default' => $file_contents),
+	'save'=>'submit'
+));
+
+if (form_valid()) {
+	$fh = fopen($file_to_edit, 'w');
+	fwrite($fh, str_replace("%%", "@@", $file_contents));
+	fclose($fh);
+	form_add_note('Saved.');
+}

@@ -1,0 +1,70 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+$content_id = 0+$_GET['content_id'];
+
+$class = db_row('select * from i18n_classes join i18n_content using (class_id) where i18n_content.content_id=?', $content_id);
+if (!$class) redirect("/admin/content/");
+
+$info = i18n_get('Content item', $content_id);
+$objid = i18n_get_current_content_objid($content_id);
+
+if (config_get('content','hide_drafts')) {
+	$form = array();
+} else {
+	$form = array('save_as_draft'=>'submit');
+}
+
+if ($_GET['object_id']) {
+	$objid = $_GET['object_id'];
+	$ignore_drafts = 1;
+	if (!db_value('select count(*) from i18n_content_map where content_id=? and object_id=?', $content_id, $objid)) {
+		trigger_user_error("Wrong object id $objid for content id $content_id");
+		redirect('index.html');
+	}
+} else {
+	$form['post_live'] = 'submit';
+}
+
+
+
+form_set('default', i18n_form_fields($class['class_id'], $objid) + $form, array(), array('contents_at_end'=>1));
+
+
+if (form_valid()) {
+	db_send('begin');
+	$new_objid = db_newid('i18n_object_id');
+	if ($save_as_draft) {
+		$posting_tstamp = 'null';
+		$ignore_drafts = 1;
+		form_add_note('Content saved as <a href="'.href('edit-item-drafts.html', 'content_id', $content_id).'">draft</a>.');
+	} else {
+		db_send('update i18n_content_map set takedown_datetime=CURRENT_TIMESTAMP where content_id=? and takedown_datetime is null', $content_id);
+		$posting_tstamp = 'CURRENT_TIMESTAMP';
+		form_add_note('Content posted live.');
+
+        # maybe we need to fire a trigger
+        if ($fn = $class['on_update_function']) {
+            $head = $class['on_update_header'];
+            if ($head) { $code = sprintf('require_once "%s";', $head); eval($code); }
+            $fn();
+        }
+	}
+
+	db_send("insert into i18n_content_map(content_id, object_id, created_by, posting_datetime) values (?,?,?,${posting_tstamp})", $content_id, $new_objid, user_id());
+	i18n_form_handle($class['class_name'], $new_objid);
+	db_send('commit');
+
+	form_add_note($note);
+
+}
+
+$num_drafts = db_value('select count(*) from i18n_content_map where content_id=? 
+			and (posting_datetime is null or posting_datetime > CURRENT_TIMESTAMP)', $content_id);
+if ($num_drafts && !$ignore_drafts) {
+	redirect(href('edit-item-drafts.html', 'content_id', $content_id));
+}
+
+$is_locked = $class['locked'];
+
+

@@ -1,0 +1,36 @@
+<!--
+<title>Event registrations awaiting approval</title>
+-->
+
+<div class=section>
+
+<p>The following registrations require manual review in order to approve their attendance.
+</p>
+
+<? if ($regs): ?>
+
+<table class=padded><tr><th>Name</th><th>Phone</th><th>Event</th><th>Reg. no</th><th>Actions</th></tr>
+<? foreach ($regs as $e): ?>
+<? if (($e['event_start_date'] < date('Y-m-d') && !$printed_past_heading)): ?>
+	<tr><th colspan=5>Past events</th></tr>
+	<? $printed_past_heading = true; ?>
+<? endif ?>
+<tr>
+<td><%= $e['name'] %></td>
+<td><%= $e['telephone'] %></td>
+<td><? $info = i18n_get('Event', $e['event_id']); echo $info['title']; ?> on <%= $e['event_start_date'] %></td>
+<td><a href="<%= href('reports/inspect.html', 'erid', $e['event_registration_id']) %>"><%= $e['event_registration_id'] %></a></td>
+<td>
+(<a href="<%= href('approval-list-resolve.html', 'erid', $e['event_registration_id'], 'newstat','approved'); %>">approved</a>
+ | <a href="<%= href('approval-list-resolve.html', 'erid', $e['event_registration_id'], 'newstat', 'rejected') %>">rejected</a>)
+</tr>
+<? endforeach ?>
+</table>
+<? else: ?>
+
+Nobody to review!
+
+<? endif ?>
+
+</div>
+

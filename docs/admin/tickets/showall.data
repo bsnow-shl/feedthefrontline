@@ -1,0 +1,8 @@
+if ($_GET['sortby']) {
+	$sortby = "order by ".$_GET['sortby'];
+} else {
+	$sortby = "order by date_added_sec";
+}
+
+$tickets = db_multirow("select *,date_part('epoch', date_added) as date_added_sec from tickets join ticket_components using (ticket_component_id) ".$sortby);
+

@@ -1,0 +1,58 @@
+require_once 'form.h';
+
+$form = array(
+	'text'=> 'text',
+	'bigtext' => 'bigtext',
+	'integer' => 'integer',
+	'float' => 'float',
+	'dollars' => 'dollars',
+	'password' => 'password',
+
+	'integer_at_least_5'=> array('type'=>'integer', 'min'=>5),
+	'integer_at_most_5'=> array('type'=>'integer', 'max'=>5),
+	'integer_positive'=> 'integer,positive',
+
+	'float_at_least_5'=> array('type'=>'float', 'min'=>5),
+	'float_at_most_5'=> array('type'=>'float', 'max'=>5),
+	'float_positive'=> 'float,positive',
+
+	'req_text'=> 'text,required',
+	'req_bigtext' => 'bigtext,required',
+	'req_integer' => 'integer,required',
+	'req_float' => 'float,required',
+	'req_dollars' => 'dollars,required',
+	'req_password' => 'password,required',
+
+	'req_integer_at_least_5'=> array('type'=>'integer', 'min'=>5, required=>1),
+	'req_integer_at_most_5'=> array('type'=>'integer', 'max'=>5, required=>1),
+	'req_integer_positive'=> array('type'=>'integer', 'positive'=>1, required => 1),
+
+	'req_float_at_least_5'=> array('type'=>'float', 'min'=>5, required=>1),
+	'req_float_at_most_5'=> array('type'=>'float', 'max'=>5, required=>1),
+	'req_float_positive'=> array('type'=>'float', 'positive'=>1, required => 1),
+
+	'date'=> 'date',
+	'time' => 'time',
+);
+
+$which = $_REQUEST['element'];
+$keys = array_reverse(array_keys($form));
+
+if  (isset($which)) {
+	if ($keys[$which]) {
+		$which = $keys[$which];
+	} 
+	form_set(array( 'element' => array('type' => 'hidden', 'value' => $which ),
+		$which => $form[$which] ));
+	if (form_valid()) {
+		foreach ($_POST as $k => $v) {
+			print "$k=$v. <p/> ";
+		}	
+	}
+} else {
+	form_set( array (
+		'element' => array('type'=>'menu', 'menu' => $keys)
+	));
+}
+
+

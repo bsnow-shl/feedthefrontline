@@ -1,0 +1,14 @@
+
+
+$fieldid = 0+$_GET['fieldid'];
+
+db_send('delete from i18n where field_id=?', $fieldid);
+$classid = db_value('select class_id from i18n_fields where field_id=?', $fieldid);
+
+$f = db_send('delete from i18n_fields where field_id=?', $fieldid);
+
+redirect(href('type-edit.html', 'classid', $classid));
+
+
+
+

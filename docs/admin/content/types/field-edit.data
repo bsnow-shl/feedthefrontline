@@ -1,0 +1,80 @@
+
+require_once 'form.h';
+require_once 'i18n.h';
+
+
+$fieldid = 0+$_GET['fieldid'];
+
+$f = db_row('select * from i18n_fields where field_id=?', $fieldid);
+$class_name = db_value('select class_name from i18n_classes where class_id=?', $f['class_id']);
+
+$form = array(
+	'field_name'=>'urifragment,required',
+);
+$langs = i18n_get_active_languages();
+foreach ($langs as $l) {
+	$form['pretty_name_'.$l['language_key']] = 'text,required';
+	$form['entry_explanation_'.$l['language_key']] = 'bigtext';
+	$form['help_text_'.$l['language_key']] = 'bigtext';
+}
+$form += array(
+	'field_type' => array('type'=>'menu', 'menu' => array_combine(form_get_types(), form_get_types())),
+    'other_field_type' => 'text',
+	'column_name' => 'text',
+	'pgsql_data_type' => 'text',
+	'pgsql_extra' => 'text',
+	'include_in_fulltext_index' => 'flag',
+	
+	'mandatory' => 'flag',
+	'multiple' => 'flag',
+	'display_columns' => 'integer',
+	'display_rows' => 'integer',
+	'presentation_options' => 'text',
+	'default_value' => 'text',
+    'precedence' => 'integer'
+);
+$f['other_field_type'] = $f['field_type'];
+
+form_set('default', $form, $f);
+
+$type = $f['field_type'];
+if (substr($type,0,2)=='a:') { $des = unserialize($type); $type=$des['type']; }
+
+if (form_valid()) {
+	db_send('begin');
+	$update = array(
+        'field_name' => $field_name,
+		'field_type'=>($other_field_type == $f['other_field_type'] && $field_type ? $field_type : $other_field_type),
+		'column_name'=>$column_name,
+		'pgsql_data_type'=>$pgsql_data_type,
+		'pgsql_extra'=>$pgsql_extra,
+		'include_in_fulltext_index'=>$include_in_fulltext_index,
+		'mandatory'=>$mandatory,
+		'multiple'=>$multiple,
+		'display_columns'=>$display_columns,
+		'display_rows'=>$display_rows,
+		'presentation_options'=>$presentation_options,
+		'default_value'=>$default_value,
+        'precedence' => $precedence
+	);
+	foreach ($langs as $l) {
+		$key = 'pretty_name_'.$l['language_key'];
+		$update[$key] = $$key;
+		$key = 'entry_explanation_'.$l['language_key'];
+		$update[$key] = $$key;
+		$key = 'help_text_'.$l['language_key'];
+		$update[$key] = $$key;
+	}
+	db_update('i18n_fields', 'field_id', $fieldid,  $update);
+
+	if ($r = db_errormessage()) {
+        db_send('rollback');
+		form_add_note("Failed: $r");
+	} else {
+        db_send('commit');
+		redirect(href('type-edit.html', 'classid', $f['class_id']));
+	}
+}
+
+
+

@@ -1,0 +1,23 @@
+$invoiceid = 0+$_GET['invoice'];
+$invoice = db_row("select *,date_part('epoch', create_date) as create_date,cached_amount from contract_invoices where invoice_id=?", $invoiceid);
+if (!$invoice) { redirect("index.html"); }
+$contract = db_row('select contract_id,party_1,party_2 from contracts where contract_id=?', $invoice['contract_id']);
+$_GET['contract'] = $contract['contract_id'];  # for the right menu
+$u2 = array(
+	'email' => user_email($contract['party_2']),
+	'name' => user_name($contract['party_2']),
+	'details' => user_details($contract['party_2'])
+);
+$u1 = array(
+	'email' => user_email($contract['party_1']),
+	'name' => user_name($contract['party_1']),
+	'details' => user_details($contract['party_1'])
+);
+$payments = db_multirow("select date_part('epoch', tstamp) as tstamp, payment_amount as amount  from contract_invoice_diary where invoice_id=? order by tstamp", $invoiceid);
+$total_payments = 0;
+foreach ($payments as $p) {
+	$total_payments += $p['amount'];
+}
+
+$invoice_items = db_multirow("select *,date_part('epoch', create_date) as tstamp from contract_invoice_items where invoice_id=? order by create_date", $invoiceid);
+

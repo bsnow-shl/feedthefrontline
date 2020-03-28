@@ -1,0 +1,74 @@
+<!--
+<title>Documents -- <%= $category_name %></title>
+-->
+
+
+<div class="main">
+
+<? if ($cat_id) : ?> 
+<%= $category_description %>
+<? endif ?>
+
+
+
+<p>
+<? $me = href('index.html', 'cat_id', $cat_id); ?>
+</p>
+
+<? if ($cats): ?>
+
+<table class="padded" width="580" cellspacing="0" cellpadding="3">
+<tr style="background-color: #EAEAEA;"><th><%= _('Category') %></th><th><%= _('# items') %></th><th><%= _('Last updated') %></th></tr>
+<? foreach ($cats as $cat): ?>
+	<? if ($cat['count']==0) $cat['count']=''; ?>
+<tr bgcolor="<?echo $bgcolor1;?>">
+	<td><a href="category.html/<%= $cat['document_category_id'] %>"><%= $cat['name'] %></a><br/>
+	<%= $cat['description'] %>
+	</td>
+	<td><%= $cat['count'] %></td>
+	<td>
+	<? if ($cat['most_recent_posting']): ?>
+	<%= strftime("%Y-%b-%d", $cat['most_recent_posting']) %>
+	<? endif ?>
+	</td>
+</tr>
+<?
+if ($bgcolor1=="#EAEAEA"){
+	$bgcolor1="#F5F5F5";
+}
+else{
+	$bgcolor1="#EAEAEA";
+}
+ endforeach ?>
+</table>
+</dl>
+
+<? endif ?>
+
+<? if ($documents): ?>
+
+<table class="padded"><tr class="one"><th><%= _('Document') %></th><th><%= _('Type') %></th><th><%= _('Size') %></th><th><%= _('Posted') %></th></tr>
+<? $counter=0; ?>
+<? foreach ($documents as $d): ?>
+	<? $class = ($counter++ % 2) ? 'class="one"' : '' ?>
+	<tr <%= $class %>>
+	<td>
+	<a target='_blank' href="/documents/show.php/<%= $d['document_id'] %>/<%= $d['name'] %>"><%= $d['name'] %></a> 
+	<br/><%= $d['description'] %>
+	<? if ($comments_allowed) {
+           require_once 'comments.h';
+           comments_on('documents', $d['document_id'], 'brief' ); 
+    } ?>
+	</td>
+	<td><%= $d['pretty_mimetype'] %></td>
+	<td><%= ceil($d['size']/1024) %>k</td>
+	<td><%= strftime("%Y-%b-%d", $d['posting_date']) %></td>
+	</tr>
+<? endforeach ?>
+</table>
+
+<? endif ?>
+ 
+</div>
+
+

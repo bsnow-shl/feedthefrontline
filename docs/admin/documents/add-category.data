@@ -1,0 +1,34 @@
+require_once 'form.h';
+require_once 'users.h';
+require_once 'i18n.h';
+
+$cat_id = $_GET['cat_id'];
+
+if (user_has_role('document_category_admin')) {
+    $form = i18n_form_fields('document category');
+
+	$keys = array_keys($form);
+    $english_name_key = array_shift($keys);
+    $form[$english_name_key]['required']=1;
+
+    $form += array(
+        'category_id' => array('type'=>hidden, value=>db_newid('document_categories')),
+        'allow_comments' => 'flag',
+        'admin_only' => array('type'=>'flag', 'pretty'=>'Only show in admin area'),
+        'restricted_role_name' => array('type'=>'menu', 'sql'=>'select role_name as key, role_name as value from roles where visible != 0 order by role_name'),
+	);
+    form_set('newcategory', $form);
+
+    if (form_valid('newcategory')) {
+        $order = db_value('select max(display_order) from document_categories') +1;
+
+        db_insert_or_update('document_categories', 'document_category_id', $category_id, 
+            array('display_order' => $order,
+                  'allow_comments' => $allow_comments,
+		  'admin_only' => $admin_only, 
+                  'restrict_to_role' => $restricted_role_name, 
+		  'parent_category_id' => $_GET['parent_category_id']));
+	i18n_form_handle('document category', $category_id);
+	redirect("index.html");
+    }
+}

@@ -1,0 +1,35 @@
+<!--
+<title>Roles</title>
+-->
+
+Roles that have been defined on this system:
+<div class="section">
+
+<table class=padded>
+<tr><th>role</th><th>description</th><th># granted</th><th>action</th><th>visible?</th></tr>
+<? foreach ($roles as $r): ?>
+<tr><td><%= $r['role_name'] %></td>
+<td><%= $r['description'] %></td>
+<td><%= $r['count'] %></td>
+<td>
+<a href="role-describe.html?id=<%= $r['role_id'] %>">edit</a> | 
+<? if ($r['count']==0): ?>
+<a href="role-remove.html?id=<%= $r['role_id']%>">remove</a>
+<? else: ?>
+<a href="role-list-holders.html?id=<%= $r['role_id']%>">list assignees</a>
+<? endif ?>
+</td>
+<td>
+<%= $r['visible'] ? 'yes' : 'no' %><A href="<%= href('role-toggle-visible.html', 'role', $r['role_id']) %>">~</a>
+</td>
+</tr>
+
+<? endforeach ?>
+</table>
+</div>
+
+<h3>Create a new role</h3>
+<div class="section">
+<? form_start();
+   form_end(); ?>
+

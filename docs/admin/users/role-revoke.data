@@ -1,0 +1,11 @@
+require_once 'users.h';
+user_require('role_admin');
+
+$r = db_row('select role_id,user_id from user_role_map where user_role_map_id=?', $_REQUEST['urmid']);
+$role_name = db_value('select role_name from roles where role_id=?', $r['role_id']);
+user_add_diary($r['user_id'], user_name().' revoked '. $role_name.' role.');
+
+db_send('delete from user_role_map where user_role_map_id=?', $_REQUEST['urmid']);
+
+redirect(href('edit-roles.html', 'edit_user', $r['user_id']));
+

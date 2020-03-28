@@ -1,0 +1,58 @@
+require_once 'form.h';
+require_once 'i18n.h';
+require_once 'users.h';
+
+$page = i18n_get_current_content('subscribe-form');
+
+form_set(array(
+        'first_name' => array('type'=>'text', 'pretty'=> _('First name')),
+        'last_name' => array('type'=>'text', 'pretty'=> _('Last name')),
+        'email' => array('type'=>'email','required'=>1, 'pretty'=>_('E-mail')),
+        'organization' => array('type'=>'text', 'pretty'=> _('Organization')),
+
+	'street_address' => 'text',
+	'city' => 'text',
+	'province' => 'text',
+	'postal_code' => 'text',
+	'contact_phone' => 'text',
+
+	'submit' => array('type'=>'submit', 'src'=>'/images/btn_submit.gif')
+));
+if (form_valid()) {
+        if ($uid = db_value('select user_id from users where email=?', $email)) {
+		db_send('update users set first_name=?,last_name=?,company=? where user_id=?', $first_name, $last_name, $organization, $uid);
+        } else {
+                db_send('insert into users(email,first_name,last_name,company) values (?,?,?,?)', $email, $first_name, $last_name, $organization);
+        }
+        $_SESSION['registered_uid'] = $uid = db_value('select user_id from users where email=?', $email);
+
+        if (db_value('select newsletter_subscription_id from newsletter_subscriptions where user_id=? and newsletter_id=?', $uid, $_GET['newsletter_id'])) {
+                db_send('update newsletter_subscriptions set parameter=? where user_id=? and newsletter_id=?', 'enfr', $uid, $_GET['newsletter_id']);
+        } else {
+                db_send('insert into newsletter_subscriptions (user_id,parameter, newsletter_id) values (?,?,?)', $uid, 'enfr', $_GET['newsletter_id']);
+        }
+
+	cpf_mail(config_get('site','admin_email'), 'Opt-in', "
+Someone opted in to the newsletter. They are subscribed now, and here is their
+additional info.
+
+Name: $first_name $last_name
+Email: $email
+Company: $organization
+
+Address: 
+	$street_address
+	$city
+	$province
+	$contact_phone
+");
+
+        user_add_diary($uid, 'Subscribed from /subscribe.html');
+        if ($_GET['goback']) {
+                redirect($_GET['goback']);
+        } else {
+                redirect('subscribe-thanks.html');
+        }
+}
+
+

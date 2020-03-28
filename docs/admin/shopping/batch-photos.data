@@ -1,0 +1,42 @@
+require_once 'form.h';
+require_once 'uploads.h';
+
+form_set(array('file'=>'file'));
+if (form_valid()) {
+
+	$tempnam = tempnam('/tmp', 'shopping-upload-handler');
+	unlink($tempnam);
+	mkdir($tempnam);
+	chdir($tempnam);
+	print system("unzip -j >/dev/null ".$_SERVER['DOCUMENT_ROOT'].$file);
+	
+	$dir = opendir('.');
+
+    $skus = $ignored_files = array();
+
+	while ($file = readdir($dir)) {
+		if ($file != "." && $file != "..") {
+			$dot = strpos($file, '.');
+			if (substr($file, $dot-2, 2) == '-L') 
+				$sku = substr($file, 0, $dot-2);
+            else 
+				$sku = substr($file, 0, $dot);
+
+            if (db_value('select count(*) from shopping_products where sku=?', $sku)) {
+                shopping_make_product_images($sku, $tempnam.'/'.$file);
+                $skus[] = $sku;
+            } else {
+                $ignored_files[] = $file;
+            }
+		}	
+	}
+	closedir($dir);
+
+	form_add_note("Made images for SKUs ".join(', ',$skus));
+    if ($ignored_files) {
+        form_add_note("Ignored files: file does not contain a SKU code.<ul><li>".join('<li>', $ignored_files).'</ul>');
+    }
+
+
+	upload_delete($file_upload_id);
+}

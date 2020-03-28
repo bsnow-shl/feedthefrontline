@@ -1,0 +1,42 @@
+<!--
+<title>Newsletter <cite><%= $row['description'] %></cite>: <%= $_GET['r'] %> report</title>
+-->
+
+
+<div class="section">
+
+	<? if ($has_count): ?>
+		<h3>Histogram</h3>
+		<table class="padded"><tr><th>Count</th><th>Occurrences</th></tr>
+		<? foreach ($histogram as $k=>$v) {
+			echo "<tr><td>$k</td><td>$v</td></tr>";
+		} ?>
+		</table>
+	
+	<? endif ?>
+
+
+	<table class="padded"><tr><th>Email</th>
+		<? if ($report_style == 'clickthrudest'): ?>
+			<th>URL</th>
+		<? endif ?>
+		<? if ($has_count): ?>
+			<th>#</th>
+		<? endif ?>
+
+		</tr>
+
+		<? foreach ($report as $r): ?>
+			<tr><td><%= $r['email'] %></td>
+			<? if ($report_style == 'clickthrudest'): ?>
+				<td><%= $r['url'] %></td>
+			<? endif ?>
+			<? if ($has_count): ?>
+			  <td><%= $r['count'] %></td>
+			<? endif ?>
+			</tr>
+		<? endforeach ?>
+	</table>
+
+</div>
+

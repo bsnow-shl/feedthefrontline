@@ -1,0 +1,14 @@
+
+require 'form.h';
+
+$form = array(
+        'name'       => 'text,required',
+        'age'        => 'integer',
+        'biography'  => 'bigtext',
+);
+
+form_set($form);
+
+if (form_valid()) {
+	form_add_note("The form passed validation.");
+}

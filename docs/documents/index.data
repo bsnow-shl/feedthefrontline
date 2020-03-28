@@ -1,0 +1,38 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+
+$possible_cats = db_multirow("select document_category_id,restrict_to_special from document_categories 
+        where admin_only=0 and (restrict_to_role is null or restrict_to_role='') and display_order is not null
+    UNION  ALL
+        select document_category_id,restrict_to_special from document_categories,roles 
+	where admin_only=0 and (restrict_to_role=role_name AND role_id in (select role_id from user_role_map where user_id=?))
+	     and display_order is not null", user_id());
+
+
+$cats = array();
+
+if ($possible_cats) {
+	$valid_cats = array();
+	foreach ($possible_cats as $c) {
+		$func = $c['restrict_to_special'];
+		if ($func) {
+			$result = $func();
+			if ($result) {
+				$valid_cats[] = $c['document_category_id'];
+			}
+		} else {
+			$valid_cats[] = $c['document_category_id'];
+		}
+	}
+	$valid_cat_sql = join(',', $valid_cats);
+
+	$cats = db_multirow("SELECT document_category_id, display_order, count(document_id),date_part('epoch', max(posting_date)) as most_recent_posting 
+		FROM document_categories LEFT OUTER JOIN documents USING (document_category_id) 
+		WHERE document_category_id in ($valid_cat_sql)
+		GROUP BY document_category_id,display_order 
+		ORDER BY display_order desc");
+
+	i18n_get_batch($cats, 'document category','document_category_id');
+}
+

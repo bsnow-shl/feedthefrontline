@@ -1,0 +1,10 @@
+
+$id = 0+$_GET['id'];
+
+require_once 'whatsnew.h';
+
+$posts = whatsnew_get($id);
+if ($posts===false) { exit("No such RSS feed."); }
+$header = array_shift($posts);
+
+$title = db_value('select title from whatsnew where whatsnew_id=?', $id);

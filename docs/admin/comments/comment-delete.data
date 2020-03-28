@@ -1,0 +1,18 @@
+require_once 'form.h';
+
+$cid = 0+$_GET['id'];
+$comment = db_row('select * from comments where comment_id=?', $cid);
+
+form_set(array(
+	'yes'=> array('type'=>'submit', value=>'yes'), 
+	'no'=> array('type'=>'submit', value=>'no'), 
+	));
+if (form_valid()) {
+	if ($no) {
+		redirect(href('comment-edit.html', 'id', $cid));
+	}
+	if ($yes) {
+		db_send('delete from comments where comment_id=?', $cid);
+		redirect('index.html');
+	}
+}

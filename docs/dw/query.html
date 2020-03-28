@@ -1,0 +1,28 @@
+<!--
+<title>Query builder</title>
+<subtitle>on <%= $fact_name %></subtitle>
+-->
+
+
+What would you like to know?
+
+<? form_start('numbers'); ?>
+Aggregate numbers:
+<ul>
+<? foreach ($numbers_list as $n) {
+	echo '<li>'.$number_ops[$n['op']].' of '.$number_map[$n['field']];
+} ?>
+<li>@@number_op@@ of @@number_list@@
+</ul>
+
+
+Groupings: 
+<ul>
+<li>@@group_dimensions@@ -> @@group_attributes@@
+</ul>
+
+<? form_end() ?>
+
+
+<h3>So far</h3>
+<%= $q %>

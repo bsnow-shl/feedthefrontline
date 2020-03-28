@@ -1,0 +1,16 @@
+
+require_once 'form.h';
+
+$eid = 0+$_GET['eid'];
+
+$e = db_row('select name,custom_paid_message from events where event_id=?', $eid);
+$event_name = $e['name'];
+
+form_set(array(
+	'part_1' => array('type'=>'bigtext', 'default' => $e['custom_paid_message']),
+));
+if (form_valid()) {
+	db_send('update events set custom_paid_message=? where event_id=?', $part_1, $eid);
+	redirect(href('edit.html', 'eid', $eid));
+}
+

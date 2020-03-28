@@ -1,0 +1,12 @@
+require_once 'shopping.h';
+
+if (!$_GET['uri']) {
+	redirect ("/shopping/category/home");
+}
+
+list ($cat, $items) = shopping_get_category(null, $_GET['uri']);
+
+$tree = shopping_get_tree($_GET['uri']);
+$subcats = $tree[ $cat['category_id'] ];
+i18n_get_batch($subcats, 'Product category', 'category_id');
+

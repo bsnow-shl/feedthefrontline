@@ -1,0 +1,15 @@
+require_once 'email.h';
+
+$files = email_get_system_files();
+foreach ($files as $f) {
+    $h = fopen($f['file'], 'w');
+    if ($h) {
+        fwrite($h, $f['contents']);
+        fclose($h);
+        $notes[] = "Wrote ".$f['file'];
+    } else {
+        $notes[] = "Failed to write ".$f['file'];
+	$dump = 1;
+    }
+}
+

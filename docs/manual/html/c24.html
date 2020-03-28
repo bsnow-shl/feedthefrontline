@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+<title>Introduction</title>
+<meta name="GENERATOR" content=
+"Modular DocBook HTML Stylesheet Version 1.79">
+<link rel="HOME" title="Content Publishing Framework Manual" href=
+"index.html">
+<link rel="PREVIOUS" title="Content Publishing Framework Manual"
+href="index.html">
+<link rel="NEXT" title="Recommended reading" href="x57.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2005-03-11T18:12:01">
+</head>
+<body class="CHAPTER" bgcolor="#FFFFFF" text="#000000" link=
+"#0000FF" vlink="#840084" alink="#0000FF">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="3" align="center">Content Publishing Framework
+Manual</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="bottom"><a href="index.html"
+accesskey="P">Prev</a></td>
+<td width="80%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="bottom"><a href="x57.html"
+accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="CHAPTER">
+<h1><a name="AEN24" id="AEN24"></a>Chapter 1. Introduction</h1>
+<div class="TOC">
+<dl>
+<dt><b>Table of Contents</b></dt>
+<dt>1.1. <a href="c24.html#AEN35">Software requirements</a></dt>
+<dt>1.2. <a href="x57.html">Recommended reading</a></dt>
+</dl>
+</div>
+<p>The Content Publishing Framework is a low-ceremony,
+highly-effective system for quickly developing and publishing web
+sites using PHP and <span class="PRODUCTNAME">PostgreSQL</span>. It
+features a simple templating system, elegant form handling, a
+useful database model, and facilities for user management and
+role-based permissions. There's a built-in discussion forum and
+document repository as an application of all these subsystems. It's
+mostly modular and designed to be easy to extend, merge in future
+improvements, and support concurrent development using <span class=
+"PRODUCTNAME">CVS</span>.</p>
+<p>The framework's driving value is effectiveness. There's no
+idealism here in any form: no object-oriented nirvana, no
+squandered effort on database abstraction, and it does not attempt
+to be all things to all people. It's meant for people who have to
+quickly develop and operate a dynamic web site, and don't mind
+using a system with some opinions about how things should be
+done.</p>
+<p>Some of the consequences of this philosophy include a complete
+lack of support for <span class="PRODUCTNAME">MySQL</span>, or any
+other database. The system has been integrated with other codebases
+that themselves use <span class="PRODUCTNAME">MySQL</span>, but the
+core depends loosely but irretrievably on <span class=
+"PRODUCTNAME">PostgreSQL</span>.</p>
+<p>Its original author is Stephen van Egmond, who wrote the system
+based on his experience with complex, large-scale web development,
+and the practical, small details that can make it easy for those
+involved. Support is provided through Tiny Planet Consulting, a
+consulting company that builds standards-based infrastructure, and
+advises on software development process and technique. Other
+developers, notably Bill Snow, have contributed to its
+development.</p>
+<div class="SECTION">
+<h1 class="SECTION"><a name="AEN35" id="AEN35">1.1. Software
+requirements</a></h1>
+<p>This system requires recent versions of Apache, PHP, and
+PostgreSQL to work. Apache 1.3.26, PHP 4.3, and PostgreSQL 7.4 have
+been seen to work well. The PHP modules mhash and pgsql are
+required, and the <a href="http://www.xdebug.org/" target=
+"_top">Xdebug</a> extension is recommended.</p>
+<p><span class="emphasis"><i class="EMPHASIS">Optional and
+recommended packages.</i></span> The page testing infrastructure
+requires Ant 1.5 and a Java 1.4 development environment. The
+documentation can be built using the docbook utilities db2html and
+db2pdf. CVS 1.10 or some other source control system is
+recommended. The system cooperates well with the <span class=
+"PRODUCTNAME">exim</span> mail server and <span class=
+"PRODUCTNAME">ecartis</span> mailing list manager.</p>
+<p>As of May 2003, if you are running the Debian "Woody"
+distribution, running the following command as root will load the
+appropriate packages into your system:</p>
+<p><b class="COMMAND">apt-get install postgresql apache php4-pgsql
+php4-mhash cvs ant docbook-dsssl alien</b></p>
+<p>You will still have to go to <a href="http://java.sun.com/"
+target="_top">Sun's web site</a> to download the Java 1.4
+development RPM -- <span class="emphasis"><i class=
+"EMPHASIS">not</i></span> the runtime. Once downloaded, you can
+turn the RPM into a Debian package with alien: <b class=
+"COMMAND">alien j2sdk*.rpm; dpkg -i j2sdk*.deb</b></p>
+<div class="NOTE">
+<blockquote class="NOTE">
+<p><b>Note:</b> PostgreSQL must be configured with the <tt class=
+"LITERAL">transform_null_equals=true</tt> in <tt class=
+"LITERAL">/etc/postgresql/postgresql.conf</tt>.</p>
+</blockquote>
+</div>
+<div class="NOTE">
+<blockquote class="NOTE">
+<p><b>Note:</b> PHP should be configured with <tt class=
+"LITERAL">register_globals</tt> off. CPF will work with either
+setting, though.</p>
+</blockquote>
+</div>
+</div>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="index.html"
+accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html"
+accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href="x57.html"
+accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">Content Publishing
+Framework Manual</td>
+<td width="34%" align="center" valign="top">&nbsp;</td>
+<td width="33%" align="right" valign="top">Recommended reading</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

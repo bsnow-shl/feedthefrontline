@@ -1,0 +1,24 @@
+require_once 'form.h';
+form_set(array(
+    'system_id' => array('type'=>'hidden', value=>db_newid('comment_systems')),
+    'table_name' => 'text,required',
+    'singular' => 'text,required',
+    'plural' => 'text,required',
+    'primary_key_column' => 'text,required',
+    'title_column' => 'text,required',
+    'registration_required' => 'flag'
+));
+
+if (form_valid()) {
+	db_insert_or_update('comment_systems', 'comment_system_id', $system_id, 
+		array(
+		      'table_name' => $table_name,
+		      'singular' => $singular,
+		      'plural' => $plural,
+		      'pkey_column' => $primary_key_column,
+		      'title_column' => $title_column,
+		      'registration_required' => $registration_required));
+}
+
+$systems = db_multirow('select comment_system_id, plural from comment_systems');
+

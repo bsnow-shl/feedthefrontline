@@ -1,0 +1,13 @@
+
+$sid = $_GET['sid'];
+
+db_send('begin');
+db_send('delete from survey_answers where survey_response_id in (
+
+	select survey_response_id from survey_responses where survey_id=?
+	)', $sid);
+db_send('delete from survey_responses where survey_id=?', $sid);
+db_send('commit');
+redirect('index.html');
+
+

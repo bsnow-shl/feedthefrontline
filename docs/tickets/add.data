@@ -1,0 +1,35 @@
+
+require_once 'form.h';
+
+$form = array(
+	'your_email_address' => 'email,required',
+	'question' => 'bigtext,required',
+);
+if (!$_GET['component']) {
+	$form['component'] = array('type'=>'menu', 'pretty'=>'Topic area', 'sql'=>'select component as key, component as value from ticket_components order by component', 'required' => 1);
+}
+else {
+	$component = $_GET['component'];
+}
+
+form_set($form);
+
+if (form_valid()) {
+	if (db_value('select count(*) from ticket_components where component=?', $component)==0) {
+		$component = 'webmaster';
+	}
+
+	db_send('begin');
+	$ticket_id = db_newid('tickets');
+	db_send('insert into tickets (ticket_id,component,submitted_by,description) values (?,?,?,?)',
+		$ticket_id, $component, $your_email_address, $question);
+	db_send('commit');
+
+	$message = "A ticket was filed for you:\n\nSubmitter: $your_email_address\nQuestion: $question\n\nYou can see this ticket at ".$Gconfig['site']['home'].'admin/tickets/show.html?id='.$ticket_id;
+
+	$emails = db_array('select email from ticket_component_cc where component=?', $component);
+	foreach ($emails as $e) {
+		mail($e, 'New ticket', $message);
+	}
+	redirect('add-done.html');
+}

@@ -1,0 +1,45 @@
+require_once 'form.h';
+require_once 'users.h';
+
+user_require();
+
+form_set(array(
+	'bboard_id' => array('type'=>'hidden', 'value' => $_REQUEST[bboard]),
+	'reply_to' => array('type'=>'hidden', 'value' => $_REQUEST[post]),
+	'message' => array('type'=>'bigtext', 'required'=>1, 'extra'=>' wrap="soft" rows="14" cols="45" style="width: 40em;" type="text" '),
+	'submit' => array('type'=>'submit', 'value'=>'Post this reply')
+));
+if (form_valid()) {
+	if (bboard_user_may_post($bboard_id)) {
+		$shortname = db_value('select short_name from bboards where bboard_id=?', $bboard_id);
+		$newid = db_newid('bboard_messages');
+		$pretty_message = str_replace("\r\n","<br/>", strip_tags($message, '<a><img><b><i><u><em><blockquote><p><br>'));
+		db_send('insert into bboard_messages(bboard_message_id, bboard_id, parent_post, author, headline, body) values (?,?,?,?,?,?)', 
+				$newid, $bboard_id, $reply_to, $_SESSION[user_id], 'Reply', $pretty_message);
+
+		# identify who to notify about this
+		$users_to_notify = db_array("select email from users,bboard_subscriber_map sm where users.user_id = sm.user_id AND bboard_id=? AND subscribe_comments=1", $bboard_id);
+		if (sizeof($users_to_notify)) {
+			$person_row = db_row('select first_name,last_name,screen_name,email from users where user_id=?', user_id());
+			$person_email = config_get('account','privacy_freak') ? '' : $person_row['email'];
+			$person = config_get('account','privacy_freak') ? $person_row['screen_name'] : $person_row['first_name'] .' ' . $person_row['last_name'];
+
+			$parent_msgid = db_value('select parent_post from bboard_messages where bboard_message_id=?', $newid);
+			$parent_subject = db_value('select headline from bboard_messages where bboard_message_id=?', $parent_msgid);
+
+			$bboard_row = db_row('select pretty_name,short_name from bboards where bboard_id=?', $bboard_id);
+			$pretty_name = $bboard_row['pretty_name'];
+			$short = $bboard_row['short_name'];
+			$message = "Bulletin-board: ".$pretty_name."\nURL: ".$Gconfig['site']['home']."bboard/$short/$parent_msgid\n\n$message\n\n";
+			$subject = "[$short] Re: ". $parent_subject;
+			foreach ($users_to_notify as $ignored => $email) {
+				cpf_mail($email, $subject, $message, $person_email ? "From: $person <$person_email>":'');
+			}
+		}
+		redirect("$shortname/$reply_to");
+	} else {
+		redirect('database-error.html');
+	}
+} else {
+	$topic = db_value('select headline from bboard_messages where bboard_message_id=?', $_REQUEST[post]);
+}

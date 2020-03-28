@@ -1,0 +1,50 @@
+<? require_once 'users.h';
+   if ($_REQUEST['content']=='referemail') : ?>
+
+<P>Your registration request has been processed, 
+and an email has been sent to &lt;<%=$_REQUEST['email']%>&gt;.
+Please check your mail and follow the link provided in order to
+complete your registration.
+
+<? else : ?><? if ($_REQUEST['content']=='verify') : ?>
+
+   <? if ($_REQUEST['code'] && $_REQUEST['code']==db_value("select not_verified from users where email=?",$_REQUEST['email'])) {
+
+       //move into verified state:
+       db_send("update users set password=not_verified,not_verified=null where email=?",$_REQUEST['email']);
+       $_SESSION[user_id_mojo] = $_User->hash_for_password($_REQUEST['code']);
+        echo ("<P>You have successfully completed your registration.");
+        //log the user in (w/out password)
+        if (!user_login($_REQUEST['email'],$_REQUEST['code'])) {
+          //I *just* set the password. This can't fail!!
+          error_log("catastrophic login failure in verifyemail.html");
+        }
+        if ($_REQUEST['goback']) {
+          $goback=$_REQUEST['goback'];
+        } else {
+          $goback="%2F";
+        }
+        //allow the user to set their password, meaning they can't supply an initial password
+        redirect("change-password.html?set=1&verify=".$_REQUEST['code']."&goback=$goback");
+
+     } else { ?>
+
+      <P>Email verification failed.  Check your email and make
+         sure the url is complete and intact.  Or try to
+         <a href="register.html">register</a> again.
+
+   <? } ?>   
+
+<? else : ?>
+
+     <form method=post>
+        <input type=hidden name='content' value='verify' />
+
+        <table>
+        <tr><th>Email:</th><td><input type=text name='email' /></td></tr>
+        <tr><th>Verification code:</th><td><input type=text name='code' /></td></tr>
+        </table>
+        <input type=submit value='Submit'>
+     </form>
+
+<? endif ?><? endif ?>

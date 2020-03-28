@@ -1,0 +1,81 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+$sid = 0+$_GET['sid'];
+$survey = db_row('select * from surveys where survey_id=?', $sid);
+if ($survey['survey_type']=='multi-page') {
+  redirect(href('multipage-edit.html', 'sid', $sid));
+}
+
+$form = array(
+  'creator'=> array('type'=>'visible', 'value'=> user_name($survey['created_by'])),
+
+	'status' => array('type'=>'menu', 'menu' => array(
+				'draft'=>'Draft',
+				'live'=>'Live',
+				'promo'=>'Live + in promo spot',
+				'retired'=>'Retired'
+				), 'required'=>1, 'default'=>$survey['survey_status']),
+    'notify_email' => array('type'=>'email', 'pretty'=>'Send submissions to', 'default' => $survey['notify_email']),
+	'show_answers_to' => array('type'=>'menu', 'menu' => array(
+		'respondents' => 'Respondents after participating',
+		'admin' => 'Administrators only'
+		), 'required'=>1, 'default'=> $survey['answers_available_to'])
+) + i18n_form_fields('Survey preamble', $sid);
+form_set('details', $form);
+
+if (form_valid('details')) {
+	db_send('update surveys set survey_status=?, notify_email=?, answers_available_to=? where survey_id=?', $status, $notify_email, $show_answers_to, $sid);
+	$survey = db_row('select * from surveys where survey_id=?', $sid);
+	i18n_form_handle('Survey preamble', $sid);
+
+
+	form_add_note('Your changes have been saved. You can return to <a href="/admin/surveys/">survey admin</a>.','details');
+}
+
+if ($survey['survey_type']=='popquiz') {
+	$qid = db_value('select survey_question_id from survey_questions where survey_id=? order by display_order', $sid);
+	form_set('popquizq', i18n_form_fields('Survey question', $qid));
+	if (form_valid('popquizq')) {
+		db_send('begin');
+	  	if (!$qid) { $qid = db_newid('survey_questions'); 
+			db_send('insert into survey_questions (survey_question_id, survey_id, display_order, question_type)
+				values (?,?,?,?)', $qid, $sid, db_newid('display_order'), 'menu');
+		}
+		i18n_form_handle('Survey question', $qid);
+		db_send('commit');
+
+		redirect(href('edit-question.html', 'qid', $qid));
+	}
+
+	$questions = db_multirow('select * from survey_questions where survey_id=? order by display_order', $sid);
+} else {
+	form_set('addquestions', array(
+		'question_type' => array('type'=>'menu', 'required'=>1, 'menu'=>$survey['survey_type']=='multiple-choice-exam' ? 
+                array( 'menu'=>'multiple-choice') : array(
+				'text'=>'free text',
+				'bigtext'=>'big text box',
+				'email'=>'email address',
+				'menu'=>'multiple-choice',
+				'date'=>'date',
+				'flag'=>'check box',
+                'flaglist'=>'choose-all-that-apply'
+		)),
+		'required' => 'flag')
+		+ i18n_form_fields('Survey question')
+	);
+	if (form_valid('addquestions')) {
+	  db_send('begin');
+		db_send('insert into survey_questions (survey_question_id, survey_id, display_order, question_type,required)
+					values (?,?,?,?,?)', 
+				              $qid = db_newid('survey_questions'), $sid, db_newid('display_order'), $question_type, $required);
+		i18n_form_handle('Survey question', $qid);
+		db_send('commit');
+
+		if ($question_type=='menu') 
+			redirect(href('edit-question.html', 'qid', $qid));
+	}
+
+	$questions = db_multirow('select * from survey_questions where survey_id=? order by display_order', $sid);
+}
+

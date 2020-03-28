@@ -1,0 +1,1 @@
+$types = db_multirow('select * from shopping_product_types');

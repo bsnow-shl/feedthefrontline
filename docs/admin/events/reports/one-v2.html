@@ -1,0 +1,28 @@
+<!--
+<title>Door list: <%= $pretty_name %></title>
+-->
+
+<div class=section>
+<p>
+The following people are expected at this event.
+</p>
+<? if ($tax_info['description']) { echo "<p>Applicable taxes: <b>${tax_info['description']}</b></p>"; } ?>
+
+	<table class="padded"><tr><th>Attended?</th><th>Name</th><th>Paid?</th><th>Price</th><th>Price incl. tax</th></th><th>Price point</th></tr>
+ <?  foreach ($details as $d) {
+		echo '<tr><td>____</td>';
+		echo '<td>'.$d['last_name'].', '.$d['first_name'].'</td>';
+		echo '<td>'.($d['paid']?'yes':'no').'</td>';
+		echo '<td>'.$d['price'].'</td>';
+		echo '<td>';
+		$taxes = taxes_calculate($d['price'],  $tax_scheme_id);
+		$sum = 0;
+		if ($taxes) foreach ($taxes as $t) { $sum += $t['amount']; }
+		printf('%.02f</td>', $d['price'] + $sum);
+
+		echo '<td>'.$d['price_name'].'</td>';
+		echo '</tr>';
+	}
+  ?>
+  </table>
+</div>

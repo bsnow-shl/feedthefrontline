@@ -1,0 +1,43 @@
+<!--
+<title>Administer <cite><%= $r['album_uri'] %></cite></title>
+<subtitle>One of the <a href="./">photo albums</a>.</subtitle>
+-->
+
+<h2>Photos</h2>
+<div class="section">
+<form method=POST>
+<input type=hidden name="_update_photos" value="1">
+
+<? foreach ($photos as $p): ?>
+<table>
+ <tr><td>
+ 	<a name="<%= $p['photo_id'] %>">
+ 	<%= photo($p, 'left', array('size'=>'small')) %>
+	</a>
+ </td><td valign=top>
+	 <input type=text tabindex="<%= ++$tabindex %>" name="info[<%= $p['photo_id'] %>][photo_title]" value="<%= htmlspecialchars($p[photo_title]) %>">
+	 <br/>
+	 <textarea rows=5 tabindex="<%= ++$tabindex %>" cols=50 name="info[<%= $p['photo_id'] %>][caption]"><%= htmlspecialchars($p[caption]) %></textarea>
+	 <br/>
+	 <input type=text tabindex="<%= ++$tabindex %>" name="info[<%= $p['photo_id'] %>][keywords]" value="<%= htmlspecialchars($p[keywords]) %>"> keywords
+
+<br/>
+ <small>Edit: <a href="rotate.html?direction=90&photo=<%= $p['photo_id'] %>">clockwise</a>, 
+ <a href="rotate.html?direction=-90&photo=<%= $p['photo_id'] %>">counterclockwise</a>,
+ <a href="trash.html?photo=<%= $p['photo_id'] %>">trash</a>,
+ <a href="black-n-white.html?photo=<%= $p['photo_id'] %>">b&w</a>, 
+ <a href="new-folder.html?photo=<%= $p['photo_id'] %>">move to new folder</a>.<br/>
+ <input type="checkbox" name="checked[<%= $p['photo_id'] %>]" value="1">
+ Move
+ <a href="move.html?moveup=1&photo_id=<%= $p['photo_id'] %>">up</a>, 
+ <a href="move.html?movedown=1&photo_id=<%= $p['photo_id'] %>">down</a>, checked to here <input type="checkbox" name="checked2[<%= $p['photo_id'] %>]" value="1" /> 
+ </small>
+ </td></tr>
+</table>
+<br/>
+<? endforeach ?>
+<input type=submit name="action" value="Update descriptions">
+</form>
+
+</div>
+

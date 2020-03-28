@@ -1,0 +1,65 @@
+require_once 'form.h';
+
+eval(read_whole_file('view-invoice-common.data'));
+
+form_set(array(
+	'comment' => 'text',
+	'payment_amount' => 'dollars',
+	'add_comment' => array('type'=>'submit','value'=>'Add a comment'),
+	'void_invoice' => array('type'=>'submit','value'=>'Void this invoice'),
+));
+if (form_was_submitted()) {
+	if (!$comment && !$payment_amount) {
+		form_error('comment', 'This field is required.');
+	}
+}
+if (form_valid()) {
+	if ($add_comment) {
+		db_send('begin');
+
+		if ($comment) { 
+			$comment = user_name(user_id())."said: $comment."; 
+		} else {
+			$comment = user_name(user_id()).": ";
+		}
+
+		if ($payment_amount>0) {
+			$comment .= ' noted payment of '.$payment_amount;
+		}
+		if (($payment_amount*100 + $total_payments) > $invoice['cached_amount']-1) {
+			db_send('update contract_invoices set paid_date=CURRENT_TIMESTAMP, paid=1 where invoice_id=?', $invoiceid);
+			$commment .= ". System marked invoice paid.";
+		}
+		db_send('insert into contract_invoice_diary (invoice_id, note, payment_amount) values (?,?,?)',
+			$invoiceid, $comment, $payment_amount*100);
+		db_send('commit');
+	}
+	if ($void_invoice) {
+		db_send('begin');
+
+		db_send('insert into contract_invoice_diary (invoice_id, note) values (?,?)',
+			$invoiceid,
+			"Voided by ".user_email(user_id())."; reason given is: ".$comment);
+		db_send('update contract_invoices set void_date = CURRENT_DATE, void=1,void_reason=? where invoice_id=?', $comment, $invoiceid);
+		db_send('update contract_invoice_items set void=1,void_reason=? where invoice_id=?', $comment, $invoiceid);
+	
+
+		db_send('commit');
+	}	
+	redirect(href('details.html', 'contract', db_value('select contract_id from contract_invoices where invoice_id=?', $invoiceid)));
+}
+
+
+$audit = db_multirow("select date_part('epoch', tstamp) as tstamp, note from contract_invoice_diary where invoice_id=? order by tstamp", $invoiceid);
+$notes = array();
+foreach ($audit as $a) {
+	if ($p = strpos($a['note'], 'show:')) {
+		$notes[] = substr($a['note'], $p+5);
+	}
+}
+
+setlocale(LC_MONETARY, 'en_CA');
+
+
+
+

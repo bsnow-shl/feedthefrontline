@@ -1,0 +1,62 @@
+<!--
+<title><%= $einfo['title'] %></title>
+-->
+
+<div class=section>
+<? if ($reason): ?>
+	<span class=error>
+	 <%= ucfirst($reason) %>
+	</span>
+
+	<Br/>
+	<Br/>
+	<Br/>
+	<Br/>
+	<Br/>
+
+
+
+<? else: ?>
+<h3><%= sprintf(_("Register for <cite>%s</cite>"), $einfo['title']) %></h3>
+
+<? if (sizeof($price_list)==0 && !$custom): ?>
+<%= sprintf(_("It is not possible to register for this event; perhaps it is only open to <a href=\"%s\">members</a>."), user_login_link()) %>
+
+
+
+<? else: ?>
+
+<? form_start(); 
+
+  if ($custom) { 
+	print $custom['form_template']; 
+  } else {
+	  echo '<h3>';
+	  sprintf(_("Register for %s"), $einfo['title']);
+	  echo '</h3>';
+  }
+
+  if (file_exists("custom/$eid.html")) {
+	  print read_whole_file("custom/$eid.html");
+ }
+
+	if ($sessions) { 
+		echo '<h3>Choose your sessions</h3>';
+		echo "<p>At this conference, we have parallel tracks with limited registration. Please choose the sessions you're interested in.</p>";
+
+		foreach ($sessions as $id=>$s) { 
+			$when = strtotime($s['info']['session_start']);
+			echo '<h4>'.date("l F j, Y", $when).' &mdash; '.date("h:i a", $when)."</h4>@@$id@@";
+		}
+	}
+ ?>
+
+<br/>
+@@proceed@@
+
+<? form_end(); ?>
+
+<? endif ?>
+
+<? endif ?>
+</div>

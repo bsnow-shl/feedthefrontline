@@ -1,0 +1,14 @@
+require_once 'form.h';
+
+form_set(array(
+	'email' => 'email,required'
+	));
+
+if (form_valid()) {
+	$c = db_value('select count(*) from users where email=?', $email);
+	if ($c || config_get('account', 'privacy_freak') ) {
+		redirect('resend.html?email='.$email);
+	} else {
+		form_error('email', 'No such e-mail address on file.');
+	}
+}

@@ -1,0 +1,20 @@
+<!--
+<title>Example keywords for outgoing newsletters</title>
+-->
+
+<dl>
+<dt>%%unsubscribe_link%%
+<dd>This is the URL which, when visited, the user will be unsubscribed from your newsletter.  Example: <pre>&lt;a href="%%unsubscribe_link%%">Unsubscribe here&lt;/a></pre>
+
+<dt>%%http%%
+<dd>Substitute for <tt>http://</tt> when building links that you want to track clicks on.  Example: <pre>&lt;a href="%%http%%www.google.com">Click here&lt;/a></pre>
+</dl>
+
+<table class="padded"><tr><th>Keyword</th><th>Example</th></tr>
+<? foreach ($keywords as $k => $v): ?>
+<tr>
+<td>%%<%= $k %>%%</td>
+<td><%= $v %></td>
+</tr>
+<? endforeach ?>
+</table>

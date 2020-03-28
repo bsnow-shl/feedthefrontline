@@ -1,0 +1,29 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+$ptoid = 0+$_GET['ptoid'];
+$option_row = db_row('select * from shopping_product_type_options where type_option_id=?', $ptoid);
+$type_row = db_row('select * from shopping_product_types where product_type_id = ?', $option_row['product_type_id']);
+
+$option_name = $option_row['option_name'];
+
+if (!$ptoid) { redirect('index.html'); }
+
+
+form_set(array(
+	'choice_name'=>'text,required',
+	'price_premium'=>'dollars',
+	'cost_premium'=>'dollars',
+)+ i18n_form_fields('Product type option choice'));
+if (form_valid()) {
+	$ocid = db_newid('shopping_product_type_option_choices');
+	db_send('begin');
+	db_send('insert into shopping_product_type_option_choices 
+			(option_choice_id, type_option_id, choice_name, price_premium,cost_premium) values (?,?,?,?,?)',
+		$ocid, $ptoid, $choice_name, $price_premium*100, $cost_premium * 100);
+	i18n_form_handle('Product type option choice', $ocid);
+	db_send('commit');
+};
+
+$choices = db_multirow('select * from shopping_product_type_option_choices where type_option_id=?', $ptoid);
+i18n_get_batch($choices, 'Product type option choice', 'option_choice_id');

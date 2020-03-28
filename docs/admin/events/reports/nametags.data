@@ -1,0 +1,33 @@
+// <?
+require_once 'i18n.h';
+
+# get all sessions
+$eid = $_GET['eid'];
+
+$event_name = db_value('select name from events where event_id=?', $eid);
+
+$query = db_multirow('select event_registration_id, session_option_id, event_session_id, first_name, last_name, email, company, city 
+    from event_session_options 
+    join event_session_registrations  using (session_option_id)
+    join event_registrations  using (event_registration_id)
+    join event_pricing using (event_pricing_id) 
+    where confirmed=1 and paid=1 and event_id=?', $eid);
+
+$sessions = db_multirow("select event_session_id, date_part('epoch', session_start) as session_start, date_part('epoch', session_start + (duration ||' minutes')::interval) as session_end from event_sessions where event_id=? order by session_start", $eid);
+$registrants = array();
+foreach ($query as $q) {
+    if (!$registrants[ $q['event_registration_id']]) {
+        $registrants[ $q['event_registration_id']] = $q;
+    }
+    $registrants[ $q['event_registration_id']]['sessions'][ $q['event_session_id'] ] = $q['session_option_id'];
+}
+
+$session_options = db_hash_multirow('session_option_id', 'select session_option_id from event_session_options join event_sessions using (event_session_id) where event_id=?', $eid);
+i18n_get_batch($session_options, 'Event session option', 'session_option_id');
+foreach ($session_options as $k=>$v) {
+    if (substr($v['title'], 0, 7)=='Session') {
+        $session_options[$k]['title'] = 0+substr($v['title'], 7);
+    }
+}
+
+// ?>

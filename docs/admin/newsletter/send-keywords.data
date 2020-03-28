@@ -1,0 +1,2 @@
+
+$keywords = db_row('select * from user_reporting_view where user_id=?', user_id());

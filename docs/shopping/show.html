@@ -1,0 +1,19 @@
+<!--
+<title><%= $info['title'] %></title>
+-->
+
+<h2><%= $info['title'] %></h2>
+
+<p><%= $info['description'] %></p>
+
+<? if ($info['length']): ?>
+<p><b><%= _('Duration') %>:</b> <%= $info['length'] %></p>
+<? endif ?>
+<? if ($info['price']): ?>
+<p><b><%= _('Price') %>:</b> $<? printf("%.02f", $info['price']/100) ?></p>
+<? endif ?>
+
+<a href="<%= href('/shopping/add-to-cart.html', 'pid', $info['product_id']) %>"><%= _('Add this product to your shopping cart.') %></a>
+
+
+

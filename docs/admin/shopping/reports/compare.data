@@ -1,0 +1,94 @@
+
+if ($_REQUEST['submit']) {
+	$chosen = array_keys($_REQUEST['chosen']);
+	if (sizeof($chosen)>3) {
+		exit("You chose more than three items. Go back and fix that.");
+	}
+	if (sizeof($chosen)==2 || sizeof($chosen)==3) {
+		require_once 'fpdf.h';
+		require_once 'shopping.h';
+
+
+		function FancyTable($in, $header, $data) {
+		}
+
+		$pdf = new FPDF();
+		$pdf->AddPage();
+		$pdf->SetFont('Arial', '', 10.5);
+
+		$data = array(
+			array(1,2,3,4),
+			array(1,2,3,4),
+			array(1,2,3,4),
+			array(1,2,3,4),
+			array(1,2,3,4),
+			array(1,2,3,4),
+			array(1,2,3,4),
+		);
+
+
+		$sku1 = shopping_get_product(null, $chosen[0]);
+		$sku2 = shopping_get_product(null, $chosen[1]);
+		if ($_REQUEST['chosen'][2]) {
+			$sku3 = shopping_get_product(null, $chosen[2]);
+		}
+
+		if (sizeof($chosen)==2) {
+			$header = array('', $sku1['sku'], $sku2['sku']);
+			$w = array(50,70,70,0);
+		} else {
+			$header = array('', $sku1['sku'], $sku2['sku'], $sku3['sku']);
+			$w = array(40,50,50,50) ;
+		}
+
+		// grind out a header
+		$pdf->SetFillColor(255,0,0);
+		$pdf->SetTextColor(255);
+		$pdf->SetDrawColor(128,0,0);
+		$pdf->SetLineWidth(.3);
+		$pdf->SetFont('','B');
+
+		//Header
+		for($i=0;$i<count($header);$i++)
+			$pdf->Cell($w[$i],7,$header[$i],1,0,'C',1);
+		$pdf->Ln();
+
+
+		//Color and font restoration
+		$pdf->SetFillColor(224,235,255);
+		$pdf->SetTextColor(0);
+		$pdf->SetFont('');
+
+		//Data
+		$fill=0;
+		foreach($sku1 as $k => $v) {
+			$pdf->Cell($w[0],6,$k,'LR',0,'L',$fill);
+			
+			$x = $pdf->GetX();
+			$y = $pdf->GetY();
+			$pdf->MultiCell($w[1],6,$v,0,'L',$fill);
+
+			$pdf->SetXY($x+$w[1], $y);
+
+			$pdf->MultiCell($w[2],6,$sku2[$k], 0, 'L', $fill);
+			if ($w[3]) 
+				$pdf->Cell($w[3],6,$sku3[$k], 'LR', 0, 'L', $fill);
+			$pdf->Ln();
+			$fill=!$fill;
+		}
+		$pdf->Cell(array_sum($w),0,'','T');
+
+		$pdf->Output();
+
+		exit;
+
+	}
+}
+$products = db_multirow('
+	select product_id,sku,category_id from shopping_categories join shopping_product_category_map using (category_id) join shopping_products using (product_id) order by category_id, display_order
+');
+i18n_get_batch($products, 'Product category', 'category_id');
+
+
+
+

@@ -1,0 +1,44 @@
+<?php
+
+$Gconfig = array(
+	'db' => array(
+                'dbname' => 'demosite-php7',
+        ) ,
+
+	'site' => array(
+		'short_name' => 'scrotate-web',
+	),
+
+	// split errors off into their own table in auto-rendered forms
+	'form' => array('separate_errors'=>1),
+	
+	'events' => array(
+	  'availability_criteria' => array(
+		array( 'title'=>'Always show',
+			'header'=> 'events.h',
+			'function'=>'event_true',
+			'show_to_public' => 1
+		),
+	   ),
+	),
+
+    'salt' => 'unimaginative',
+
+);
+
+if (!$Gconfig['db']) {
+    $_parsed_ini = parse_ini_file($_SERVER['DOCUMENT_ROOT'].'/../conf/cpfdb.ini', true);
+    $_dbname = $_parsed_ini['default']['defaultdb'];
+
+    if (!$_dbname) { $_dbame = config_get('site','short_name'); }
+    if (file_exists( $_ENV['HOME'].'/.cpfdb.ini' )) {
+        $_new_parsed_ini = parse_ini_file($_ENV['HOME'].'/.cpfdb.ini', true);
+        $Gconfig['db'] = $_new_parsed_ini[ $_dbname ];
+    }
+    if ($_parsed_ini==FALSE) { exit("No file ~/cpfdb.ini"); }
+    if (!$Gconfig['db']) {
+      $Gconfig['db'] = $_parsed_ini[ $_dbname ];
+    }
+}
+
+?>

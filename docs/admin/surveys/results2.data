@@ -1,0 +1,10 @@
+
+require_once 'i18n.h';
+require_once 'survey.h';
+
+$sur = db_row('select * from surveys where survey_id=?', 0+$_GET['sid']);
+if (!$sur) { exit(); }
+
+list ($questions, $answers) = survey_get_detailed_results($_GET['sid']);
+
+

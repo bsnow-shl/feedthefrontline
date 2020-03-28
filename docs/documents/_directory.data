@@ -1,0 +1,20 @@
+require_once 'users.h';
+
+if (config_get('documents', 'required_role')) {
+	user_require (config_get('documents', 'required_role'));
+}
+
+function documents_user_may_view($doc_id) {
+	$cat = db_row('select * from document_categories where document_category_id = (select document_category_id from documents where document_id=?)', $doc_id);
+	if ($cat['restrict_to_role'] && !user_has_role($cat['restrict_to_role'])) {
+		return false;
+	}
+
+	if ($func = $cat['restrict_to_special']) {
+		if (!$func()) {
+			return false;
+		}
+	} 
+	return true;
+}
+

@@ -1,0 +1,20 @@
+<!--
+<title><%= _('Order Confirmation') %></title>
+-->
+
+<div class="prettybody">
+
+<h3><%= _('Thank you!') %></h3>
+
+<p><? printf(_('Thank you for completing your order with us. Your order number is %d.') , $shopcart_id) ?>
+</p>
+
+<p>
+<? printf(_(" If you want to track the progress of your order, please <a href=\"%s\">bookmark this link</a>.  We have also emailed it to you."), 
+		 href('/shopping/order-status.html', 'id', $strong_shopcart_id) ) 
+?>
+</p>
+</p>	
+
+
+</div>

@@ -1,0 +1,60 @@
+require_once 'ajax.h';
+require_once 'newsletter.h';
+require_once 'survey.h';
+
+
+switch (ajax_action()) {
+    case 'invite':
+      $params = ajax_parameters();
+      $iid = $params['iid'];
+
+      survey_send_invite($iid);
+      echo "invite-$iid|sent";
+
+      db_send('update survey_invitations set invitation_status=? where invitation_status =? and invitation_id=?', 'sent', 'unsent', $iid);
+
+      db_insert_hash('survey_invitation_diary', array(
+              'invitation_id'=>$iid,
+              'note' => user_name().' sent the invitation'
+      ));
+
+      exit;
+
+    case 'remind': 
+      $params = ajax_parameters();
+      $iid = $params['iid'];
+
+      survey_send_reminder($iid);
+      echo "remind-$iid|sent";
+      
+      db_insert_hash('survey_invitation_diary', array(
+              'invitation_id'=>$iid,
+              'note' => user_name().' sent a reminder'
+      ));
+
+      exit;
+}
+
+
+$sid = 0+$_GET['sid'];
+$params = array( $sid );
+
+$status = $_GET['status'];
+if ($status) {
+  $where = "and invitation_status=?";
+  $params[] = $status;
+}
+
+$survey_name = db_value('select short_name from surveys where survey_id=?', $sid);
+
+$has_invitation_mailing = db_value('select invitation_mailing_id from surveys where survey_id=?', $sid);
+$has_reminder_mailing = db_value('select reminder_mailing_id from surveys where survey_id=?', $sid);
+
+$matching = db_multirow("select invitation_id,email,company,valid_until,invitation_status, count(response_id) as count 
+    from users 
+               join survey_invitations using (user_id) 
+    left outer join survey_invitation_responses using (invitation_id) 
+    where survey_id=? $where
+    group by invitation_id,email,company,valid_until,invitation_status", $params);
+
+

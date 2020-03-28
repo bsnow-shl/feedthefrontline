@@ -1,0 +1,7 @@
+require 'dbadmin.h';
+
+$tables = dbadmin_list_tables();
+foreach ($tables as $ig => $t) {
+	$counts[$t] = db_value("select count(*) from $t");
+}
+

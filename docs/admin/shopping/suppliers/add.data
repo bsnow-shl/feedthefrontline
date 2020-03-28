@@ -1,0 +1,12 @@
+require_once 'form.h';
+
+
+
+form_set(array(
+	'short_name' => 'text,required'
+));
+if (form_valid()) {
+	$supplier_id = db_newid('shopping_suppliers');
+	db_send('insert into shopping_suppliers(supplier_id,visible,short_name) values (?,1,?)', $supplier_id, $short_name);
+	redirect(href('edit.html', 'sid', $supplier_id));
+}

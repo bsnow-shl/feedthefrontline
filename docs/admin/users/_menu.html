@@ -1,0 +1,21 @@
+<? require_once 'users.h'; ?>
+<div class="box">
+<h2><a href="/admin/users/">User administration</a></h2>
+    <? if (user_has_role('role_admin')): ?>
+        <p>
+        <a href="/admin/users/roles.html">Roles administration</a>
+        </p><p>
+        <a href="/admin/users/upload.html">Bulk user upload</a>
+        </p>
+    <? endif ?>
+    <p>
+    <a href="<%= href('/account/register.html', 'goback', $_SERVER[REQUEST_URI], 'noautologin', '1') %>">Register a new user</a>
+    </p>
+
+    <? if ($_SESSION['edit_user']): ?>
+        <p>
+        <a href="/admin/users/edit.html"> Return to <%= db_value("select last_name from users where user_id=?", $_SESSION['edit_user']) %></a>
+        </p>
+    <? endif ?>
+</div>
+

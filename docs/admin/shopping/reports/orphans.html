@@ -1,0 +1,20 @@
+<!--
+<title>Orphans</title>
+-->
+
+<div class="section">
+
+<p>
+The following product SKU's are marked "visible to the public" but 
+are not shown in any category.  They should probably be marked "unavailable to the public",
+or listed in a category.
+</p>
+
+<ul>
+<? foreach ($orphans as $o): ?>
+<li><a href="<%= href('/admin/shopping/products/edit.html','pid', $o['product_id']) %>"><%= $o['sku'] %></a>
+<? endforeach ?>
+</ul>
+
+</div>
+

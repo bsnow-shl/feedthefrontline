@@ -1,0 +1,209 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Linux/x86 (vers 1st August 2004), see www.w3.org">
+<title>Tutorial: your first website</title>
+<meta name="GENERATOR" content=
+"Modular DocBook HTML Stylesheet Version 1.79">
+<link rel="HOME" title="Content Publishing Framework Manual" href=
+"index.html">
+<link rel="PREVIOUS" title="Recommended reading" href="x57.html">
+<link rel="NEXT" title="The Templating System" href=
+"templating.html">
+<link rel="STYLESHEET" type="text/css" href="stylesheet.css">
+<meta name="creation" content="2005-03-11T18:12:01">
+</head>
+<body class="CHAPTER" bgcolor="#FFFFFF" text="#000000" link=
+"#0000FF" vlink="#840084" alink="#0000FF">
+<div class="NAVHEADER">
+<table summary="Header navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<th colspan="3" align="center">Content Publishing Framework
+Manual</th>
+</tr>
+<tr>
+<td width="10%" align="left" valign="bottom"><a href="x57.html"
+accesskey="P">Prev</a></td>
+<td width="80%" align="center" valign="bottom"></td>
+<td width="10%" align="right" valign="bottom"><a href=
+"templating.html" accesskey="N">Next</a></td>
+</tr>
+</table>
+<hr align="left" width="100%"></div>
+<div class="CHAPTER">
+<h1><a name="AEN86" id="AEN86"></a>Chapter 2. Tutorial: your first
+website</h1>
+<p>This section will walk you through setting up your first website
+under the CPF, and in the process give you a tour of the
+Framework's major facilities.</p>
+<div class="PROCEDURE">
+<ol type="1">
+<li class="STEP">
+<p>The CPF is distributed as a single tarball. Uncompress it by
+typing <kbd class="USERINPUT">tar xzf cpf-3.0.tgz</kbd> . This will
+produce a number of directories under the directory <samp class=
+"COMPUTEROUTPUT">cpf-3.0</samp>.</p>
+</li>
+<li class="STEP">
+<p>Expand the demosite site that we have provided by typing
+<kbd class="USERINPUT">tar xzf cpf-3.0/demosite.tgz</kbd>. You now
+have two directories alongside each other: <tt class=
+"LITERAL">cpf-3.0</tt> and <tt class="LITERAL">demosite</tt>.</p>
+</li>
+<li class="STEP">
+<p>Install CPF into the demonstration site with <kbd class=
+"USERINPUT">cpf-3.0/bin/cpf-install demosite</kbd>. This will
+sprinkle the contents of <tt class="LITERAL">cpf-3.0</tt> into
+<tt class="LITERAL">demosite</tt>. Enter your new play area by
+typing <kbd class="USERINPUT">cd demosite</kbd>. You might have a
+look around at this point to see how things look.</p>
+</li>
+<li class="STEP">
+<p>Build your play area's database by running <kbd class=
+"USERINPUT">cpf-3.0/bin/build-databases</kbd>. If this is your
+first time using Postgres, the script will ask you to go create a
+Postgres account for your user.</p>
+</li>
+<li class="STEP">
+<p>Start your play area by typing <kbd class=
+"USERINPUT">bin/httpdup</kbd>. You should see something like:</p>
+<pre class="SCREEN">
+Okay, it's running on http://floyd:9606/
+You might want to do this:
+
+        export CPF_PORT=9606
+        export CPF_BASE="http://floyd:9606/"
+</pre>
+Ignore the suggestion for now, and paste that URL into your web
+browser. You should see a greeting screen telling you that you have
+successfully set up the publishing system.
+<p>If you don't see a success message, you might see something else
+that explains to you what's going on. Follow the suggestions, and
+keep trying until you get a screen that says "Success!" at the top
+and no error messages below. It's also possible that the Apache
+server didn't start. Look for error messages coming out of
+<kbd class="USERINPUT">httpdup</kbd>, and take a look at the end of
+<kbd class="USERINPUT">logs/error_log</kbd>.</p>
+</li>
+</ol>
+</div>
+<p>Congratulations! You've successfully set up your first site with
+the Content Publishing Framework. From here, it's a good idea to
+have a look around to see what you've got. List the contents of the
+<tt class="LITERAL">demosite</tt> directory. You'll see:</p>
+<div class="TABLE"><a name="AEN117" id="AEN117"></a>
+<p><b>Table 2-1. Structure of a typical CPF site</b></p>
+<table border="1" class="CALSTABLE">
+<col>
+<col>
+<thead>
+<tr>
+<th>Directory</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bin/</td>
+<td>This contains various scripts and programs useful for
+developing sites with the CPF. In bin/sql is the SQL schema for the
+core CPF.</td>
+</tr>
+<tr>
+<td>docs/</td>
+<td>This contains the public web pages for the site. With a basic
+CPF installation, this includes a bulletin board (in <tt class=
+"LITERAL">docs/bboard</tt>), document management (in <tt class=
+"LITERAL">docs/documents/</tt>, and numerous other modules.
+<tt class="LITERAL">docs/admin/</tt> holds the administrative web
+pages. Last but not least, there's this manual, in <tt class=
+"LITERAL">docs/manual</tt>.</td>
+</tr>
+<tr>
+<td>includes/</td>
+<td>This directory includes various facilities and services which
+can be included by your websites. All of the CPF's logic lies here,
+from user management, to database connectivity.</td>
+</tr>
+<tr>
+<td>conf/</td>
+<td>Site-specific configuration goes here including your site's
+data model, custom include files, and Apache server
+configuration.</td>
+</tr>
+<tr>
+<td>logs/</td>
+<td>Apache error and access logs will go here, while you're
+developing your site.</td>
+</tr>
+<tr>
+<td>tests/</td>
+<td>This directory includes the automated unit tests of the CPF,
+and is the place where you would write your own.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="SECTION">
+<h1 class="SECTION"><a name="AEN147" id="AEN147">2.1. Making your
+own sites</a></h1>
+<p>Of course, eventually you will want to make your own sites. We
+recommend that you clone the demosite site and customize it to suit
+your needs. One good way to do this is by importing it into CVS,
+then checking it back out:</p>
+<div class="PROCEDURE">
+<ol type="1">
+<li class="STEP">
+<p>Uncompress the <kbd class="USERINPUT">demosite.tgz</kbd>
+somewhere like /tmp.</p>
+</li>
+<li class="STEP">
+<p><kbd class="USERINPUT">cd demosite</kbd></p>
+</li>
+<li class="STEP">
+<p><kbd class="USERINPUT">cvs import <tt class=
+"REPLACEABLE"><i>mysite</i></tt> r1 v1</kbd></p>
+</li>
+<li class="STEP">
+<p><kbd class="USERINPUT">cd ..</kbd></p>
+</li>
+<li class="STEP">
+<p><kbd class="USERINPUT">rm -rf demosite</kbd></p>
+</li>
+<li class="STEP">
+<p><kbd class="USERINPUT">cvs checkout <tt class=
+"REPLACEABLE"><i>mysite</i></tt></kbd></p>
+</li>
+</ol>
+</div>
+<p>If you don't have CVS or any other source control system, you
+should seriously consider setting one up. The CPF works best with
+them, and you will find later upgrades to be much easier if you're
+using source control.</p>
+</div>
+</div>
+<div class="NAVFOOTER">
+<hr align="left" width="100%">
+<table summary="Footer navigation table" width="100%" border="0"
+cellpadding="0" cellspacing="0">
+<tr>
+<td width="33%" align="left" valign="top"><a href="x57.html"
+accesskey="P">Prev</a></td>
+<td width="34%" align="center" valign="top"><a href="index.html"
+accesskey="H">Home</a></td>
+<td width="33%" align="right" valign="top"><a href=
+"templating.html" accesskey="N">Next</a></td>
+</tr>
+<tr>
+<td width="33%" align="left" valign="top">Recommended reading</td>
+<td width="34%" align="center" valign="top">&nbsp;</td>
+<td width="33%" align="right" valign="top">The Templating
+System</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

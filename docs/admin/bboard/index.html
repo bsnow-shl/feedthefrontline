@@ -1,0 +1,22 @@
+<!--
+<title>Bulletin Board Admin</title>
+<subtitle><%= $num_messages." messages in ".$num_bboards." bulletin boards" %></subtitle>
+-->
+
+
+<div class="section">
+<h3>Edit a bulletin board</h3>
+<? form_start('bboard'); form_end(); ?>
+</div>
+
+
+<div class="section">
+<h3>Create a bulletin board</h3>
+<? form_start('addbboard'); form_end(); ?>
+</div>
+
+<div class="section">
+<h3>Fun facts</h3>
+<p>There are <%= $num_bboards %> bulletin boards with a total of <%= $num_messages %> messages.</p>
+</div>
+

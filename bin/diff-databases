@@ -1,0 +1,63 @@
+#!/usr/bin/perl
+#
+# Compares the database you should have, with the database you've got.
+#
+# Takes one optional argument, the database name to compare against. Otherwise it just uses the same algorithm to guess it as build-databases.
+# 
+# It does a build-database out of the current working directory into a temporary database, dumps the whole kit with pg_dump and diffs them with apgdiff.
+# Output is a set of SQL that will convert your current schema into the new one.
+#
+# READ THAT DIFF CAREFULLY before applying it..
+
+use strict;
+
+if (! `which apgdiff`) {
+    die "apgdiff should be installed";
+}
+
+BEGIN {
+    my $old = `pwd`;
+    chop $old;
+
+    my $root = `dirname $0`;
+    chomp $root;
+
+    if ( $root !~ m#^/# ) {
+        chdir $root;
+        my $pwd = `pwd`;
+        chomp $pwd;
+        $root = $pwd;
+        $root =~ s/\n//g;
+        $root =~ s/\/$//g;
+    }
+
+    $root =~ s#/[^/]*$##g;
+
+    chdir $root;
+}
+
+my $db = $ARGV[0];
+if (!$db) {
+	$db = `bin/build-databases -dbname`;
+	chop $db;
+}
+exit if !$db;
+
+my $db2 = "cpf_db_upgrade";
+
+print "-- loading existing schema\n";
+die "Loading failed" if system("bin/build-databases $db2");
+
+
+print "\n-- dumping\n";
+
+die "Dump of $db2 failed" if system("pg_dump $db2 >logs/proposed.sql");
+die "Dump of $db failed" if system("pg_dump $db >logs/current.sql");
+
+system('apgdiff logs/current.sql logs/proposed.sql');
+
+print "\n-- dropping $db2: ";
+system("dropdb $db2");
+unlink('logs/proposed.sql');
+unlink('logs/current.sql');
+print "\n";

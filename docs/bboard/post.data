@@ -1,0 +1,51 @@
+$short = $info[2];
+$bboard_id = $_REQUEST[bboard_id];
+$pretty_name = db_value('select pretty_name from bboards where bboard_id=?', $bboard_id);
+$short = db_value('select short_name from bboards where bboard_id=?', $bboard_id);
+
+require_once 'users.h';
+require_once 'form.h';
+require_once 'uploads.h';
+user_require();
+
+$form = array(
+	'subject' => array('type'=>'text', 'required'=>1, 'extra'=>' style="width: 25em;"'),
+	'message' => array('type'=>'bigtext', 'required'=>1, 'extra'=>' wrap="soft"  style="width: 25em;"  ', rows=>14, 'cols' => '25' )
+);
+if (user_has_role('bboard_attachments')) {
+	$form['attachment'] = array('type'=>'file');
+}
+$form['submit'] = array('type'=>submit, value=>'Post this message');
+form_set('post', $form);
+
+if (form_valid('post')) {
+   if (bboard_user_may_post($bboard_id)) {
+	$postid = db_newid('bboard_messages');
+	$subject = strip_tags($subject);
+	$message = str_replace("\r\n","<br/>", strip_tags($message, '<img><a><b><i><u><em><blockquote><p><br>'));
+
+	db_send('insert into bboard_messages (bboard_message_id,bboard_id,author,headline,body) values (?,?,?,?,?)',
+			$postid, $bboard_id, $_SESSION[user_id], $subject, $message);
+		
+	if ($_FILES['attachment']['size']) {
+		$upload_id = $_FILES['attachment']['upload_id'];
+		upload_associate($upload_id, 'bboard_messages', $postid, 'bboard_message_id', 'upload_id');
+	}
+	
+	# identify who to notify about this
+	$users_to_notify = db_array("select email from users,bboard_subscriber_map sm where users.user_id = sm.user_id AND bboard_id=? AND subscribe_posts=1", $bboard_id);
+
+	$person_row = db_row('select first_name,last_name,screen_name,email from users where user_id=?', user_id());
+	$person = config_get('account', 'privacy_freak') ? $person_row['screen_name'] : $person_row['first_name'].' '.$person_row['last_name'];
+	$person_email = config_get('account', 'privacy_freak') ? '' : $person_row['email'];
+
+	$message = "There's a new post on ".$pretty_name."\n\n\"$subject\" by $person:\n".$Gconfig['site']['home']."bboard/$short/$postid\n\n";
+	$subject = "[$short] ". $subject;
+	foreach ($users_to_notify as $ignored => $email) {
+		cpf_mail($email, $subject, $message, $person_email ? "From: $person <$person_email>":'');
+	}
+	redirect("$short/$postid");
+   } else {
+	redirect('database-error.html');
+  }
+}

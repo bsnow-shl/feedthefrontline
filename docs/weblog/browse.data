@@ -1,0 +1,13 @@
+$candidates = db_multirow("
+	select date_part('year', posting_date) as year, 
+		to_char(posting_date, 'Month YYYY') as month, 
+		to_char(posting_date, 'Month DD, YYYY')  as day, 
+		entry_title,uri, weblog_entry_id
+	from weblog_entries 
+	where weblog_id=? 
+	order by posting_date desc", $weblog_row['weblog_id']);
+
+foreach ($candidates as $r) {
+	$entries[$r[year]][$r[month]][$r[day]][] = $r;
+}
+

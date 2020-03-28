@@ -1,0 +1,323 @@
+<!--
+<title>Database Layer function reference</title>
+<subtitle>part of the <a href="./">CPF manual</a>.</subtitle>
+-->
+
+<div class="section">
+
+The database layer is available very early on in the request serving process, so there is no need to include <cite>db.h</cite>.
+
+
+<p/>
+Index:
+<ol>
+
+
+<li>
+<a href="#">db_value</a> &mdash;  Retrieves a single value from the database.
+<li>
+<a href="#">db_row</a> &mdash;  Retrieves a single row from the database.
+<li>
+<a href="#">db_array</a> &mdash;  Retrieves a list of values from the database.
+<li>
+<a href="#">db_multirow</a> &mdash;  Retrieves multiple rows from the database.
+<li>
+<a href="#newid">db_newid</a> &mdash;  Obtains a new number out of a sequence.
+<li>
+<a href="#">db_hash_multirow</a> &mdash;  Returns a multiple-row result set keyed by one column.
+<li>
+<a href="#send">db_send</a> &mdash;  Sends a generic SQL query to the database.
+<li>
+<a href="#tuples">db_tuples</a> &mdash;  Returns the number of rows affected by the given result.
+<li>
+<a href="#errormessage">db_errormessage</a> &mdash;  Returns the last error string from the database or a given result.
+<br/>
+<li>
+<a href="#update">db_update</a> &mdash;  Updates a single row in one table of the database.
+<li>
+<a href="#insert_hash">db_insert</a> &mdash;  Inserts a new row into a table.
+<li>
+<a href="#insert_or_update">db_insert_or_update</a> &mdash;  Inserts a row into the database if it it's not there already.
+</ol>
+
+<dl class=functions> 
+<dt><a name=value>db_value</a></dt>
+
+<dd class=intro>Retrieves a single value from the database.</dd>
+<dd class=synopsis>$scalar = db_value(sql, [ parameter ...] );<dd>
+
+<dd class=description>
+This function retrieves a one-column, one-row result from the database. <em>sql</em> must be a valid SELECT statement with a single-valued result. <em>parameters</em> is 0 or more parameters corresponding to placeholders in the SQL.
+
+
+<p/>
+The function returns boolean false if the query fails, returns nothing, or returns 2 or more rows.
+
+<pre class="screen">
+$c = db_value('select count(*) from users');
+if ($c === false) {
+	    /* query failed */
+} else {
+	    print "There are $r users";
+}
+</pre>
+
+</dd>
+
+<dt><a name=row>db_row</a></dt>
+
+<dd class=intro>Retrieves a single row from the database.</dd>
+<dd class=synopsis>        $hash = db_row(sql, [ parameter ...] );<dd>
+
+<dd class=description>
+This function retrieves a one-row result from the database, with as many columns as you like. <em>sql</em> is a valid SELECT statement with a one-row result. <Em>parameters</em> is 0 or more parameters corresponding to placeholders in the SQL.
+
+<p/>
+
+This function returns a hash keyed by the column names in the result, with the values the content of those columns.
+
+<p/>
+The function returns boolean false if the query fails, returns nothing, or returns 2 or more rows.
+
+<pre class=screm>
+$r = db_value('select first_name,last_name from users where user_id=?', $uid);
+print "User $uid's first name is ".$r['first_name'];
+</pre>
+</dd>
+
+
+<dt><a name=array>db_array</a></dt>
+
+<dd class=intro>Retrieves a list of values from the database.</dd>
+<dd class=synopsis>        $array = db_array(sql, [ parameter ...] );<dd>
+
+<dd class=description>
+This functions returns a one-column, multiple-row result from the database. , and returns it as an array of scalars. The name of the column is not significant. <em>sql</em> is a valid SELECT statement that returns any number of rows. <em>parameters</em> is 0 or more parameters corresponding to placeholders in the SQL.
+<p/>
+
+This function will return an array even if the query results in 0 or 1 rows - it will merely be an empty array, or an array with one entry in it (a scalar).
+<p/>
+
+It returns boolean false if the query fails.
+
+<pre class=screen>
+$a = db_array('select distinct(first_name) from users');
+foreach ($a as $name) { ... }
+</pre>
+</dd>
+
+<dt><a name=multirow>db_multirow</a></dt>
+
+<dd class=intro>Retrieves a list of rows from the database.</dd>
+<dd class=synopsis>$array_of_hashes = db_multirow(sql, [ parameter ...] );<dd>
+<dd class=description>
+This function retrieves a multiple-row result from the database, with as many columns or rows as you like. <em>sql</em> is a valid SELECT statement that returns any number of rows. <em>parameters</em> is 0 or more parameters corresponding to placeholders in the SQL.
+
+
+<p/>
+This function returns an array with one entry per row, with each entry a hash keyed by the column names. This function will return an array even if the query results in 0 or 1 rows - it will merely be an empty array, or an array with one entry in it (a hash).
+
+
+<p/>
+It returns false if the query fails.
+
+<pre class=screen>
+$r = db_value('select * from users');
+print "The first user's name is ".$r[0]['first_name'];
+foreach ($r AS $row) {
+	foreach ($row AS $key=>value) {
+		...
+	}
+}
+</pre>
+</dd>
+
+
+
+<dt><a name=hash_multirow>db_hash_multirow</a></dt>
+<dd class=intro>Returns a multiple-row result set keyed by one column.  </dd>
+<dd class=synopsis>$hash_of_hashes = db_hash_multirow(key_column, sql, [ parameter ...]);<dd>
+<dd class=description>
+This function retrieves a multiple-row result set, much like <a href="#multirow">db_multirow</a>, except that instead of returning an array of hashes, it returns a hash of hashes. The outer hash is keyed by the column you specify.
+<p/>
+
+This is especially useful when working with tables that have identifying keys (most likely the primary key), that you want to do quick lookups on. For instance, if your database schema guarantees that email addresses are unique, then you might do something like this:
+
+<pre class=screen>
+$r = db_hash_multirow('email', 'select email, first_name, last_name from users');
+print $r['billg@microsoft.com']['first_name'];
+</pre>
+
+<em>key_column</em> is the column name whose data is used in the returned map as keys. That column name must be generated by the <em>sql</em> you pass in. <em>parameters</em> is 0 or more parameters corresponding to placeholders in the SQL.
+</dd>
+
+
+<dt><a name=send>db_send</a></dt>
+
+<dd class=intro>Sends a generic SQL query to the database.  </dd>
+<dd class=synopsis>        $pg_result = db_send(sql, [ parameter ...] );<dd>
+<dd class=description>
+This function sends a transaction of no specific type to the database, for those functions that don't fall into any of the other categories provided in the database layer. It's useful for DELETE statements, BEGIN/COMMIT transaction calls, and ALTER TABLE, among others.
+
+<p/>
+
+<em>sql</em> is a valid SELECT statement that returns any number of rows. <em>parameters</em> is 0 or more parameters corresponding to placeholders in the SQL.
+
+<p/>
+This function will return a PostgreSQL result resource that can be used with any of the Postgres-specific functions provided by PHP. It is also understood by <a href="#tuples">db_tuples</a> and <a href="#errormessage">db_errormessage</a>. It returns false if the query fails.
+
+<pre class="screen">
+db_send('begin');
+db_send('delete from comments where author=?', $uid);
+db_send('delete from users where user_id=?', $uid);
+db_send('commit');
+</pre>
+</dd>
+
+<dt><a name=tuples>db_tuples</a></dt>
+
+<dd class=intro>Returns the number of rows affected by the given result.  </dd>
+<dd class=synopsis>$count = db_tuples($pg_result)</dd>
+<dd class=description>
+Given a result resource returned by <a href="#send">db_send</a>, this returns the number of rows affected by the query.
+
+<pre class=screen> $pg_result = db_send('update users set last_visit=CURRENT_TIMESTAMP');
+$count = db_tuples($pg_result); // number of deleted users
+</pre>
+</dd>
+
+
+<dt><a name=errormessage>db_errormessage</a></dt>
+
+<dd class=intro>Returns the last error string from the database or a given result.</dd>
+<dd class=synopsis>$message = db_errormessage($result=null)<dd>
+<dd class=description>
+Occasionally, the database layer will suffer an error of some sort: perhaps bad SQL was sent in, or it hit a bug, or some internal limit was reached, or the disk filled up. 
+This is indicated when some functions returning false that normally don't.
+
+<p/>
+This function returns the last error message string produced by the database layer. You can pass in a result resource (such as returned by db_send ) if you want to know specifically what happened on the corresponding query.
+
+<pre class=screen>
+if (db_value(...)===false) { // note: three ='s
+	print "Error: ".db_errormessage();
+}
+</pre>
+
+</dd>
+
+
+
+<dt><a name=update>db_update</a></dt>
+
+<dd class=intro>Updates a row with the contents of a hash.</dd>
+<dd class=synopsis>        $pg_result = db_update(table, column, value, hash)<dd>
+<dd class=description>
+<em>table</em> is the table containing the row to be updated. The primary key you're updating is the one where <em>column</em> equals <em>value</em>. <em>hash</em> is a hash mapping column name to value for the values to update in the given row.
+
+<pre class=screen>
+db_update ('users', 'user_id', 25, array('first_name'=>'bill',
+                                         'last_name'=>'snow');
+
+/* is equivalent to */
+
+db_send('update users set first_name=?, last_name=? where user_id=?',
+      'bill', 'snow', 25);
+</pre>
+
+
+<p/<>
+This function retuns a PostgreSQL result resource.
+
+<p/>
+This is most useful when the array is </tt>$_POST</tt>, the results of a form submission, with information that you want to stuff into the database. Be careful when handing  <tt>$_POST</tt> directly to a database-- a remote user can provide more column values than you provide room for on your form.  
+<p/>
+
+See also <a href="#insert_or_update">db_insert_or_update</a> and <a href="#insert">db_insert</a>.
+</dd>
+
+
+<dt><a name=insert>db_insert</a></dt>
+
+<dd class=intro></dd>Inserts a row into a table.
+<dd class=synopsis>        $pg_result = db_insert($table, $hash)<dd>
+<dd class=description>
+This function inserts a <em>hash</em> (of key/value pairs) into the given <em>table</em>. The keys of the hash are treated as column names, and the values as the corresponding column values.  The return of db_insert is a PostgreSQL result resource.
+
+<p/>
+This is most useful when the array is </tt>$_POST</tt>, the results of a form submission, with information that you want to stuff into the database. Be careful when handing  <tt>$_POST</tt> directly to a database-- a remote user can provide more column values than you provide room for on your form. 
+
+<pre class=screen>
+$array = array('first_name' => 'Steve', 'user_id' => 5);
+db_insert('users', $array);
+</pre>
+
+<p/>
+See also <a href="#update">db_update</a> and <a href="#insert_or_update">db_insert_or_update</a> for similar hash-driven functions.
+</dd>
+
+
+<dt><a name=insert_or_update>db_insert_or_update</a></dt>
+
+<dd class=intro> Inserts a row into the database if it it's not there already.</dd>
+<dd class=synopsis>        $pg_result = db_insert_or_update($table, $column, $value, $hash); <dd>
+<dd class=description>
+<p/>
+<em>table</em> is the table containing the row to be inserted. The primary key you're updating is the one where <em>column</em> equals <em>value</em>. <em>hash</em> is a hash mapping column name to column value for the values to insert (or update) into the given row.
+
+<p/>
+
+This function implements a commonly-recurring pattern when handling web forms. The problem it addresses is this: imagine you have a form that is supposed to post a new question to a bulletin board. Your form handler obtains a new post ID, and makes a new bulletin board post with it. Now, some user comes along, fills out a new post, and double-clicks the submit button.
+
+<p/>
+
+You now have a duplicate post in your bulletin board, because your form handler has been run twice. The common solution to this is to allocate a new post ID before the user has made their post, when the form was generated, and remember it in the session. Later, in the form handler, the new row would only be inserted once no matter how many times the user submitted the form.
+
+
+<p/>
+This example will look for a post with the given post_id and, if it's not there, create a new one:
+
+<pre>
+db_insert_or_update ('posts', 'post_id', $_SESSION['post_id'],
+                     array('subject' => $subject, 'message' => $message));
+</pre>
+
+<p/>
+This is most useful when the array is </tt>$_POST</tt>, the results of a form submission, with information that you want to stuff into the database. Be careful when handing  <tt>$_POST</tt> directly to a database-- a remote user can provide more column values than you provide room for on your form.
+<p/>
+See also <a href="#update">db_update</a> and <a href="#insert">db_insert</a> for similar hash-driven functions.
+</dd>
+
+
+
+<dt><a name=#last_oid>db_last_oid</a></dt>
+
+<dd class=intro>Retrieves the oid of the row affected by the last transaction</dd>
+<dd class=synopsis>$oid = db_last_oid($result = null)<dd>
+<dd class=description>
+This function retrieves the PostgreSQL row identifier (termed oid)
+for the row most recently modified by the given <em>result</em>.
+
+<p/>
+This function returns the oid  most recently modified (or inserted, or deleted) by the database layer. You can pass in a result resource (such as returned by db_send ) if you want to know specifically what happened on the corresponding query.
+
+<pre class=screen>
+$result = db_send('insert into table (x,y) values (5,6)');
+$last_oid = db_last_oid($result);
+...
+db_send('update table set x=2 where oid=?', $last_oid);
+
+</pre>
+
+The oid is a guaranteed-unique identifier for a single row in a given table. For tables where there is no unique primary key,
+it can be used to refer to a single row.
+
+</dd>
+
+
+
+</dl>
+
+
+
+</div>

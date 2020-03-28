@@ -1,0 +1,12 @@
+$cid = 0+$_GET['contract'];
+
+if ($_GET['sure']==1 || $_GET['unretire']==1) {
+	# delete it
+	db_send('update contracts set retired=? where contract_id=?', 1-(0+$_GET['unretire']), $cid);
+
+	redirect('index.html');
+}
+
+$c = db_row('select short_name from contracts where contract_id=?', $cid);
+
+

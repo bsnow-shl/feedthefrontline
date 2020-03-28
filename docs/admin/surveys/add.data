@@ -1,0 +1,24 @@
+require_once 'form.h';
+
+form_set(array(
+	'administrative_name' => 'text,required',
+	'type' => array('type'=>'menu', 'required' => 1, 'radio' => 1, 'menu' => array(
+			'popquiz' => 'Single question survey',
+            'multiple-choice-exam' => 'Multiple choice quiz',
+			'standard' => 'Multiple-question survey',
+            'multi-page' => 'Multiple-page survey'
+			)),
+	'show_answers_to' => array('type'=>'menu', 'menu' => array(
+		'respondents' => 'Respondents after participating',
+		'admin' => 'Administrators only'
+		), 'required'=>1, 'default'=> $survey['answers_available_to'])
+));
+
+if (form_valid()) {
+  
+  db_send('begin');
+  
+  db_send('insert into surveys(survey_id,answers_available_to, survey_type,short_name,survey_status, created_by) values (?,?,?,?,?,?)', $survey_id = db_newid('surveys'), $show_answers_to, $type, $administrative_name, 'draft', user_id());
+  db_send('commit');
+  redirect(href('edit.html', 'sid', $survey_id));
+}

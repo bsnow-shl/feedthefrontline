@@ -1,0 +1,18 @@
+require_once 'form.h';
+require_once 'i18n.h';
+
+$soid = $_GET['soid'];
+
+$cap = db_value('select capacity from event_session_options where session_option_id=?', $soid);
+
+form_set(array(
+	'room_capacity'=> array('type'=>'integer', 'min' => 0, 'default' => $cap),
+) + i18n_form_fields('Event session option', $soid));
+if (form_valid()) {
+	db_send('begin');
+	db_send('update event_session_options set capacity=? where session_option_id=?', $room_capacity, $soid);
+	i18n_form_handle('Event session option', $soid);
+	db_send('commit');
+	redirect(href('session-edit.html', 'sid',  $_GET['sid']));
+}
+

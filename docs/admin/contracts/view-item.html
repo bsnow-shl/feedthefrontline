@@ -1,0 +1,32 @@
+<!--
+<title>View invoice item# <%= $itemid %></title>
+<subtitle>... charged to <%= a_href('details.html', 'contract', $item['contract_id']) %>>this contract</a></subtitle>
+-->
+
+
+<table class=padded>
+<tr><th>Created by</th><td><%= user_name($item['created_by']) %> (<%= user_email($item['created_by']) %>)</td></tr>
+<tr><th>Item</th><td><%= $item['name'] %></td></tr>
+<tr><th>Amount</th><td><?
+	if ($item['void']) {
+		printf("<strike>%.02f</strike> &mdash; %s", $item['amount']/100.0, $item['void_reason']);
+	} else {
+		printf("%.02f", $item['amount']/100.0);
+} ?></td></tr>
+<tr><th>Billed on invoice</th><td><%= $item['invoice_id'] ? "appears on invoice #".$item['invoice_id'] : 'not invoiced yet' %></td></tr>
+
+</table>
+
+<h3>Audit trail</h3>
+<ul>
+<li>Created: <%= $item['create_date'] %>
+<? foreach ($audit as $a): ?>
+<li><%= date("Y/m/d H:i:s", $a['tstamp']) %>: <%= $a['note'] %>
+<? endforeach ?>
+</ul>
+
+
+<h3>Actions</h3>
+<? form_start();
+   form_end(); ?>
+

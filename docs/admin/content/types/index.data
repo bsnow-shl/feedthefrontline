@@ -1,0 +1,5 @@
+
+$classes = db_multirow("select *
+        from i18n_classes order by class_name
+        ");
+

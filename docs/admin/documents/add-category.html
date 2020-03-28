@@ -1,0 +1,12 @@
+<!--
+<title>Add a new document category</title>
+-->
+
+<div class="section">
+
+<? if (user_has_role('document_category_admin')): ?>
+<div class="section">
+<? form_start('newcategory'); form_end(); ?>
+</div>
+<? endif ?>
+

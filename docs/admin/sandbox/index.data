@@ -1,0 +1,3 @@
+template_disable(); 
+$emails = db_multirow("select to_addr,subject,date_part('epoch', tstamp) as tstamp,email_sandbox_id from email_sandbox order by tstamp desc");
+

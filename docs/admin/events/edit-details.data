@@ -1,0 +1,101 @@
+require_once 'form.h';
+
+$eid = 0+$_GET['eid'];
+if (!$eid) {
+	redirect('index.html');
+}
+
+require_once 'i18n.h';
+require_once 'form.h';
+
+$form = array(
+	'administrative_title' => 'text,required',
+	'max_attendees' => 'integer,required',
+	'tax_scheme' => array('type'=>'menu', 'sql' => 'select tax_scheme_id as key, tax_scheme_name as value from tax_schemes'),
+	'event_start_date' => 'date,required',
+	'event_end_date' => 'date',
+
+	'start_of_registration' => array('type'=>'date', 'default'=>'tomorrow'),
+	'end_of_registration' => 'date,required',
+	'publishing_status'=> array('type'=>'menu','required'=>1,'menu'=>array('unpublished'=>'unpublished','published' => 'published', 'archived' => 'archived')),
+);
+
+$form += i18n_form_fields('Event', $eid);
+
+form_set('details',$form);
+if (form_valid('details')) {
+	if (!$event_end_date) { 
+		$event_end_date = null;
+	}
+	db_send('begin');
+	db_update('events','event_id', $eid, array(
+		'name'=>$administrative_title,
+		'event_start_date'=>$event_start_date,
+		'event_end_date'=>$event_end_date,
+		'max_attendees' => $max_attendees,
+		'tax_scheme_id' => $tax_scheme,
+		'publishing_status' => $publishing_status,
+		'registration_start_date' =>$start_of_registration,
+		'registration_end_date' =>$end_of_registration
+	));
+	i18n_form_handle('Event', $eid);
+
+	# get this into the announcements system if necessary
+	if (config_get('events','post_to_announcements')) {
+		db_send('delete from announcements where system_reference=? and system_pkey=?', 'events', $eid);
+		if ($publishing_status == 'published') {
+			$info_en=i18n_get('Event', $eid, 'en');
+			$info_fr=i18n_get('Event', $eid, 'fr');
+
+			db_send('insert into announcements (system_reference, system_pkey, 
+				announcement_id, 
+				pretty_name_en,
+				caption_en,
+				pretty_name_fr,
+				caption_fr,
+				start_date,
+				end_date,
+	      takedown_date,
+				branch_id,
+				url) values (?,?,?,?,?,?,?,?,?,?,?,?)',
+					'events', $eid,
+					2000000+$eid,
+					$info_en['title'],
+					$info_en['subtitle'],
+					$info_fr['title'],
+					$info_fr['subtitle'],
+					$event_start_date,
+					null,
+		date("Y-m-d", strtotime("5 days", strtotime($event_start_date))),
+					$branch_id,
+					'/events/details.html?event_id='.$eid
+					);
+		}
+	}
+	db_send('commit');
+	redirect(href('edit.html', 'eid', $eid));
+}
+
+
+# that's the form; what's the event details?
+$event = db_row('select * from events where event_id=?', $eid);
+
+$event += i18n_get('Event', $eid);
+$event['attendees'] = event_count_attendees($eid);
+
+
+$_REQUEST += array(
+	'administrative_title' => $event['name'],
+	'event_start_date' => $event['event_start_date'],
+	'event_end_date' => $event['event_end_date'],
+	'start_of_registration' => $event['registration_start_date'],
+	'end_of_registration' => $event['registration_end_date'],
+	'publishing_status' => $event['publishing_status'],
+	'max_attendees' => $event['max_attendees'],
+	'tax_scheme' => $event['tax_scheme_id'],
+);
+
+
+$tax_model = db_value('select tax_scheme_name from tax_schemes where tax_scheme_id=?', $event['tax_scheme_id']);
+
+

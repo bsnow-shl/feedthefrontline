@@ -1,0 +1,23 @@
+<!--
+<title>Trash a photo</title>
+-->
+
+<? form_start(); ?>
+Are you sure you wish to throw this picture in the trash?
+@@yes@@ &nbsp; 
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+@@no@@
+<? form_end(); ?>
+
+<p/>
+
+
+<? include_once 'photos.h'; $photo = $_GET['photo']; ?>
+
+
+<? photo($photo, 'right', array('size'=>'medium')); ?>
+
+
