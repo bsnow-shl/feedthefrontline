@@ -20,11 +20,6 @@ if (isset($_SERVER['HTTP_X_MOZ']) && $_SERVER['HTTP_X_MOZ'] == 'prefetch') {
 
 # debug time!!
 
-if ($_SERVER['DEBUG']) {
-        require_once 'FirePHPCore/FirePHP.class.php';
-        $firephp = FirePHP::getInstance(true);
-        $firephp->registerErrorHandler($throwErrorExceptions=false);
-} 
 
 # set up profiling
 if ($_REQUEST['phpprofile']) {

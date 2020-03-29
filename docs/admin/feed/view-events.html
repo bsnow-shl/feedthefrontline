@@ -3,17 +3,3 @@
 -->
 
 <? print_a($events); ?>
-<?
-if (empty($events)) {
-    print "No upcoming events found.\n";
-} else {
-    print "Upcoming events:\n";
-    foreach ($events as $event) {
-        $start = $event->start->dateTime;
-        if (empty($start)) {
-            $start = $event->start->date;
-        }
-        printf("%s (%s)\n", $event->getSummary(), $start);
-    }
-}
-?>

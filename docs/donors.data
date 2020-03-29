@@ -1,0 +1,22 @@
+
+$hospitals = db_multirow("select unit_id,country,city,hospital_name,unit_name from hospital_units
+				where status='accepting'
+				order by country, city, hospital_name, unit_name");
+
+
+require_once 'form.h';
+
+$hform = array();
+
+foreach($hospitals as $r) {
+	$key = $r['country'].' '.$r['city'];
+	if (!$hform[$key]) {
+		$hform[$key] = array('label'=>$key);
+        }
+	$hform[$key]['menu'][$r['unit_id']] = $r['hospital_name'].' '.$r['unit_name'];
+}
+
+
+form_set(array(
+	'hospital' => array('type'=>'menu', 'menu' => $hform)
+));

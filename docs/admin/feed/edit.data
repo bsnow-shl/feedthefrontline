@@ -5,7 +5,7 @@ $pkey = $_GET['id'];
 $row = db_row('select * from hospital_units where unit_id=?', $pkey);
 
 form_set('default', array(
-  'status' => array('type' =>'menu', 'menu'=>array('new','accepting','closed'), 'required'=>1),
+  'status' => array('type' =>'menu', 'menu'=>array('new'=>'new','accepting'=>'accepting','closed'=>'closed'), 'required'=>1),
 
   'hospital_name' => 'text,required',
   'unit_name' => 'text,required',
@@ -14,10 +14,7 @@ form_set('default', array(
   'contact_email' => 'email',
   'contact_phone' => array('type'=>'text','hint'=>'include country code'),
   'delivery_instructions' => 'bigtext,required',
-  'food_allergies' => 'bigtext',
-  'calendar_token' => 'text,required',
-  'calendar_iframe_url' => 'text,required',
-  'calendar_public_url' => 'text,required'
+  'food_allergies' => 'bigtext'
 ), $row);
 if (form_valid()) {
   db_update('hospital_units', 'unit_id', $pkey, array(
@@ -27,10 +24,7 @@ if (form_valid()) {
     'delivery_instructions' => $delivery_instructions,
     'food_allergies'        => $food_allergies,
     'contact_email'         => $contact_email,
-    'contact_phone'         => $contact_phone,
-    'calendar_token'        => $calendar_token,
-    'calendar_iframe_url'        => $calendar_iframe_url,
-    'calendar_public_url'        => $calendar_public_url
+    'contact_phone'         => $contact_phone
   ));
 }
 
