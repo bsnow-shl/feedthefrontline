@@ -20,11 +20,8 @@ create table hospital_units (
 	food_allergies text,
 
 	contact_email text,
-	contact_phone text,
+	contact_phone text
 
-	calendar_token text,
-	calendar_iframe_url text,
-	calendar_public_url text
 );
 
 create table donations (
@@ -35,8 +32,7 @@ create table donations (
 	timeslot text,
 
 	donor text,
-
-        calendar_token text
+        comments text
 );
 
 
