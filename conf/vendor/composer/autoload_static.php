@@ -86,6 +86,13 @@ class ComposerStaticInitda49cab3e71f2af05719097a7d119784
     );
 
     public static $prefixesPsr0 = array (
+        'd' => 
+        array (
+            'donatj' => 
+            array (
+                0 => __DIR__ . '/..' . '/donatj/simplecalendar/lib',
+            ),
+        ),
         'G' => 
         array (
             'Google_Service_' => 
