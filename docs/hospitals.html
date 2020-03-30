@@ -100,24 +100,14 @@ if(typeof Muse == "undefined") window.Muse = {}; window.Muse.assets = {"required
           <img class="block temp_no_img_src" id="u12436_img" data-orig-src="images/ftfl_logo_social.png?crc=4269895585" alt="" width="130" height="130" src="images/blank.gif?crc=4208392903"/>
          </div>
          <div class="clearfix grpelem shared_content" id="u12435-23" data-content-guid="u12435-23_content"><!-- content -->
-          <p id="u12435-2">Okay, here's what we need from you:</p>
-          <p id="u12435-3">&nbsp;</p>
-          <p id="u12435-5">Your hospital and unit, how many people you're looking to feed, and any instructions you want to give. If you have any other requests, there's space for that too.</p>
-          <p id="u12435-6">&nbsp;</p>
-          <p id="u12435-8">Example:</p>
-          <p id="u12435-9">&nbsp;</p>
-          <ul class="list0 nls-None" id="u12435-12">
-           <li id="u12435-11">Cityville General Hospital, Critical Care Unit</li>
-          </ul>
-          <ul class="list0 nls-None" id="u12435-15">
-           <li id="u12435-14">Cityville, Ontario</li>
-          </ul>
-          <ul class="list0 nls-None" id="u12435-18">
-           <li id="u12435-17">Go around the back for delivery, tell security who you are, and ask them to let you deliver to the purple nurse's station</li>
-          </ul>
-          <ul class="list0 nls-None" id="u12435-21">
-           <li id="u12435-20">We prefer gluten free, sugar free, vegan, keto, raw food.</li>
-          </ul>
+
+	   <h1>Words and other words</h1>
+	   <br/>
+	   <? if (!$submitted): ?>
+  	   <? form_start(); form_end(); ?>
+	   <? else: ?>
+	   <?= $hospital_name ?> has been added to the calendar.  Check it out on the <a hef="donors.html">donors</a> page.
+	   <? endif ?>
          </div>
         </div>
        </div>

@@ -1,0 +1,32 @@
+
+require_once 'form.h';
+
+//add a hospital
+form_set(array(
+  'hospital_name' => array('type'=>'text','extra'=>'style="border:1px solid black"'),
+  'unit_name' => array('type'=>'text','extra'=>'style="border:1px solid black"'),
+  'city' => array('type'=>'text','extra'=>'style="border:1px solid black"'),
+  'country' => array('type'=>'menu', 'required' => 1, 'default'=>'ca',
+		'sql'=>'select iso_code as key, name_en as value from countries order by display_order'),
+  'delivery_instructions' => array('type'=>'bigtext','extra'=>'style="border:1px solid black"'),
+  'food_allergies' => array('type'=>'bigtext','extra'=>'style="border:1px solid black"'),
+  'contact_email' => array('type'=>'email','extra'=>'style="border:1px solid black"'),
+  'contact_phone' => array('type'=>'text','extra'=>'style="border:1px solid black"')
+));
+
+
+if (form_valid()) {
+  db_insert_hash('hospital_units', array(
+    'hospital_name' => $hospital_name,  'unit_name'=>$unit_name,
+    'status' => 'accepting',
+    'city' => $city,                    'country' => $country,
+    'delivery_instructions' => $delivery_instructions,
+    'food_allergies'        => $food_allergies,
+    'contact_email'         => $contact_email,
+    'contact_phone'         => $contact_phone
+  ));
+  
+  $submitted = true;
+}
+
+
